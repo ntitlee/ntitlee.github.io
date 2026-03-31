@@ -2,12 +2,12 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>LOA NTI Dashboard - DB Integrated</title>
+    <title>LOA NTI Dashboard - Gem Value Pro</title>
     <style>
         :root { 
             --bg: #121212; --card-bg: #1e1e1e; --border: #333;
             --text: #e0e0e0; --primary: #4285f4; --danger: #ff4d4f;
-            --highlight: #ffcc00; /* 최상위 레벨 노란색 */
+            --highlight: #ffcc00; 
         }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
         .container { max-width: 1850px; margin: 0 auto; }
@@ -16,7 +16,6 @@
         .tab-btn { padding: 10px 20px; cursor: pointer; border: none; background: #2a2a2a; color: #888; border-radius: 8px 8px 0 0; font-weight: 700; transition: 0.3s; }
         .tab-btn.active { background: var(--primary); color: white; }
 
-        /* 리스트 레이아웃 (정렬 순서 반영) */
         .list-header, .list-row { 
             display: grid; 
             grid-template-columns: 180px 100px 100px 140px 180px 280px 250px 1fr; 
@@ -26,12 +25,11 @@
         .list-row { background: var(--card-bg); padding: 15px 12px; border-bottom: 1px solid var(--border); transition: transform 0.2s; }
         .list-row:hover { background: #2a2a2a; }
 
-        /* 최상위 레벨 캐릭터 강조 */
         .max-level-row { border: 2px solid var(--highlight) !important; box-shadow: inset 0 0 10px rgba(255, 204, 0, 0.1); }
 
         .char-info { text-align: left; padding-left: 10px; }
         .char-name { font-weight: 800; color: #fff; display: block; }
-        .level { font-weight: 800; color: #fff; } /* 파란색 제거 */
+        .level { font-weight: 800; color: #fff; } 
         
         .ap-box, .ag-box, .gem-box { text-align: left; line-height: 1.6; }
         .ag-group { margin-bottom: 6px; display: block; }
@@ -40,12 +38,13 @@
         
         .loading { text-align: center; padding: 50px; color: #666; font-weight: 700; }
         .gem-text { font-size: 0.8rem; color: #aaa; }
+        .gold-text { color: #ffcc00; font-size: 0.85rem; margin-top: 6px; font-weight: 800; display: block; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 style="color: #fff; margin-bottom: 25px;">📊 LOA NTI Dashboard <span style="font-size: 1rem; color: #666;">(DB Sync Mode)</span></h1>
+    <h1 style="color: #fff; margin-bottom: 25px;">📊 LOA NTI Dashboard <span style="font-size: 1rem; color: #666;">(Gem Value Sync)</span></h1>
     <div class="tabs" id="tabMenu"><button class="tab-btn active" onclick="openTab(event, 'NTI')">NTI 전체</button></div>
     <div id="tabContents"></div>
 </div>
@@ -54,8 +53,6 @@
     const MEMBERS = { "기태": "로우프", "동근": "저녁별빛", "민구": "그저애송이", "민기": "minki", "석준": "famousamos", "준영": "DD키리", "찬엽": "탑소라카" };
     const API_KEY = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyIsImtpZCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyJ9.eyJpc3MiOiJodHRwczovL2x1ZHkuZ2FtZS5vbnN0b3ZlLmNvbSIsImF1ZCI6Imh0dHBzOi8vbHVkeS5nYW1lLm9uc3RvdmUuY29tL3Jlc291cmNlcyIsImNsaWVudF9pZCI6IjEwMDAwMDAwMDA1OTA2ODYifQ.oGh7TNKFkdANL7nZJbKMAqjmQBO_EauyWaRDuq0QJQ2l0sABfpTTKvYEdkixZ8hZqW5iVN_mDIsYdI6pcnIJ-w3j7EFTI8GKdUNo-QVn412LALUhx_gXd-a2WekBYtDgjZAaAfmjqal63JjfoXdJYz5mNRZX9bqkcpuX7gkSDU9bi7Bvik4gmT4kEt6WJ1sOnch8Bbi3bDGLUoXEbRjWiebszAdo2qmsg6sXu3Ah26PhMsosIzkPaW0y5wBDnSOQtt2N4sEFNO0jiwzfaygOO4pu6jQFzTsUjL4xNBKtqpB1HS5gpxadAwJD1umBEMaF-BQZEu3pdu9Ja8MvDpqfUg"; 
     const BASE_URL = "https://developer-lostark.game.onstove.com";
-    
-    // ⚠️ 배포하신 구글 앱스 스크립트 웹 앱 URL을 여기에 넣으세요
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwGkUNXR8uGB_ouu9qsrDKt7ws6stnmCVA0Hs-sF9xd0fhMwcBtBxeQtGwrPzglUxiLmw/exec"; 
 
     function init() {
@@ -68,31 +65,22 @@
             content.style.display = "none";
             content.innerHTML = `
                 <div class="list-header">
-                    <div>캐릭터</div><div>서버</div><div>레벨</div><div>전투력</div><div>최대 전투력(DB)</div><div>아크패시브</div><div>아크그리드</div><div>보석 현황</div>
+                    <div>캐릭터</div><div>서버</div><div>레벨</div><div>전투력</div><div>최대 전투력(DB)</div><div>아크패시브</div><div>아크그리드</div><div>보석 가치 (거래가능)</div>
                 </div>
                 <div id="list-${name}"></div>`;
             container.appendChild(content);
         });
     }
 
-    // [DB 연동: 구글 시트로 데이터 전송 및 가져오기]
     async function syncCombatPower(charName, currentCP) {
-        if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL === "YOUR_APPS_SCRIPT_URL_HERE") return "URL 미설정";
+        if (!GAS_WEB_APP_URL) return null;
         try {
-            // 1. 현재 값 전송 (POST)
-            await fetch(GAS_WEB_APP_URL, {
-                method: "POST",
-                mode: "no-cors", // CORS 이슈 방지
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ charName, currentCP })
-            });
-
-            // 2. 전체 DB 조회 (GET) - 실제 시트에 저장된 최대값 확인
-            const response = await fetch(GAS_WEB_APP_URL);
-            const dbData = await response.json();
+            await fetch(GAS_WEB_APP_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ charName, currentCP }) });
+            const res = await fetch(GAS_WEB_APP_URL);
+            const dbData = await res.json();
             const row = dbData.find(r => r[0] === charName);
-            return row ? { val: row[1], time: row[2] } : { val: currentCP, time: "N/A" };
-        } catch (e) { return "에러"; }
+            return row ? { val: row[1], time: row[2] } : null;
+        } catch (e) { return null; }
     }
 
     async function openTab(evt, tabName) {
@@ -105,21 +93,27 @@
 
     async function fetchListData(mName, cName) {
         const listContainer = document.getElementById(`list-${mName}`);
-        listContainer.innerHTML = '<div class="loading">📡 데이터를 동기화하는 중...</div>';
-        const headers = { "accept": "application/json", "Authorization": API_KEY };
+        listContainer.innerHTML = '<div class="loading">📡 시세 정보 및 캐릭터 동기화 중...</div>';
+        const headers = { "accept": "application/json", "Authorization": API_KEY, "Content-Type": "application/json" };
 
         try {
+            // 1. 보석 시세 조회
+            const marketRes = await fetch(`${BASE_URL}/markets/items`, {
+                method: 'POST', headers,
+                body: JSON.stringify({ CategoryCode: 210000, ItemTier: null, PageNo: 1, SortCondition: "ASC" })
+            });
+            const priceData = await marketRes.json();
+            const prices = {};
+            priceData.Items?.forEach(item => { prices[item.Name] = item.CurrentMinPrice; });
+
             const sibRes = await fetch(`${BASE_URL}/characters/${encodeURIComponent(cName)}/siblings`, { headers });
             const siblings = await sibRes.json();
             
-            // 1. 아이템 레벨 기준 내림차순 정렬
             const targets = siblings
                 .filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
                 .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
 
-            if (targets.length === 0) { listContainer.innerHTML = "조회 대상이 없습니다."; return; }
-
-            const maxLevelValue = targets[0].ItemAvgLevel; // 최상위 레벨 값 추출
+            const maxLevelValue = targets[0].ItemAvgLevel; 
 
             listContainer.innerHTML = "";
             for (const char of targets) {
@@ -135,10 +129,9 @@
                 const agData = await agRes.json();
                 const gData = await gRes.json();
 
-                // 2. 전투력 및 시트 동기화
                 let cpValue = parseInt(String(pData?.CombatPower || "0").replace(/,/g, ""));
                 
-                // 3. 아크패시브 (5R 이하 빨간색, 볼드 제거)
+                // 2. 아크패시브/그리드 처리 (요청 조건 반영)
                 let apHtml = "비활성화";
                 if (apData?.Points) {
                     apHtml = apData.Points.map(p => {
@@ -149,7 +142,6 @@
                     }).join(" / ");
                 }
 
-                // 4. 아크그리드 (14P 미만 빨간색, 줄바꿈)
                 let agOrder = []; let agChaos = [];
                 if (agData?.Slots) {
                     agData.Slots.forEach(s => {
@@ -160,20 +152,34 @@
                 }
                 const agHtml = `<div class="ag-group">${agOrder.join("")}</div><div class="ag-group">${agChaos.join("")}</div>`;
 
-                // 5. 보석 (귀속 구분 상세 표기)
+                // 3. 보석 가치 정밀 계산 (광휘 분별 로직 포함)
                 let gemSummary = "없음";
+                let totalGemGold = 0;
                 if (gData?.Gems) {
                     const gemMap = {};
                     gData.Gems.forEach(g => {
-                        let type = g.Name.includes("겁화") ? "겁화" : g.Name.includes("작열") ? "작열" : g.Name.includes("광휘") ? "광휘" : "보석";
-                        let bind = g.Name.includes("귀속") ? "(귀속)" : "";
-                        const key = `${g.Level}레벨 ${type}${bind}`;
+                        const isBind = g.Name.includes("귀속");
+                        let type = "";
+                        let marketName = g.Name.replace(/\(귀속\)/g, "").trim();
+
+                        if (g.Name.includes("광휘")) {
+                            const effectDesc = g.Effects?.[0]?.Description || "";
+                            if (effectDesc.includes("피해")) { type = "광휘(겁)"; marketName = marketName.includes("겁화") ? marketName : marketName + " (피해 증가)"; }
+                            else if (effectDesc.includes("재사용")) { type = "광휘(작)"; marketName = marketName.includes("작열") ? marketName : marketName + " (재사용 대기시간 감소)"; }
+                            else type = "광휘";
+                        } else {
+                            type = g.Name.includes("겁화") ? "겁화" : g.Name.includes("작열") ? "작열" : "보석";
+                        }
+
+                        let bindTag = isBind ? "(귀속)" : "";
+                        const key = `${g.Level}레벨 ${type}${bindTag}`;
                         gemMap[key] = (gemMap[key] || 0) + 1;
+
+                        if (!isBind && prices[marketName]) totalGemGold += prices[marketName];
                     });
                     gemSummary = Object.entries(gemMap).sort((a,b) => parseInt(b[0]) - parseInt(a[0])).map(([n, c]) => `${n} ${c}개`).join(", ");
                 }
 
-                // 행 생성 (최상위 레벨 체크)
                 const row = document.createElement('div');
                 row.className = 'list-row';
                 if (char.ItemAvgLevel === maxLevelValue) row.classList.add('max-level-row');
@@ -184,40 +190,26 @@
                     <div>${char.ServerName}</div>
                     <div class="level">${char.ItemAvgLevel}</div>
                     <div style="font-weight:700;">${cpValue.toLocaleString()}</div>
-                    <div id="db-cp-${charId}" style="font-size:0.8rem; color:#aaa;">동기화 중...</div>
+                    <div id="db-cp-${charId}" style="font-size:0.8rem; color:#aaa;">${cpValue.toLocaleString()}</div>
                     <div class="ap-box">${apHtml}</div>
                     <div class="ag-box">${agHtml}</div>
-                    <div class="gem-box"><div class="gem-text">${gemSummary}</div></div>
+                    <div class="gem-box">
+                        <div class="gem-text">${gemSummary}</div>
+                        <span class="gold-text">💰 가치: ${totalGemGold.toLocaleString()} G</span>
+                    </div>
                 `;
                 listContainer.appendChild(row);
 
-// 1. [즉시 표시] DB 응답 전 현재 전투력을 먼저 출력
-                const dbEl = document.getElementById(`db-cp-${charId}`);
-                dbEl.innerText = cpValue.toLocaleString(); 
-                dbEl.title = "데이터 동기화 중..."; // 마우스 올렸을 때 초기 메시지
-
-                // 2. [DB 동기화 및 날짜 반영]
                 syncCombatPower(char.CharacterName, cpValue).then(res => {
+                    const dbEl = document.getElementById(`db-cp-${charId}`);
                     if (res && res.val) {
-                        const storedMax = parseInt(res.val);
-                        // 시트 값이 현재보다 크거나 같으면 시트의 시간 정보를 사용
-                        if (storedMax >= cpValue) {
-                            dbEl.innerText = storedMax.toLocaleString();
-                            dbEl.title = `최종 갱신: ${res.time}`; // 마우스 올리면 날짜/시간 출력!
-                        } else {
-                            // 현재값이 더 높아서 방금 갱신된 경우
-                            dbEl.innerText = cpValue.toLocaleString();
-                            const now = new Date();
-                            const newTime = `${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-                            dbEl.title = `방금 갱신됨: ${newTime}`;
-                        }
+                        const finalMax = Math.max(cpValue, parseInt(res.val));
+                        dbEl.innerText = finalMax.toLocaleString();
+                        dbEl.title = `최종 갱신: ${res.time}`;
                     }
-                }).catch(err => {
-                    console.error("DB 조회 실패:", err);
-                    dbEl.title = "DB 연결 실패";
                 });
             }
-        } catch (e) { listContainer.innerHTML = "데이터 로딩 에러"; console.error(e); }
+        } catch (e) { listContainer.innerHTML = "데이터 로딩 에러"; }
     }
     window.onload = init;
 </script>
