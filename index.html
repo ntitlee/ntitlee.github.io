@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>LOA NTI Dashboard - Gem Value Pro</title>
+    <title>LOA NTI Dashboard - Final Clean UI</title>
     <style>
         :root { 
             --bg: #121212; --card-bg: #1e1e1e; --border: #333;
@@ -31,20 +31,38 @@
         .char-name { font-weight: 800; color: #fff; display: block; }
         .level { font-weight: 800; color: #fff; } 
         
-        .ap-box, .ag-box, .gem-box { text-align: left; line-height: 1.6; }
+        .ap-box, .ag-box { text-align: left; line-height: 1.6; }
         .ag-group { margin-bottom: 6px; display: block; }
         .ag-slot { display: inline-flex; align-items: center; margin-right: 12px; }
         .ag-icon { width: 15px; height: 15px; margin-right: 4px; border-radius: 2px; }
         
+        /* 보석 박스 레이아웃 최적화 */
+        .gem-box { 
+            position: relative; 
+            text-align: left; 
+            min-height: 60px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: flex-start;
+        }
+        .gem-text { font-size: 0.8rem; color: #aaa; line-height: 1.4; padding-bottom: 15px; }
+        .gold-text { 
+            position: absolute; 
+            bottom: -5px; 
+            right: 0; 
+            color: #ffcc00; 
+            font-size: 0.9rem; 
+            font-weight: 800; 
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+        
         .loading { text-align: center; padding: 50px; color: #666; font-weight: 700; }
-        .gem-text { font-size: 0.8rem; color: #aaa; }
-        .gold-text { color: #ffcc00; font-size: 0.85rem; margin-top: 6px; font-weight: 800; display: block; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1 style="color: #fff; margin-bottom: 25px;">📊 LOA NTI Dashboard <span style="font-size: 1rem; color: #666;">(Gem Value Sync)</span></h1>
+    <h1 style="color: #fff; margin-bottom: 25px;">📊 LOA NTI Dashboard <span style="font-size: 1rem; color: #666;">(Refined UI)</span></h1>
     <div class="tabs" id="tabMenu"><button class="tab-btn active" onclick="openTab(event, 'NTI')">NTI 전체</button></div>
     <div id="tabContents"></div>
 </div>
@@ -55,21 +73,30 @@
     const BASE_URL = "https://developer-lostark.game.onstove.com";
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwGkUNXR8uGB_ouu9qsrDKt7ws6stnmCVA0Hs-sF9xd0fhMwcBtBxeQtGwrPzglUxiLmw/exec"; 
 
-    function init() {
-        const menu = document.getElementById('tabMenu');
-        const container = document.getElementById('tabContents');
-        Object.keys(MEMBERS).forEach(name => {
-            const btn = document.createElement('button'); btn.className = 'tab-btn'; btn.innerText = name;
-            btn.onclick = (e) => openTab(e, name); menu.appendChild(btn);
-            const content = document.createElement('div'); content.id = name; content.className = 'content';
-            content.style.display = "none";
-            content.innerHTML = `
-                <div class="list-header">
-                    <div>캐릭터</div><div>서버</div><div>레벨</div><div>전투력</div><div>최대 전투력(DB)</div><div>아크패시브</div><div>아크그리드</div><div>보석 가치 (거래가능)</div>
-                </div>
-                <div id="list-${name}"></div>`;
-            container.appendChild(content);
-        });
+    let globalPrices = {};
+
+    async function updateGemPrices() {
+        const types = ["겁화", "작열", "광휘"];
+        const levels = [7, 8, 9, 10]; // 주요 레벨 위주 조회
+        const headers = { "accept": "application/json", "Authorization": API_KEY, "Content-Type": "application/json" };
+
+        for (const type of types) {
+            for (const level of levels) {
+                try {
+                    const itemName = type === "광휘" ? `${level}레벨 광휘의 보석` : `${level}레벨 ${type}의 보석`;
+                    const res = await fetch(`${BASE_URL}/auctions/items`, {
+                        method: 'POST', headers,
+                        body: JSON.stringify({ "CategoryCode": 210000, "ItemName": itemName, "PageNo": 1, "Sort": "BUY_PRICE" })
+                    });
+                    const data = await res.json();
+                    if (data.Items && data.Items.length > 0) {
+                        const bestItem = data.Items.find(i => i.AuctionInfo && i.AuctionInfo.BuyPrice > 0);
+                        if (bestItem) globalPrices[`${level}레벨 ${type}`] = bestItem.AuctionInfo.BuyPrice;
+                    }
+                    await new Promise(r => setTimeout(r, 100));
+                } catch (e) { console.error(e); }
+            }
+        }
     }
 
     async function syncCombatPower(charName, currentCP) {
@@ -78,8 +105,7 @@
             await fetch(GAS_WEB_APP_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ charName, currentCP }) });
             const res = await fetch(GAS_WEB_APP_URL);
             const dbData = await res.json();
-            const row = dbData.find(r => r[0] === charName);
-            return row ? { val: row[1], time: row[2] } : null;
+            return dbData.find(r => r[0] === charName) || null;
         } catch (e) { return null; }
     }
 
@@ -93,27 +119,16 @@
 
     async function fetchListData(mName, cName) {
         const listContainer = document.getElementById(`list-${mName}`);
-        listContainer.innerHTML = '<div class="loading">📡 시세 정보 및 캐릭터 동기화 중...</div>';
-        const headers = { "accept": "application/json", "Authorization": API_KEY, "Content-Type": "application/json" };
+        listContainer.innerHTML = '<div class="loading">📡 시세 동기화 및 데이터 로딩 중...</div>';
+        
+        if (Object.keys(globalPrices).length === 0) await updateGemPrices();
 
+        const headers = { "accept": "application/json", "Authorization": API_KEY };
         try {
-            // 1. 보석 시세 조회
-            const marketRes = await fetch(`${BASE_URL}/markets/items`, {
-                method: 'POST', headers,
-                body: JSON.stringify({ CategoryCode: 210000, ItemTier: null, PageNo: 1, SortCondition: "ASC" })
-            });
-            const priceData = await marketRes.json();
-            const prices = {};
-            priceData.Items?.forEach(item => { prices[item.Name] = item.CurrentMinPrice; });
-
             const sibRes = await fetch(`${BASE_URL}/characters/${encodeURIComponent(cName)}/siblings`, { headers });
             const siblings = await sibRes.json();
-            
-            const targets = siblings
-                .filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
-                .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
-
-            const maxLevelValue = targets[0].ItemAvgLevel; 
+            const targets = siblings.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
+                                    .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
 
             listContainer.innerHTML = "";
             for (const char of targets) {
@@ -128,88 +143,80 @@
                 const apData = await apRes.json();
                 const agData = await agRes.json();
                 const gData = await gRes.json();
-
                 let cpValue = parseInt(String(pData?.CombatPower || "0").replace(/,/g, ""));
-                
-                // 2. 아크패시브/그리드 처리 (요청 조건 반영)
-                let apHtml = "비활성화";
+
+                // 아크패시브
+                let apHtml = "비활성";
                 if (apData?.Points) {
                     apHtml = apData.Points.map(p => {
                         let fName = p.Name.startsWith("진") ? "진화" : p.Name.startsWith("깨") ? "깨달음" : "도약";
                         const r = parseInt((p.Description || "").match(/(\d+)랭크/)?.[1] || 0);
-                        let style = r <= 5 ? `color:var(--danger);` : `color:#fff;`;
-                        return `<span style="${style}">${fName} ${r}R</span>`;
+                        return `<span style="${r <= 5 ? 'color:var(--danger)' : 'color:#fff'}">${fName} ${r}R</span>`;
                     }).join(" / ");
                 }
 
+                // 아크그리드
                 let agOrder = []; let agChaos = [];
                 if (agData?.Slots) {
                     agData.Slots.forEach(s => {
-                        let style = s.Point < 14 ? `color:var(--danger);` : `color:#fff;`;
-                        const slot = `<div class="ag-slot"><img src="${s.Icon}" class="ag-icon"><span style="${style}; font-weight:800;">${s.Point}P</span></div>`;
+                        const slot = `<div class="ag-slot"><img src="${s.Icon}" class="ag-icon"><span style="${s.Point < 14 ? 'color:var(--danger)' : 'color:#fff'}; font-weight:800;">${s.Point}P</span></div>`;
                         if (s.Name.includes("혼돈")) agChaos.push(slot); else agOrder.push(slot);
                     });
                 }
                 const agHtml = `<div class="ag-group">${agOrder.join("")}</div><div class="ag-group">${agChaos.join("")}</div>`;
 
-                // 3. 보석 가치 정밀 계산 (광휘 분별 로직 포함)
+                // 보석 가치 계산
                 let gemSummary = "없음";
                 let totalGemGold = 0;
                 if (gData?.Gems) {
                     const gemMap = {};
                     gData.Gems.forEach(g => {
                         const isBind = g.Name.includes("귀속");
-                        let type = "";
-                        let marketName = g.Name.replace(/\(귀속\)/g, "").trim();
-
-                        if (g.Name.includes("광휘")) {
-                            const effectDesc = g.Effects?.[0]?.Description || "";
-                            if (effectDesc.includes("피해")) { type = "광휘(겁)"; marketName = marketName.includes("겁화") ? marketName : marketName + " (피해 증가)"; }
-                            else if (effectDesc.includes("재사용")) { type = "광휘(작)"; marketName = marketName.includes("작열") ? marketName : marketName + " (재사용 대기시간 감소)"; }
-                            else type = "광휘";
-                        } else {
-                            type = g.Name.includes("겁화") ? "겁화" : g.Name.includes("작열") ? "작열" : "보석";
-                        }
-
-                        let bindTag = isBind ? "(귀속)" : "";
-                        const key = `${g.Level}레벨 ${type}${bindTag}`;
+                        let type = g.Name.includes("겁화") ? "겁화" : g.Name.includes("작열") ? "작열" : g.Name.includes("광휘") ? "광휘" : "보석";
+                        const key = `${g.Level}레벨 ${type}${isBind ? "(귀속)" : ""}`;
                         gemMap[key] = (gemMap[key] || 0) + 1;
-
-                        if (!isBind && prices[marketName]) totalGemGold += prices[marketName];
+                        if (!isBind && globalPrices[`${g.Level}레벨 ${type}`]) totalGemGold += globalPrices[`${g.Level}레벨 ${type}`];
                     });
                     gemSummary = Object.entries(gemMap).sort((a,b) => parseInt(b[0]) - parseInt(a[0])).map(([n, c]) => `${n} ${c}개`).join(", ");
                 }
 
                 const row = document.createElement('div');
                 row.className = 'list-row';
-                if (char.ItemAvgLevel === maxLevelValue) row.classList.add('max-level-row');
-
+                if (char.ItemAvgLevel === targets[0].ItemAvgLevel) row.classList.add('max-level-row');
+                
                 const charId = char.CharacterName.replace(/\s/g, '');
                 row.innerHTML = `
                     <div class="char-info"><span class="char-name">${char.CharacterName}</span><span style="font-size:0.75rem; color:#888;">${char.CharacterClassName}</span></div>
-                    <div>${char.ServerName}</div>
-                    <div class="level">${char.ItemAvgLevel}</div>
+                    <div>${char.ServerName}</div><div class="level">${char.ItemAvgLevel}</div>
                     <div style="font-weight:700;">${cpValue.toLocaleString()}</div>
                     <div id="db-cp-${charId}" style="font-size:0.8rem; color:#aaa;">${cpValue.toLocaleString()}</div>
-                    <div class="ap-box">${apHtml}</div>
-                    <div class="ag-box">${agHtml}</div>
+                    <div class="ap-box">${apHtml}</div><div class="ag-box">${agHtml}</div>
                     <div class="gem-box">
                         <div class="gem-text">${gemSummary}</div>
-                        <span class="gold-text">💰 가치: ${totalGemGold.toLocaleString()} G</span>
+                        <div class="gold-text">${totalGemGold.toLocaleString()} G</div>
                     </div>
                 `;
                 listContainer.appendChild(row);
 
                 syncCombatPower(char.CharacterName, cpValue).then(res => {
                     const dbEl = document.getElementById(`db-cp-${charId}`);
-                    if (res && res.val) {
-                        const finalMax = Math.max(cpValue, parseInt(res.val));
-                        dbEl.innerText = finalMax.toLocaleString();
-                        dbEl.title = `최종 갱신: ${res.time}`;
-                    }
+                    if (res) { dbEl.innerText = Math.max(cpValue, res[1]).toLocaleString(); dbEl.title = "최종: " + res[2]; }
                 });
             }
-        } catch (e) { listContainer.innerHTML = "데이터 로딩 에러"; }
+        } catch (e) { console.error(e); }
+    }
+
+    async function init() {
+        const menu = document.getElementById('tabMenu');
+        const container = document.getElementById('tabContents');
+        Object.keys(MEMBERS).forEach(name => {
+            const btn = document.createElement('button'); btn.className = 'tab-btn'; btn.innerText = name;
+            btn.onclick = (e) => openTab(e, name); menu.appendChild(btn);
+            const content = document.createElement('div'); content.id = name; content.className = 'content';
+            content.style.display = "none";
+            content.innerHTML = `<div class="list-header"><div>캐릭터</div><div>서버</div><div>레벨</div><div>전투력</div><div>최대 전투력(DB)</div><div>아크패시브</div><div>아크그리드</div><div>보석 현황</div></div><div id="list-${name}"></div>`;
+            container.appendChild(content);
+        });
     }
     window.onload = init;
 </script>
