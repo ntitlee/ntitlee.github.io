@@ -191,15 +191,30 @@
                 `;
                 listContainer.appendChild(row);
 
-                // 시트 데이터 호출 및 업데이트
+// 1. [즉시 표시] DB 응답 전 현재 전투력을 먼저 출력
+                const dbEl = document.getElementById(`db-cp-${charId}`);
+                dbEl.innerText = cpValue.toLocaleString(); 
+                dbEl.title = "데이터 동기화 중..."; // 마우스 올렸을 때 초기 메시지
+
+                // 2. [DB 동기화 및 날짜 반영]
                 syncCombatPower(char.CharacterName, cpValue).then(res => {
-                    const dbEl = document.getElementById(`db-cp-${charId}`);
-                    if (res.val) {
-                        dbEl.innerText = res.val.toLocaleString();
-                        dbEl.title = `최종 갱신: ${res.time}`;
-                    } else {
-                        dbEl.innerText = "-";
+                    if (res && res.val) {
+                        const storedMax = parseInt(res.val);
+                        // 시트 값이 현재보다 크거나 같으면 시트의 시간 정보를 사용
+                        if (storedMax >= cpValue) {
+                            dbEl.innerText = storedMax.toLocaleString();
+                            dbEl.title = `최종 갱신: ${res.time}`; // 마우스 올리면 날짜/시간 출력!
+                        } else {
+                            // 현재값이 더 높아서 방금 갱신된 경우
+                            dbEl.innerText = cpValue.toLocaleString();
+                            const now = new Date();
+                            const newTime = `${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                            dbEl.title = `방금 갱신됨: ${newTime}`;
+                        }
                     }
+                }).catch(err => {
+                    console.error("DB 조회 실패:", err);
+                    dbEl.title = "DB 연결 실패";
                 });
             }
         } catch (e) { listContainer.innerHTML = "데이터 로딩 에러"; console.error(e); }
