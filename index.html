@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>LOA NTI Dashboard - Gem Price Fixed</title>
+    <title>LOA NTI Dashboard - Final Fix</title>
     <style>
         :root { 
             --bg: #121212; --card-bg: #1e1e1e; --border: #333;
@@ -43,7 +43,7 @@
 <body>
 
 <div class="container">
-    <h1 style="color: #fff; margin-bottom: 25px;">📊 LOA NTI Dashboard <span style="font-size: 0.9rem; color: #666;">(Gem Logic Fixed)</span></h1>
+    <h1 style="color: #fff; margin-bottom: 25px;">📊 LOA NTI Dashboard <span style="font-size: 0.9rem; color: #666;">(Gem Price Master)</span></h1>
     <div id="tabMenu" class="tabs"></div>
     <div id="tabContents"></div>
 </div>
@@ -61,7 +61,6 @@
         return html.replace(/<[^>]*>?/gm, '').trim(); 
     }
 
-    // 경매장 시세 동기화 (겁화/작열 이름으로만 검색)
     async function backgroundPriceSync() {
         if (priceStatus !== "pending") return;
         priceStatus = "loading";
@@ -86,7 +85,6 @@
         priceStatus = "done";
     }
 
-    // 툴팁에서 겁화/작열 태생 판별 (핵심!)
     function getGemOriginType(gem) {
         const tooltip = gem.Tooltip || "";
         if (tooltip.includes("겁화")) return "겁화";
@@ -181,25 +179,24 @@
                 `).join("");
             } else { agEl.innerText = "비활성"; }
 
-            // [핵심] 보석 가치 합산 로직 (광휘 태생 매칭)
+            // [보석 합산 로직 완벽 수정판]
             const updateGems = () => {
                 if (!gData?.Gems) { document.getElementById(`gem-txt-${charId}`).innerText = "정보 없음"; return; }
                 let totalGold = 0; let gemMap = {};
 
                 gData.Gems.forEach(g => {
-                    const origin = getGemOriginType(g); // 툴팁에서 태생(겁화/작열) 확인
-                    const isBind = g.Name.includes("귀속");
+                    const isBind = g.Name.includes("귀속"); 
                     const isGwanghwi = g.Name.includes("광휘");
+                    const origin = getGemOriginType(g); // 툴팁에서 태생(겁화/작열) 판별
 
-                    // [수정] 광휘는 이름과 상관없이 '태생' 시세로 합산
-                    if (origin && globalPrices[`${g.Level}레벨 ${origin}`]) {
-                        // 광휘 보석이거나, 일반 보석 중 비귀속인 경우만 골드 합산
-                        if (isGwanghwi || !isBind) {
+                    // [조건] 광휘 보석이거나, 일반 보석 중 비귀속(거래가능)만 합산
+                    if (isGwanghwi || !isBind) {
+                        if (origin && globalPrices[`${g.Level}레벨 ${origin}`]) {
                             totalGold += globalPrices[`${g.Level}레벨 ${origin}`];
                         }
                     }
 
-                    // 출력용 이름 정제 (태생 정보 노출 안 함)
+                    // 출력용 이름 정제 (태생 삭제, (귀속) 표시)
                     let displayName = stripHtml(g.Name).replace(/\(귀속\)/g, "").trim();
                     if (isBind) displayName += " (귀속)";
                     gemMap[displayName] = (gemMap[displayName] || 0) + 1;
