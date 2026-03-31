@@ -124,23 +124,41 @@
                     }).join(" / ");
                 }
 
-                // 3. 아크그리드 (배경색 & 폰트색 정밀 적용)
-                let agHtml = "미설정";
-                if (agData?.Slots) {
-                    agHtml = agData.Slots.map(s => {
-                        const isChaos = s.Name.includes("혼돈");
-                        const bgColor = isChaos ? 'var(--chaos-bg)' : 'var(--order-bg)';
-                        
-                        // 등급 판별 로직
-                        let fontColor = 'var(--grade-default)';
-                        if (s.Grade === "고대") fontColor = 'var(--grade-ancient)';
-                        else if (s.Grade === "유물") fontColor = 'var(--grade-relic)';
-                        else if (s.Grade === "전설") fontColor = 'var(--grade-legend)';
-                        else if (s.Grade === "영웅") fontColor = 'var(--grade-epic)';
+// 3. 아크그리드 (아이콘 + 등급별 텍스트 색상)
+let agHtml = "미설정";
+if (agData?.Slots) {
+    agHtml = agData.Slots.map(s => {
+        // 질서/혼돈에 따른 배경색 (네모칸)
+        const isChaos = s.Name.includes("혼돈");
+        const bgColor = isChaos ? '#1d3557' : '#e63946'; // 혼돈:남색, 질서:빨강
+        
+        // 등급(Grade)에 따른 텍스트 색상 설정
+        let fontColor = '#00b4d8'; // 기본(희귀 이하): 파랑
+        if (s.Grade === "고대") fontColor = '#e9ecef';      // 고대: 상아색
+        else if (s.Grade === "유물") fontColor = '#f94144'; // 유물: 다홍색
+        else if (s.Grade === "전설") fontColor = '#f9c74f'; // 전설: 귤색
+        else if (s.Grade === "영웅") fontColor = '#9b5de5'; // 영웅: 보라색
 
-                        return `<span class="grid-badge" style="background:${bgColor}; color:${fontColor};">${s.Name} ${s.Point}P</span>`;
-                    }).join("");
-                }
+        // API에서 제공하는 Icon URL을 사용하여 이미지 태그 생성
+        // 아이콘 크기는 텍스트 높이에 맞춰 18~20px 정도로 조절
+        return `
+            <div style="
+                display: inline-flex; 
+                align-items: center; 
+                background: ${bgColor}; 
+                padding: 4px 8px; 
+                border-radius: 4px; 
+                margin: 2px;
+                border: 1px solid rgba(255,255,255,0.1);
+            ">
+                <img src="${s.Icon}" style="width:20px; height:20px; margin-right:5px; vertical-align:middle;" onerror="this.style.display='none'">
+                <span style="color: ${fontColor}; font-weight: 800; font-size: 0.9rem;">
+                    ${s.Point}P
+                </span>
+            </div>
+        `;
+    }).join("");
+}
 
                 const card = document.createElement('div');
                 card.className = 'card';
