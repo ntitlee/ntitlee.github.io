@@ -459,17 +459,19 @@
     const container = document.getElementById('total-list-container');
 
     data.sort((a, b) => {
+    const cpA = parseFloat(String(a.cp || a["전투력"] || 0).replace(/,/g, ""));
+    const cpB = parseFloat(String(b.cp || b["전투력"] || 0).replace(/,/g, ""));
+
+    // 1순위: 전투력
+    if (cpB !== cpA) {
+        return cpB - cpA;
+    }
+
     const lvA = parseFloat(a.lv || a["아이템레벨"]);
     const lvB = parseFloat(b.lv || b["아이템레벨"]);
 
-    if (lvB !== lvA) {
-        return lvB - lvA; // 1순위: 아이템레벨
-    }
-
-    const cpA = parseFloat(a.cp || a["전투력"] || 0);
-    const cpB = parseFloat(b.cp || b["전투력"] || 0);
-
-    return cpB - cpA; // 2순위: 전투력
+    // 2순위: 아이템레벨
+    return lvB - lvA;
 });
 
     
@@ -508,7 +510,7 @@
 
                     <div class="name">${char.name || char["캐릭터명"]}</div>
 
-                    <div class="cp">${parseFloat(char.cp || char["전투력"]).toLocaleString()} CP</div>
+                    <div class="cp">${parseFloat(char.cp || char["전투력"]).toLocaleString()}</div>
 
                 </div>
 
