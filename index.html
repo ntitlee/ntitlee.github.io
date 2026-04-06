@@ -47,19 +47,23 @@
     
     <div id="tabContents">
         <div id="welcome-page" class="content">
-            <div class="welcome-card">
-                <div class="image-container">
-    <img src="https://i.postimg.cc/SxQ4hXQ5/uploaded-Gemini-Generated-Image-yxint1yxint1yxin.jpg" alt="Welcome NTI">
-</div>
-                <div class="welcome-text">
-                    <h1>WELCOME TO <span style="color:var(--primary)">LOA NTI</span></h1>
-                    <p>말랑말랑한 동료들과 함께하는 캐릭터 관리 대시보드</p>
-                    <p style="font-size: 0.9rem; color: #666; margin-top: 20px;">상단의 캐릭터 이름을 클릭하여 상세 정보를 확인하세요.</p>
-                </div>
-            </div>
+    <div class="welcome-card">
+        <div class="image-container">
+            <img src="welcome.png" alt="Welcome NTI">
+        </div>
+        <div class="welcome-text">
+            <h1>WELCOME TO <span style="color:var(--primary)">LOA NTI</span></h1>
         </div>
     </div>
 </div>
+
+<style>
+    #welcome-page { display: flex; justify-content: center; align-items: center; min-height: 75vh; flex-direction: column; }
+    .welcome-card { background: var(--card-bg); border-radius: 24px; padding: 40px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.4); max-width: 750px; width: 100%; text-align: center; }
+    .image-container { width: 100%; border-radius: 16px; overflow: hidden; margin-bottom: 25px; border: 1px solid #444; }
+    .image-container img { width: 100%; height: auto; display: block; }
+    .welcome-text h1 { font-size: 2.5rem; color: #fff; font-weight: 900; margin: 0; letter-spacing: -1px; }
+</style>
 
 <script>
     const MEMBERS = { "기태": "로우프", "동근": "저녁별빛", "민구": "그저애송이", "민기": "minki", "석준": "famousamos", "준영": "DD키리", "찬엽": "탑소라카" };
