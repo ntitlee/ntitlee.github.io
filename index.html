@@ -176,20 +176,44 @@
             syncToSheet({ type: "update_cp", name: charName, job: charData.CharacterClassName, lv: charData.ItemAvgLevel, cp: cp, server: charData.ServerName, owner: ownerName });
 
             // 아크패시브 6R 이하 빨간 볼드 적용
-            document.getElementById(`ap-${charId}`).innerHTML = apData?.Points ? apData.Points.map(p => {
-                const rankMatch = (p.Description||"").match(/(\d+)랭크/);
-                const rankNum = rankMatch ? parseInt(rankMatch[1]) : 0;
-                const className = rankNum <= 6 ? 'low-rank' : '';
-                return `<span class="${className}">${p.Name.substring(0,2)} ${rankNum}R</span>`;
-            }).join("<br>") : "Inactive";
+// 아크패시브 상세 표기 및 6R 이하 빨간 볼드 적용
+document.getElementById(`ap-${charId}`).innerHTML = apData?.Points && apData.Points.length > 0 ? apData.Points.map(p => {
+    const name = p.Name; // "진화", "깨달음", "도약"
+    const desc = p.Description || "";
+    const m = desc.match(/(\d+)랭크\s+(\d+)레벨/);
+    
+    if (m) {
+        const rankNum = parseInt(m[1]);
+        const levelNum = parseInt(m[2]);
+        // [수정] 유저님이 원하시는 상세 포맷: "진화: 6랭크 0레벨"
+        const fullText = `${name}: ${rankNum}랭크 ${levelNum}레벨`;
+        
+        // 6랭크 이하일 경우 기존에 정의한 'low-rank' 클래스 적용
+        const className = rankNum <= 6 ? 'low-rank' : '';
+        return `<span class="${className}">${fullText}</span>`;
+    }
+    return ""; // 데이터 매칭 안될 경우 빈값
+}).join("<br>") : "Inactive";
 
             // 아크그리드 질서(1-3) vs 혼돈(4-6) 분리
-            const agEl = document.getElementById(`ag-${charId}`);
-            if (agData?.Slots) {
-                const row1 = agData.Slots.slice(0, 3);
-                const row2 = agData.Slots.slice(3, 6);
-                agEl.innerHTML = `<div class="ark-grid-container"><div class="ark-grid-row">${row1.map(s=>`<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("")}</div><div class="ark-grid-row">${row2.map(s=>`<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("")}</div></div>`;
-            } else { agEl.innerText = "Inactive"; }
+            // 아크그리드 질서(1-3) vs 혼돈(4-6) 분리 (배경 없는 깔끔한 버전)
+const agEl = document.getElementById(`ag-${charId}`);
+if (agData?.Slots && agData.Slots.length > 0) {
+    const row1 = agData.Slots.slice(0, 3);
+    const row2 = agData.Slots.slice(3, 6);
+    
+    agEl.innerHTML = `
+        <div class="ark-grid-container">
+            <div class="ark-grid-row">
+                ${row1.map(s => `<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("")}
+            </div>
+            <div class="ark-grid-row">
+                ${row2.map(s => `<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("")}
+            </div>
+        </div>`;
+} else { 
+    agEl.innerText = "Inactive"; 
+}
 
             // 보석 골드 계산 복구
             const gemTxt = document.getElementById(`gem-txt-${charId}`);
