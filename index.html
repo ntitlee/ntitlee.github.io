@@ -378,8 +378,11 @@
     const container = document.getElementById('total-list-container');
 
         if (!forceRefresh && dbData.length === 0) {
-    container.innerHTML = `<div class="loading-dot">DB 로딩 중... ●●●</div>`;
+    container.innerHTML = `<div class="loading-dot">DB 로딩 중...</div>`;
     setTimeout(() => loadNTITotal(false), 500);
+    return;
+}
+    if (!forceRefresh && container.dataset.loaded === "true") {
     return;
 }
        
@@ -566,6 +569,8 @@ allChars.push({
 
 
     container.innerHTML = bannerHTML + headerHTML + listHTML;
+
+        container.dataset.loaded = "true";
 
 }
 
