@@ -4,6 +4,37 @@
     <meta charset="UTF-8">
     <title>LOA NTI Dashboard - Stable Fix</title>
     <style>
+    /* ... 기존 스타일 유지 ... */
+    .welcome-container { 
+        text-align: center; 
+        padding: 60px 20px; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center;
+    }
+    .main-img { 
+        max-width: 800px; /* 메인 사진 크기 조절 */
+        width: 100%; 
+        border-radius: 20px; 
+        border: 1px solid #444; 
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        margin-bottom: 30px;
+    }
+    .welcome-title { font-size: 2.5rem; font-weight: 900; color: #fff; margin: 10px 0; }
+    .welcome-desc { color: #888; font-size: 1.1rem; }
+</style>
+
+<div id="welcome-page" class="content">
+    <div class="welcome-container">
+        <img src="welcome.png" class="main-img" alt="NTI Dashboard Main">
+        <h1 class="welcome-title">LOA NTI Dashboard</h1>
+        <p class="welcome-desc">상단 메뉴를 통해 길드원 데이터를 확인하고 갱신하세요.</p>
+    </div>
+</div>
+    
+    <style>
+        
         :root { 
             --bg: #121212; --card-bg: #1e1e1e; --border: #333;
             --text: #e0e0e0; --primary: #4285f4; --highlight: #ffcc00; --danger: #ff4d4d;
