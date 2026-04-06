@@ -18,42 +18,103 @@
         .controls { margin-left: auto; display: flex; align-items: center; gap: 15px; }
         .last-update { font-size: 0.75rem; color: #888; }
         .refresh-btn { padding: 6px 15px; font-size: 0.8rem; background: #444; color: #eee; border: none; border-radius: 4px; cursor: pointer; }
-        
-        /* 그리드 레이아웃 */
-        .member-grid { display: grid; grid-template-columns: 150px 90px 90px 110px 110px 130px 280px 1fr; gap: 8px; align-items: center; text-align: center; }
-        .total-grid { display: grid; grid-template-columns: 60px 160px 130px 110px 150px 80px; gap: 8px; align-items: center; text-align: center; }
-
+        .member-grid { grid-template-columns: 150px 90px 90px 110px 110px 130px 280px 1fr; }
+        .list-header, .list-row { display: grid; gap: 8px; align-items: center; text-align: center; font-size: 0.82rem; }
         .list-header { background: #252525; padding: 10px 8px; font-weight: 800; border-bottom: 2px solid var(--border); }
         .list-row { background: var(--card-bg); padding: 8px; border-bottom: 1px solid var(--border); min-height: 80px; }
         
         .char-name { font-weight: 800; color: #fff; }
+        
+        /* 아크패시브 6R 이하 강조 */
         .low-rank { color: var(--danger); font-weight: 900; }
 
-        /* 아크그리드 스타일 */
-        .ark-grid-container { display: flex; flex-direction: column; gap: 4px; width: 100%; align-items: center; }
-        .ark-grid-row { display: flex; gap: 6px; justify-content: center; width: 100%; }
-        .grid-item { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; }
-        .grid-item img { width: 18px; height: 18px; border-radius: 2px; }
+        /* 아크그리드 배치 */
+        .ark-grid-container { display: flex; flex-direction: column; gap: 6px; width: 100%; align-items: center; }
+        .ark-grid-row { display: flex; gap: 8px; justify-content: center; width: 100%; }
+        .grid-item { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; white-space: nowrap; background: none !important; padding: 0 !important; min-width: 65px; }
+        .grid-item img { width: 20px; height: 20px; border-radius: 2px; }
 
-        /* 랭킹 프로필 카드 */
-        .ranking-banner { display: flex; gap: 30px; margin: 30px 0; justify-content: center; align-items: flex-end; }
-        .rank-card { position: relative; width: 320px; height: 140px; background: linear-gradient(135deg, #1e1e1e 0%, #252525 100%); border-radius: 16px; border: 1px solid var(--border); display: flex; align-items: center; padding: 15px; box-sizing: border-box; }
-        .rank-card.top1 { width: 360px; height: 160px; border: 2px solid var(--highlight); box-shadow: 0 0 25px rgba(255, 204, 0, 0.2); }
-        .rank-card .pfp { width: 110px; height: 110px; border-radius: 12px; overflow: hidden; background: #000; flex-shrink: 0; }
-        .rank-card.top1 .pfp { width: 130px; height: 130px; }
-        .rank-card .pfp img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
-        .rank-card .info { flex: 1; margin-left: 15px; text-align: left; }
-        .rank-card .info .job { font-size: 0.85rem; color: #aaa; }
-        .rank-card .info .name { font-size: 1.2rem; color: #fff; font-weight: 900; margin: 4px 0; }
-        .rank-card .info .cp { font-size: 0.95rem; color: var(--highlight); font-weight: 800; }
-        .rank-card .medal { position: absolute; top: -20px; left: -10px; font-size: 3rem; z-index: 5; }
+        #welcome-page { display: flex; justify-content: center; align-items: center; min-height: 60vh; flex-direction: column; }
+        .image-container { max-width: 700px; width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid #444; margin-bottom: 20px; }
+        .image-container img { width: 100%; height: auto; display: block; }
 
         .gem-box { position: relative; text-align: left; display: flex; flex-direction: column; padding-left: 5px; }
-        .gem-text { font-size: 0.7rem; color: #aaa; line-height: 1.3; margin-bottom: 15px; }
+        .gem-text { font-size: 0.72rem; color: #aaa; line-height: 1.3; margin-bottom: 15px; }
         .gold-text { position: absolute; bottom: 0; right: 5px; color: var(--highlight); font-size: 0.85rem; font-weight: 800; }
         
         .loading-dot { color: #555; animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+    /* 통합 그리드 비율 */
+.total-grid { 
+    display: grid;
+    grid-template-columns: 60px 160px 130px 110px 150px 80px; 
+    gap: 8px; 
+    align-items: center; 
+    text-align: center;
+    margin-top: 10px; 
+}
+
+/* --- 랭킹 프로필 카드 스타일 --- */
+.ranking-banner { 
+    display: flex; 
+    gap: 30px; 
+    margin: 40px 0; 
+    justify-content: center; 
+    align-items: flex-end; 
+}
+
+.rank-card { 
+    position: relative; 
+    width: 320px; 
+    height: 140px; 
+    background: linear-gradient(135deg, #1e1e1e 0%, #252525 100%);
+    border-radius: 16px; 
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.rank-card.top1 { 
+    width: 360px; height: 160px; 
+    border: 2px solid var(--highlight); 
+    box-shadow: 0 0 25px rgba(255, 204, 0, 0.2);
+    z-index: 2;
+}
+
+.rank-card .pfp { 
+    width: 110px; 
+    height: 110px; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    background: #000;
+    border: 2px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+}
+.rank-card.top1 .pfp { width: 130px; height: 130px; } 
+.rank-card .pfp img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+.rank-card .info { 
+    flex: 1; 
+    margin-left: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center;
+    text-align: left;
+}
+.rank-card .info .job { font-size: 0.9rem; color: #aaa; font-weight: 600; }
+.rank-card .info .name { font-size: 1.3rem; color: #fff; font-weight: 900; margin-top: 5px; }
+.rank-card .info .cp { font-size: 1rem; color: var(--highlight); font-weight: 800; margin-top: 8px; }
+
+.rank-card .medal { 
+    position: absolute; 
+    top: -25px; 
+    left: -10px; 
+    font-size: 3.5rem; 
+    z-index: 3;
+}
     </style>
 </head>
 <body>
@@ -65,17 +126,17 @@
     </div>
     <div id="tabContents">
         <div id="welcome-page" class="content">
-            <div style="text-align:center; padding-top:80px;">
-                <img src="welcome.png" style="max-width:600px; border-radius:15px; border:1px solid #444;">
-                <h2>LOA NTI Dashboard</h2>
-                <p style="color:#888;">상단 메뉴에서 데이터를 확인하세요.</p>
-            </div>
+            <div class="image-container"><img src="welcome.png"></div>
+            <h2>LOA NTI Dashboard</h2>
+            <p style="color:#888;">상단 메뉴에서 데이터를 확인하세요.</p>
         </div>
         
         <div id="nti-total" class="content" style="display:none;">
-            <div class="controls" style="margin-bottom:10px;">
-                <span id="time-total" class="last-update"></span>
-                <button class="refresh-btn" onclick="loadNTITotal(true)">전체 새로고침</button>
+            <div style="display:flex; align-items:center; margin-bottom:10px;">
+                <div class="controls">
+                    <span id="time-total" class="last-update"></span>
+                    <button class="refresh-btn" onclick="loadNTITotal(true)">새로고침</button>
+                </div>
             </div>
             <div id="total-list-container"></div>
         </div>
@@ -91,7 +152,7 @@
     let dbData = []; let globalPrices = {};
     function getCurrentTime() {
         const now = new Date();
-        return `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+        return `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
     }
 
     async function syncToSheet(data) {
@@ -124,73 +185,87 @@
         }
     }
 
-    // 통합 탭 로딩
-    async function loadNTITotal(forceRefresh = false) {
-        const container = document.getElementById('total-list-container');
-        if (!forceRefresh && dbData.length > 0) { renderTotalList(dbData); return; }
+   async function loadNTITotal(forceRefresh = false) {
+    const container = document.getElementById('total-list-container');
+    if (!forceRefresh && dbData.length > 0) { renderTotalList(dbData); return; }
 
-        container.innerHTML = `<div style="padding:40px; text-align:center;" class="loading-dot">실시간 데이터를 수집 중입니다... (약 15초 소요)</div>`;
-        const headers = { "accept": "application/json", "Authorization": API_KEY };
-        let allChars = [];
+    container.innerHTML = `<div style="padding:30px; text-align:center;" class="loading-dot">실시간 프로필 데이터를 불러오는 중...</div>`;
+    const headers = { "accept": "application/json", "Authorization": API_KEY };
+    let allChars = [];
 
-        try {
-            for (const owner of Object.values(MEMBERS)) {
-                const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(owner)}/siblings`, { headers });
-                const sibs = await res.json();
-                if (!Array.isArray(sibs)) continue;
+    try {
+        for (const owner of Object.values(MEMBERS)) {
+            const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(owner)}/siblings`, { headers });
+            const sibs = await res.json();
+            if (!sibs) continue;
 
-                for (const char of sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1680)) {
-                    const pRes = await fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(char.CharacterName)}/profiles`, { headers });
-                    const pData = await pRes.json();
-                    
-                    allChars.push({ 
-                        name: char.CharacterName, job: char.CharacterClassName, 
-                        lv: parseFloat(char.ItemAvgLevel.replace(/,/g, "")), 
-                        cp: parseFloat(pData?.CombatPower?.Value || pData?.CombatPower || 0), 
-                        server: char.ServerName, pfp: pData?.CharacterImage || ""
-                    });
-                    await new Promise(r => setTimeout(r, 200));
-                }
+            const filteredSibs = sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1680);
+
+            for (const char of filteredSibs) {
+                const pRes = await fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(char.CharacterName)}/profiles`, { headers });
+                const pData = await pRes.json();
+                
+                allChars.push({ 
+                    name: char.CharacterName, 
+                    job: char.CharacterClassName, 
+                    lv: parseFloat(char.ItemAvgLevel.replace(/,/g, "")), 
+                    cp: parseFloat(pData?.CombatPower?.Value || pData?.CombatPower || 0), 
+                    server: char.ServerName,
+                    pfp: pData?.CharacterImage || "" 
+                });
+                await new Promise(r => setTimeout(r, 150)); 
             }
-            renderTotalList(allChars);
-            document.getElementById('time-total').innerText = `최근 갱신: ${getCurrentTime()}`;
-        } catch (e) { container.innerHTML = "오류 발생 - 다시 시도해주세요."; }
-    }
+        }
+        renderTotalList(allChars);
+        document.getElementById('time-total').innerText = `최근 갱신: ${getCurrentTime()}`;
+    } catch (e) { container.innerHTML = "데이터 로드 중 오류가 발생했습니다."; }
+}
 
     function renderTotalList(data) {
-        const container = document.getElementById('total-list-container');
-        data.sort((a, b) => (parseFloat(b.lv || b["아이템레벨"])) - (parseFloat(a.lv || a["아이템레벨"])));
-        
-        let bannerHTML = `<div class="ranking-banner">`;
-        const medals = ['🥇', '🥈', '🥉'];
-        for (let i = 0; i < Math.min(3, data.length); i++) {
-            const char = data[i];
-            const pfpUrl = char.pfp || char["사진"] || "";
-            bannerHTML += `
-                <div class="rank-card top${i+1}">
-                    <div class="medal">${medals[i]}</div>
-                    <div class="pfp">${pfpUrl ? `<img src="${pfpUrl}">` : `<div style="line-height:110px; color:#444; text-align:center;">No Pfp</div>`}</div>
-                    <div class="info">
-                        <div class="job">${char.job || char["직업"]}</div>
-                        <div class="name">${char.name || char["캐릭터명"]}</div>
-                        <div class="cp">${parseFloat(char.cp || char["전투력"]).toLocaleString()} CP</div>
-                    </div>
-                </div>`;
-        }
-        bannerHTML += `</div>`;
+    const container = document.getElementById('total-list-container');
+    data.sort((a, b) => (parseFloat(b.lv || b["아이템레벨"])) - (parseFloat(a.lv || a["아이템레벨"])));
+    
+    // 상단 랭킹 배너
+    let bannerHTML = `<div class="ranking-banner">`;
+    const medals = ['🥇', '🥈', '🥉'];
 
-        let headerHTML = `<div class="list-header total-grid"><div>순위</div><div>캐릭터명</div><div>직업</div><div>아이템레벨</div><div>전투력(DB)</div><div>서버</div></div>`;
-        let listHTML = data.map((c, i) => {
-            const rank = i + 1;
-            const level = parseFloat(c.lv || c["아이템레벨"]);
-            let lvColor = level >= 1740 ? "#ff4d4d" : (level >= 1720 ? "#ffcc00" : (level >= 1700 ? "#4285f4" : "#e0e0e0"));
-            return `<div class="list-row total-grid"><div>${rank <= 3 ? medals[rank-1] : rank}</div><div class="char-name">${c.name || c["캐릭터명"]}</div><div>${c.job || c["직업"]}</div><div style="color:${lvColor}; font-weight:800;">${level.toFixed(2)}</div><div style="font-weight:bold;">${parseFloat(c.cp || c["전투력"]).toLocaleString()}</div><div>${c.server || c["서버"]}</div></div>`;
-        }).join("");
+    for (let i = 0; i < Math.min(3, data.length); i++) {
+        const char = data[i];
+        const pfpUrl = char.pfp || char["사진"] || ""; 
 
-        container.innerHTML = bannerHTML + headerHTML + listHTML;
+        bannerHTML += `
+            <div class="rank-card top${i+1}">
+                <div class="medal">${medals[i]}</div>
+                <div class="pfp">
+                    ${pfpUrl ? `<img src="${pfpUrl}" alt="profile">` : `<div style="line-height:110px; color:#555; text-align:center;">No Image</div>`}
+                </div>
+                <div class="info">
+                    <div class="job">${char.job || char["직업"]}</div>
+                    <div class="name">${char.name || char["캐릭터명"]}</div>
+                    <div class="cp">${parseFloat(char.cp || char["전투력"]).toLocaleString()} CP</div>
+                </div>
+            </div>`;
     }
+    bannerHTML += `</div>`;
 
-    // [기능 복구] 개인 탭 상세 로드
+    // 하단 리스트 헤더 및 내용
+    let headerHTML = `<div class="list-header total-grid"><div>순위</div><div>캐릭터명</div><div>직업</div><div>아이템레벨</div><div>전투력</div><div>서버</div></div>`;
+    let listHTML = data.map((c, i) => {
+        const level = parseFloat(c.lv || c["아이템레벨"]);
+        return `
+            <div class="list-row total-grid">
+                <div>${i + 1}</div>
+                <div class="char-name">${c.name || c["캐릭터명"]}</div>
+                <div>${c.job || c["직업"]}</div>
+                <div style="font-weight:800;">${level.toFixed(2)}</div>
+                <div>${parseFloat(c.cp || c["전투력"]).toLocaleString()}</div>
+                <div>${c.server || c["서버"]}</div>
+            </div>`;
+    }).join("");
+
+    container.innerHTML = bannerHTML + headerHTML + listHTML;
+}
+
     async function loadFullDetails(charName, charId, ownerName, charData) {
         const headers = { "accept": "application/json", "Authorization": API_KEY };
         try {
@@ -209,24 +284,28 @@
             document.getElementById(`cp-${charId}`).innerText = cp.toLocaleString();
             document.getElementById(`db-cp-${charId}`).innerText = cp.toLocaleString();
 
-            // 아크패시브
+            // 아크패시브 렌더링
             let apSaveText = "Inactive";
             if (apData?.Points && apData.Points.length > 0) {
                 apSaveText = apData.Points.map(p => {
                     const m = (p.Description||"").match(/(\d+)랭크\s+(\d+)레벨/);
                     return m ? `${p.Name}: ${m[1]}랭크 ${m[2]}레벨` : "";
                 }).filter(v => v).join(" / ");
+
                 document.getElementById(`ap-${charId}`).innerHTML = apData.Points.map(p => {
                     const m = (p.Description||"").match(/(\d+)랭크\s+(\d+)레벨/);
                     if (m) {
-                        const className = parseInt(m[1]) < 6 ? 'low-rank' : '';
+                        const rankNum = parseInt(m[1]);
+                        const className = rankNum < 6 ? 'low-rank' : '';
                         return `<span>${p.Name}: </span><span class="${className}">${m[1]}랭크 ${m[2]}레벨</span>`;
                     }
                     return "";
                 }).join("<br>");
-            } else { document.getElementById(`ap-${charId}`).innerText = "Inactive"; }
+            } else {
+                document.getElementById(`ap-${charId}`).innerText = "Inactive";
+            }
 
-            // 아크그리드
+            // 아크그리드 렌더링
             let agSaveText = "Inactive";
             const agEl = document.getElementById(`ag-${charId}`);
             if (agData?.Slots && agData.Slots.length > 0) {
@@ -236,7 +315,7 @@
                 agEl.innerHTML = `<div class="ark-grid-container"><div class="ark-grid-row">${row1.map(s => `<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("")}</div><div class="ark-grid-row">${row2.map(s => `<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("")}</div></div>`;
             } else { agEl.innerText = "Inactive"; }
 
-            // 보석
+            // 보석 계산
             const gemTxt = document.getElementById(`gem-txt-${charId}`);
             const gemGold = document.getElementById(`gem-gold-${charId}`);
             let charTotalGold = 0;
@@ -247,70 +326,100 @@
                     const isBind = name.includes("귀속") || name.includes("이벤트");
                     const cleanName = name.replace(/\(귀속\)|\(이벤트\)/g, "").trim();
                     if (!isBind) { charTotalGold += globalPrices[cleanName.includes("광휘") ? cleanName.replace("광휘", "작열") : cleanName] || 0; }
-                    counts[isBind ? cleanName + "(귀)" : cleanName] = (counts[isBind ? cleanName + "(귀)" : cleanName] || 0) + 1;
+                    let label = isBind ? cleanName + "(귀)" : cleanName;
+                    counts[label] = (counts[label] || 0) + 1;
                 });
                 gemTxt.innerText = Object.entries(counts).map(([k,v]) => `${k} ${v}`).join(", ");
                 gemGold.innerText = charTotalGold.toLocaleString() + " G";
                 
                 const totalEl = document.getElementById(`total-gold-${ownerName}`);
-                totalEl.dataset.sum = parseInt(totalEl.dataset.sum || 0) + charTotalGold;
+                let current = parseInt(totalEl.dataset.sum || 0);
+                totalEl.dataset.sum = current + charTotalGold;
                 totalEl.innerText = `총 합계: ${parseInt(totalEl.dataset.sum).toLocaleString()} G`;
-            }
+            } else { gemTxt.innerText = "No Gems"; }
 
+            // DB 전송
             syncToSheet({ 
-                type: "update_all", name: charName, job: charData.CharacterClassName, lv: charData.ItemAvgLevel, cp: cp, server: charData.ServerName, owner: ownerName,
+                type: "update_all", 
+                name: charName, job: charData.CharacterClassName, lv: charData.ItemAvgLevel, cp: cp, server: charData.ServerName, owner: ownerName,
                 arkPassive: apSaveText, arkGrid: agSaveText, gemSummary: gemTxt.innerText, gemTotal: charTotalGold
             });
+
+            document.querySelectorAll(`#cp-${charId}, #ap-${charId}, #ag-${charId}`).forEach(el => el.classList.remove('loading-dot'));
         } catch (e) { console.error(e); }
     }
 
     async function handleMemberTab(name, forceRefresh = false) {
-        const listContainer = document.getElementById(`list-${name}`);
-        const totalGold = document.getElementById(`total-gold-${name}`);
-        if (!forceRefresh && listContainer.dataset.loaded === "true") return;
+    const listContainer = document.getElementById(`list-${name}`);
+    const totalGold = document.getElementById(`total-gold-${name}`);
+    
+    if (!forceRefresh && listContainer.dataset.loaded === "true") return;
 
-        listContainer.innerHTML = ""; listContainer.dataset.loaded = "true"; totalGold.dataset.sum = "0";
-        const headers = { "accept": "application/json", "Authorization": API_KEY };
-        const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { headers });
-        const targets = (await res.json()).filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
-                        .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
+    listContainer.innerHTML = "";
+    listContainer.dataset.loaded = "true";
+    totalGold.dataset.sum = "0";
 
-        targets.forEach((char, index) => {
-            const charId = (name + char.CharacterName).replace(/\s/g, '');
-            const savedData = dbData.find(d => d["캐릭터명"] === char.CharacterName);
-            const isMain = index === 0;
-            const row = document.createElement('div');
-            row.className = 'list-row member-grid';
-            if (isMain) row.style = 'border: 2px solid var(--highlight); box-shadow: inset 0 0 10px rgba(255, 204, 0, 0.2);';
+    const headers = { "accept": "application/json", "Authorization": API_KEY };
+    const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { headers });
+    const targets = (await res.json())
+        .filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
+        .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
 
-            row.innerHTML = `
-                <div><span class="char-name" ${isMain ? 'style="color:var(--highlight);"' : ''}>${char.CharacterName}</span></div>
-                <div>${char.ServerName}</div>
-                <div style="font-weight:800;">${char.ItemAvgLevel}</div>
-                <div id="cp-${charId}">${savedData ? parseFloat(savedData["전투력"]).toLocaleString() : "..."}</div>
-                <div id="db-cp-${charId}">${savedData ? parseFloat(savedData["전투력"]).toLocaleString() : "..."}</div>
-                <div id="ap-${charId}">${savedData ? savedData["아크패시브"].replace(/\//g, "<br>") : "..."}</div>
-                <div id="ag-${charId}">${savedData ? savedData["아크그리드"] : "..."}</div>
-                <div class="gem-box"><div id="gem-txt-${charId}" class="gem-text">로딩중...</div><div id="gem-gold-${charId}" class="gold-text">0 G</div></div>`;
-            listContainer.appendChild(row);
+    targets.forEach((char, index) => {
+        const charId = (name + char.CharacterName).replace(/\s/g, '');
+        const savedData = dbData.find(d => d["캐릭터명"] === char.CharacterName);
+        
+        const isMain = index === 0;
+        const row = document.createElement('div');
+        row.className = 'list-row member-grid';
+        if (isMain) row.style = 'border: 2px solid var(--highlight); box-shadow: inset 0 0 10px rgba(255, 204, 0, 0.2);';
+
+        const cpVal = savedData ? parseFloat(savedData["전투력"]).toLocaleString() : "...";
+        const apVal = savedData ? savedData["아크패시브"].replace(/\//g, "<br>") : "...";
+        const agVal = savedData ? savedData["아크그리드"] : "..."; 
+        const gemTxtVal = savedData ? savedData["보석요약"] : "로딩 중...";
+        const gemGoldVal = savedData ? parseFloat(savedData["보석합계"] || 0).toLocaleString() + " G" : "0 G";
+
+        row.innerHTML = `
+            <div><span class="char-name" ${isMain ? 'style="color:var(--highlight);"' : ''}>${char.CharacterName}</span></div>
+            <div>${char.ServerName}</div>
+            <div style="font-weight:800;">${char.ItemAvgLevel}</div>
+            <div id="cp-${charId}">${cpVal}</div>
+            <div id="db-cp-${charId}">${cpVal}</div>
+            <div id="ap-${charId}">${apVal}</div>
+            <div id="ag-${charId}">${agVal}</div>
+            <div class="gem-box">
+                <div id="gem-txt-${charId}" class="gem-text">${gemTxtVal}</div>
+                <div id="gem-gold-${charId}" class="gold-text">${gemGoldVal}</div>
+            </div>`;
             
-            if (forceRefresh || !savedData) loadFullDetails(char.CharacterName, charId, name, char);
-            else if (savedData) {
-                document.getElementById(`gem-txt-${charId}`).innerText = savedData["보석요약"];
-                document.getElementById(`gem-gold-${charId}`).innerText = parseFloat(savedData["보석합계"] || 0).toLocaleString() + " G";
-                totalGold.dataset.sum = parseInt(totalGold.dataset.sum || 0) + parseInt(savedData["보석합계"] || 0);
-                totalGold.innerText = `총 합계: ${parseInt(totalGold.dataset.sum).toLocaleString()} G`;
-            }
-        });
-    }
+        listContainer.appendChild(row);
 
+        if (forceRefresh || !savedData) {
+            loadFullDetails(char.CharacterName, charId, name, char);
+        } else {
+            renderGridFromDB(charId, savedData["아크그리드"]);
+            let currentSum = parseInt(totalGold.dataset.sum || 0);
+            totalGold.dataset.sum = currentSum + parseInt(savedData["보석합계"] || 0);
+            totalGold.innerText = `총 합계: ${parseInt(totalGold.dataset.sum).toLocaleString()} G`;
+        }
+    });
+    document.getElementById(`time-${name}`).innerText = forceRefresh ? `최근 갱신: ${getCurrentTime()}` : `DB 로드 완료`;
+}
+
+    function renderGridFromDB(charId, gridString) {
+    const agEl = document.getElementById(`ag-${charId}`);
+    if (!gridString || gridString === "Inactive" || gridString === "...") return;
+    agEl.innerHTML = `<div style="font-size:0.75rem; color:#888;">${gridString}</div>`;
+}
+    
     function openTab(evt, tabName) {
         document.querySelectorAll(".content").forEach(c => c.style.display = "none");
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
         document.getElementById(tabName).style.display = "block";
         evt.currentTarget.classList.add("active");
         if (tabName === 'nti-total') loadNTITotal();
-        else if (MEMBERS[tabName]) handleMemberTab(tabName);
+        else if (MEMBERS[tabName]) handleMemberTab(tabName, false);
     }
 
     function init() {
@@ -321,12 +430,16 @@
             btn.onclick = (e) => openTab(e, name);
             menu.appendChild(btn);
             const content = document.createElement('div'); content.id = name; content.className = 'content'; content.style.display = "none";
-            content.innerHTML = `<div class="controls" style="margin-bottom:10px;"><button class="refresh-btn" onclick="handleMemberTab('${name}', true)">갱신</button></div><div class="list-header member-grid"><div>캐릭터</div><div>서버</div><div>레벨</div><div>전투력</div><div>DB전투력</div><div>아크패시브</div><div>아크그리드</div><div style="display:flex; justify-content:space-between;"><span>보석</span><span id="total-gold-${name}" style="color:var(--highlight); font-size:0.75rem;">총 합계: 0 G</span></div></div><div id="list-${name}"></div>`;
+            content.innerHTML = `<div style="display:flex; align-items:center; margin-bottom:10px;"><div class="controls"><span id="time-${name}" class="last-update"></span><button class="refresh-btn" onclick="handleMemberTab('${name}', true)">새로고침</button></div></div><div class="list-header member-grid"><div>캐릭터</div><div>서버</div><div>레벨</div><div>전투력</div><div>DB전투력</div><div>아크패시브</div><div>아크그리드</div><div style="display:flex; justify-content:space-between;"><span>보석 현황</span><span id="total-gold-${name}" style="color:var(--highlight); font-size:0.75rem;">총 합계: 0 G</span></div></div><div id="list-${name}"></div>`;
             container.appendChild(content);
         });
     }
 
-    window.onload = async () => { await fetchDB(); await backgroundPriceSync(); init(); };
+    window.onload = async () => { 
+        await fetchDB(); 
+        await backgroundPriceSync(); 
+        init(); 
+    };
 </script>
 </body>
 </html>
