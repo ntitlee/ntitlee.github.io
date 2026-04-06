@@ -461,15 +461,13 @@
     const cpA = parseFloat(String(a.cp || a["전투력"] || 0).replace(/,/g, ""));
     const cpB = parseFloat(String(b.cp || b["전투력"] || 0).replace(/,/g, ""));
 
-    // 1순위: 전투력
     if (cpB !== cpA) {
         return cpB - cpA;
     }
 
-    const lvA = parseFloat(a.lv || a["아이템레벨"]);
-    const lvB = parseFloat(b.lv || b["아이템레벨"]);
+    const lvA = parseFloat(String(a.lv || a["아이템레벨"] || 0).replace(/,/g, ""));
+    const lvB = parseFloat(String(b.lv || b["아이템레벨"] || 0).replace(/,/g, ""));
 
-    // 2순위: 아이템레벨
     return lvB - lvA;
 });
 
@@ -960,7 +958,9 @@
 
     }
 
-
+    function toNumber(v) {
+    return parseFloat(String(v || 0).replace(/,/g, ""));
+}
 
     window.onload = async () => { 
     init();
