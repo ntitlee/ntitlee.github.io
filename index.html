@@ -15,15 +15,14 @@
         .tab-btn { padding: 8px 18px; cursor: pointer; border: none; background: #2a2a2a; color: #888; border-radius: 6px 6px 0 0; font-weight: 700; font-size: 0.9rem; transition: 0.3s; }
         .tab-btn.active { background: var(--primary); color: white; }
 
-        /* 컨트롤 영역 (시간 + 버튼) */
         .controls { margin-left: auto; display: flex; align-items: center; gap: 15px; }
         .last-update { font-size: 0.75rem; color: #888; }
         .refresh-btn { padding: 6px 15px; font-size: 0.8rem; background: #444; color: #eee; border: none; border-radius: 4px; cursor: pointer; transition: 0.2s; }
         .refresh-btn:hover { background: #666; }
 
-        /* 그리드 레이아웃 - 아크그리드 공간 확보를 위해 너비 조정 */
         .total-grid { grid-template-columns: 80px 160px 130px 110px 150px 1fr; }
-        .member-grid { grid-template-columns: 150px 90px 90px 110px 110px 140px 240px 1fr; } /* 아크그리드 240px 확보 */
+        /* [수정] 아크그리드 칸 너비를 늘려 가로 배치 공간 확보 */
+        .member-grid { grid-template-columns: 150px 90px 90px 110px 110px 130px 260px 1fr; }
 
         .list-header, .list-row { display: grid; gap: 8px; align-items: center; text-align: center; font-size: 0.82rem; }
         .list-header { background: #252525; padding: 10px 8px; font-weight: 800; border-bottom: 2px solid var(--border); }
@@ -31,11 +30,16 @@
         
         .char-name { font-weight: 800; color: #fff; font-size: 0.9rem; }
         
-        /* 아크그리드 스타일 개선 */
-        .ark-grid-wrapper { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
-        .grid-item { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; white-space: nowrap; background: #2a2a2a; padding: 2px 6px; border-radius: 4px; }
-        .grid-item img { width: 18px; height: 18px; border-radius: 2px; }
-        .grid-item span { color: #ccc; }
+        /* [수정] 아크그리드 2열 배치 스타일 */
+        .ark-grid-container { display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; width: 100%; }
+        .ark-grid-row { display: flex; gap: 6px; flex-wrap: nowrap; justify-content: center; width: 100%; }
+        .grid-item { display: flex; align-items: center; gap: 3px; font-size: 0.7rem; white-space: nowrap; background: #2a2a2a; padding: 1px 4px; border-radius: 3px; }
+        .grid-item img { width: 16px; height: 16px; border-radius: 2px; }
+
+        /* [추가] 홈 화면 이미지 스타일 */
+        #welcome-page { display: flex; justify-content: center; align-items: center; min-height: 60vh; flex-direction: column; }
+        .image-container { max-width: 700px; width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid #444; margin-bottom: 20px; }
+        .image-container img { width: 100%; height: auto; display: block; }
 
         .gem-box { position: relative; text-align: left; display: flex; flex-direction: column; padding-left: 5px; }
         .gem-text { font-size: 0.72rem; color: #aaa; line-height: 1.3; }
@@ -51,9 +55,12 @@
     <div id="tabMenu" class="tabs">
         <button class="tab-btn active" onclick="openTab(event, 'welcome-page')">Home</button>
         <button class="tab-btn" onclick="openTab(event, 'nti-total')">통합</button>
-        </div>
+    </div>
     <div id="tabContents">
-        <div id="welcome-page" class="content" style="text-align:center; padding:100px;">
+        <div id="welcome-page" class="content">
+            <div class="image-container">
+                <img src="welcome.png" alt="Welcome">
+            </div>
             <h2>LOA NTI Dashboard</h2>
             <p style="color:#888;">상단 메뉴에서 데이터를 확인하세요.</p>
         </div>
@@ -148,10 +155,22 @@
 
             document.getElementById(`ap-${charId}`).innerHTML = apData?.Points ? apData.Points.map(p => `${p.Name.substring(0,2)} ${parseInt((p.Description||"").match(/(\d+)랭크/)?.[1]||0)}R`).join("<br>") : "Inactive";
 
+            // [수정] 아크그리드 질서(1열), 혼돈(2열) 배치 로직
             const agEl = document.getElementById(`ag-${charId}`);
             if (agData?.Slots) {
-                // 2열 제한 삭제 및 전체 표시
-                agEl.innerHTML = `<div class="ark-grid-wrapper">${agData.Slots.map(s => `<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("")}</div>`;
+                // 질서/진화/도약(0, 1)과 혼돈(2) 구분 (일반적인 슬롯 순서 기준)
+                const row1_slots = agData.Slots.slice(0, 2);
+                const row2_slots = agData.Slots.slice(2);
+                
+                let html = `<div class="ark-grid-container">`;
+                // 1열 (질서)
+                html += `<div class="ark-grid-row">` + row1_slots.map(s => `<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("") + `</div>`;
+                // 2열 (혼돈)
+                if (row2_slots.length > 0) {
+                    html += `<div class="ark-grid-row">` + row2_slots.map(s => `<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("") + `</div>`;
+                }
+                html += `</div>`;
+                agEl.innerHTML = html;
             } else { agEl.innerText = "Inactive"; }
 
             const gemTxt = document.getElementById(`gem-txt-${charId}`);
@@ -181,7 +200,8 @@
         targets.forEach(char => {
             const charId = (name + char.CharacterName).replace(/\s/g, '');
             const row = document.createElement('div'); row.className = 'list-row member-grid';
-            row.innerHTML = `<div><span class="char-name">${char.CharacterName}</span></div><div>${char.ServerName}</div><div style="font-weight:800;">${char.ItemAvgLevel}</div><div id="cp-${charId}" class="loading-dot">...</div><div id="db-cp-${charId}">...</div><div id="ap-${charId}" class="loading-dot">...</div><div id="ag-${charId}" class="ark-grid-wrapper loading-dot">...</div><div class="gem-box"><div id="gem-txt-${charId}" class="gem-text">로딩 중...</div><div id="gem-gold-${charId}" class="gold-text">0 G</div></div>`;
+            // [수정] 아크그리드 칸에 .ark-grid-container 클래스 적용
+            row.innerHTML = `<div><span class="char-name">${char.CharacterName}</span></div><div>${char.ServerName}</div><div style="font-weight:800;">${char.ItemAvgLevel}</div><div id="cp-${charId}" class="loading-dot">...</div><div id="db-cp-${charId}">...</div><div id="ap-${charId}" class="loading-dot">...</div><div id="ag-${charId}" class="ark-grid-container loading-dot">...</div><div class="gem-box"><div id="gem-txt-${charId}" class="gem-text">로딩 중...</div><div id="gem-gold-${charId}" class="gold-text">0 G</div></div>`;
             listContainer.appendChild(row);
             loadFullDetails(char.CharacterName, charId, name, char);
         });
