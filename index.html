@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>LOA NTI Dashboard - Gwanghwi Price Fixed</title>
+    <title>LOA NTI Dashboard - Gem Logic Final</title>
     <style>
         :root { 
             --bg: #121212; --card-bg: #1e1e1e; --border: #333;
@@ -43,7 +43,7 @@
 <body>
 
 <div class="container">
-    <h1 style="color: #fff; margin-bottom: 25px;">📊 LOA NTI Dashboard <span style="font-size: 0.9rem; color: #666;">(Gwanghwi Price Fix)</span></h1>
+    <h1 style="color: #fff; margin-bottom: 25px;">📊 LOA NTI Dashboard <span style="font-size: 0.9rem; color: #666;">(AppScript Logic Sync)</span></h1>
     <div id="tabMenu" class="tabs"></div>
     <div id="tabContents"></div>
 </div>
@@ -61,12 +61,12 @@
         return html.replace(/<[^>]*>?/gm, '').trim(); 
     }
 
-    // [경매장] 겁화/작열뿐만 아니라 '광휘의 보석' 시세도 직접 긁어오도록 수정
+    // [시세 연동] 앱스크립트 방식대로 겁화/작열만 검색
     async function backgroundPriceSync() {
         if (priceStatus !== "pending") return;
         priceStatus = "loading";
         const levels = [7, 8, 9, 10];
-        const types = ["겁화의 보석", "작열의 보석", "광휘의 보석"]; // 광휘 추가!
+        const types = ["겁화", "작열"]; 
         const headers = { "accept": "application/json", "Authorization": API_KEY, "Content-Type": "application/json" };
         
         for (const level of levels) {
@@ -74,16 +74,12 @@
                 try {
                     const res = await fetch(`${BASE_URL}/auctions/items`, {
                         method: 'POST', headers,
-                        body: JSON.stringify({ "CategoryCode": 210000, "ItemTier": 4, "ItemName": `${level}레벨 ${type}`, "PageNo": 1, "Sort": "BUY_PRICE" })
+                        body: JSON.stringify({ "CategoryCode": 210000, "ItemTier": 4, "ItemName": `${level}레벨 ${type}의 보석`, "PageNo": 1, "Sort": "BUY_PRICE" })
                     });
                     const data = await res.json();
                     if (data.Items?.length > 0) {
                         const best = data.Items.find(i => i.AuctionInfo?.BuyPrice > 0);
-                        if (best) {
-                            // "10레벨 광휘", "10레벨 겁화" 등의 키로 가격 저장
-                            const key = `${level}레벨 ${type.replace("의 보석", "")}`;
-                            globalPrices[key] = best.AuctionInfo.BuyPrice;
-                        }
+                        if (best) globalPrices[`${level}레벨 ${type}`] = best.AuctionInfo.BuyPrice;
                     }
                 } catch (e) {}
                 await new Promise(r => setTimeout(r, 200));
@@ -175,39 +171,36 @@
                 agEl.innerHTML = agData.Slots.map(s => `<div class="grid-item"><img src="${s.Icon}" class="grid-icon"> ${s.Point}P</div>`).join("");
             } else { agEl.innerText = "비활성"; }
 
-            // [보석 가치 합산]
+            // [보석 합산 로직 - 앱스크립트 방식 100% 반영]
             const updateGems = () => {
-                if (!gData?.Gems) { document.getElementById(`gem-txt-${charId}`).innerText = "정보 없음"; return; }
-                let totalGold = 0; let gemMap = {};
+                if (!gData?.Gems) { document.getElementById(`gem-txt-${charId}`).innerText = "보석 없음"; return; }
+                let charGold = 0; let counts = {};
 
-                gData.Gems.forEach(g => {
-                    const cleanName = stripHtml(g.Name);
-                    const isBind = cleanName.includes("귀속");
-                    
-                    // 1. 귀속이면 무조건 0원
-                    if (!isBind) {
-                        const level = g.Level;
-                        let type = "";
-                        if (cleanName.includes("광휘")) type = "광휘";
-                        else if (cleanName.includes("겁화")) type = "겁화";
-                        else if (cleanName.includes("작열")) type = "작열";
+                gData.Gems.forEach(gem => {
+                    const rawName = stripHtml(gem.Name);
+                    // 귀속 또는 이벤트 포함 여부 확인
+                    const isExcl = rawName.includes("귀속") || rawName.includes("이벤트");
+                    // 이름에서 불필요한 단어 제거 (가이드 참고)
+                    let clean = rawName.replace(/의 보석|\(귀속\)|\(이벤트\)/g, "").trim();
 
-                        // 2. 시세 DB에서 해당 레벨/종류의 가격을 가져와 더함
-                        const price = globalPrices[`${level}레벨 ${type}`];
-                        if (price) totalGold += price;
+                    // 가치 합산 (귀속이 아닐 때만)
+                    if (!isExcl) {
+                        // 광휘면 작열로 치환해서 시세 찾기
+                        let priceKey = clean.includes("광휘") ? clean.replace("광휘", "작열") : clean;
+                        charGold += globalPrices[priceKey] || 0;
                     }
 
-                    let displayName = cleanName.replace(/\(귀속\)/g, "").trim();
-                    if (isBind) displayName += " (귀속)";
-                    gemMap[displayName] = (gemMap[displayName] || 0) + 1;
+                    // 화면 표시용 라벨 작성
+                    let label = isExcl ? clean + "(귀속)" : clean;
+                    counts[label] = (counts[label] || 0) + 1;
                 });
 
-                document.getElementById(`gem-txt-${charId}`).innerText = Object.entries(gemMap)
-                    .sort((a,b) => b[0].localeCompare(a[0])) 
-                    .map(([n, c]) => `${n} ${c}개`).join(", ");
-                document.getElementById(`gem-gold-${charId}`).innerText = totalGold.toLocaleString() + " G";
+                // 결과 텍스트 생성 (이름순 정렬)
+                const gemText = Object.keys(counts).sort().map(l => `${l} ${counts[l]}개`).join(", ");
+                document.getElementById(`gem-txt-${charId}`).innerText = gemText;
+                document.getElementById(`gem-gold-${charId}`).innerText = charGold.toLocaleString() + " G";
                 
-                if (totalGold === 0 && priceStatus !== "done") setTimeout(updateGems, 2000);
+                if (charGold === 0 && priceStatus !== "done") setTimeout(updateGems, 2000);
             };
             updateGems();
 
