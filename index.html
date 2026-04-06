@@ -55,65 +55,71 @@
     margin-top: 10px; 
 }
 
-/* --- 랭킹 프로필 카드 스타일 --- */
+/* --- 랭킹 프로필 카드 스타일 (세로형 가로대폭확대) --- */
 .ranking-banner { 
     display: flex; 
-    gap: 30px; 
-    margin: 40px 0; 
+    gap: 40px; 
+    margin: 60px 0; /* 위아래 여백 확대 */
     justify-content: center; 
-    align-items: flex-end; 
+    align-items: flex-end; /* 아래쪽 정렬 유지 */
+    flex-wrap: wrap; /* 화면 작아지면 자동 줄바꿈 */
 }
 
 .rank-card { 
     position: relative; 
-    width: 320px; 
-    height: 140px; 
-    background: linear-gradient(135deg, #1e1e1e 0%, #252525 100%);
-    border-radius: 16px; 
+    width: 320px; /* 카드의 전체 가로 크기 */
+    background: linear-gradient(180deg, rgba(30,30,30,0) 0%, rgba(10,10,10,0.8) 100%), var(--card-bg);
+    border-radius: 20px; 
     border: 1px solid var(--border);
     display: flex;
+    flex-direction: column; /* 세로 배치로 변경 */
     align-items: center;
-    padding: 15px;
+    padding: 0; /* 내부 패딩 제거 (사진이 꽉 차도록) */
     box-sizing: border-box;
+    overflow: hidden; /* 사진이 테두리 안나가게 */
+    transition: 0.3s ease-in-out;
 }
 
+/* 1등 카드를 가장 크게 */
 .rank-card.top1 { 
-    width: 360px; height: 160px; 
-    border: 2px solid var(--highlight); 
-    box-shadow: 0 0 25px rgba(255, 204, 0, 0.2);
+    width: 380px; 
+    border: 3px solid var(--highlight); 
+    box-shadow: 0 10px 50px rgba(255, 204, 0, 0.3);
     z-index: 2;
+    transform: translateY(-20px); /* 1등은 위로 살짝 띄움 */
 }
 
+/* 프로필 사진 크기 대폭 확대 (비율 1:1.3) */
 .rank-card .pfp { 
-    width: 110px; 
-    height: 110px; 
-    border-radius: 12px; 
-    overflow: hidden; 
+    width: 100%; /* 카드 가로폭에 꽉 차게 */
+    height: 416px; /* 320 * 1.3 = 416px (기존 110px 대비 약 3.8배 확대) */
     background: #000;
-    border: 2px solid rgba(255,255,255,0.1);
-    flex-shrink: 0;
+    overflow: hidden;
 }
-.rank-card.top1 .pfp { width: 130px; height: 130px; } 
+.rank-card.top1 .pfp { height: 494px; } /* 1등 사진 세로폭 (380 * 1.3 = 494px) */
 .rank-card .pfp img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 
+/* 캐릭터 정보 (사진 아래 배치) */
 .rank-card .info { 
-    flex: 1; 
-    margin-left: 20px; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center;
-    text-align: left;
+    width: 100%;
+    padding: 20px; /* 정보 영역 패딩 */
+    box-sizing: border-box;
+    text-align: center; /* 중앙 정렬 */
+    background: rgba(0,0,0,0.5); /* 글씨 가독성을 위한 배경 */
+    backdrop-filter: blur(5px);
 }
-.rank-card .info .job { font-size: 0.9rem; color: #aaa; font-weight: 600; }
-.rank-card .info .name { font-size: 1.3rem; color: #fff; font-weight: 900; margin-top: 5px; }
-.rank-card .info .cp { font-size: 1rem; color: var(--highlight); font-weight: 800; margin-top: 8px; }
+.rank-card .info .job { font-size: 1rem; color: #aaa; font-weight: 600; }
+.rank-card .info .name { font-size: 1.8rem; color: #fff; font-weight: 900; margin-top: 8px; }
+.rank-card .info .cp { font-size: 1.4rem; color: var(--highlight); font-weight: 800; margin-top: 12px; }
 
+/* 메달 이모지 위치 및 크기 조정 */
 .rank-card .medal { 
     position: absolute; 
-    top: -25px; 
-    left: -10px; 
-    font-size: 3.5rem; 
+    top: -30px; 
+    left: -20px; 
+    font-size: 5rem; /* 메달 크기 확대 */
     z-index: 3;
+    filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
 }
     </style>
 </head>
@@ -223,49 +229,65 @@
 
     function renderTotalList(data) {
     const container = document.getElementById('total-list-container');
-    data.sort((a, b) => (parseFloat(b.lv || b["아이템레벨"])) - (parseFloat(a.lv || a["아이템레벨"])));
     
-    // 상단 랭킹 배너
+    // 1. [정렬 로직] 콤마가 포함된 레벨도 정상적으로 숫자로 바꿔서 내림차순 정렬
+    data.sort((a, b) => {
+        const lvA = parseFloat(String(a.lv || a["아이템레벨"] || 0).replace(/,/g, ""));
+        const lvB = parseFloat(String(b.lv || b["아이템레벨"] || 0).replace(/,/g, ""));
+        return lvB - lvA;
+    });
+    
+    // 2. 상단 랭킹 배너 (커진 사진 버전)
     let bannerHTML = `<div class="ranking-banner">`;
     const medals = ['🥇', '🥈', '🥉'];
 
     for (let i = 0; i < Math.min(3, data.length); i++) {
         const char = data[i];
         const pfpUrl = char.pfp || char["사진"] || ""; 
+        
+        // 전투력에서 숫자만 남기고 콤마 처리
+        let rawCp = String(char.cp || char["전투력"] || "0").replace(/[^0-9.]/g, "");
+        let displayCp = parseFloat(rawCp).toLocaleString();
 
         bannerHTML += `
             <div class="rank-card top${i+1}">
                 <div class="medal">${medals[i]}</div>
                 <div class="pfp">
-                    ${pfpUrl ? `<img src="${pfpUrl}" alt="profile">` : `<div style="line-height:110px; color:#555; text-align:center;">No Image</div>`}
+                    ${pfpUrl ? `<img src="${pfpUrl}" alt="profile">` : `<div style="line-height:416px; color:#555; text-align:center;">No Image</div>`}
                 </div>
                 <div class="info">
                     <div class="job">${char.job || char["직업"]}</div>
                     <div class="name">${char.name || char["캐릭터명"]}</div>
-                    <div class="cp">${parseFloat(char.cp || char["전투력"]).toLocaleString()} CP</div>
+                    <div class="cp" style="color:var(--highlight); font-weight:800;">${displayCp}</div>
                 </div>
             </div>`;
     }
     bannerHTML += `</div>`;
 
-    // 하단 리스트 헤더 및 내용
+    // 3. 하단 전체 리스트 (헤더 + 내용 로직 복구)
     let headerHTML = `<div class="list-header total-grid"><div>순위</div><div>캐릭터명</div><div>직업</div><div>아이템레벨</div><div>전투력</div><div>서버</div></div>`;
+    
     let listHTML = data.map((c, i) => {
-        const level = parseFloat(c.lv || c["아이템레벨"]);
+        const level = parseFloat(String(c.lv || c["아이템레벨"] || 0).replace(/,/g, ""));
+        
+        // 리스트용 전투력 숫자 정제 (콤마 포함)
+        let rawCp = String(c.cp || c["전투력"] || "0").replace(/[^0-9.]/g, "");
+        let displayValue = parseFloat(rawCp).toLocaleString();
+
         return `
             <div class="list-row total-grid">
                 <div>${i + 1}</div>
                 <div class="char-name">${c.name || c["캐릭터명"]}</div>
                 <div>${c.job || c["직업"]}</div>
                 <div style="font-weight:800;">${level.toFixed(2)}</div>
-                <div>${parseFloat(c.cp || c["전투력"]).toLocaleString()}</div>
+                <div style="font-weight:bold;">${displayValue}</div>
                 <div>${c.server || c["서버"]}</div>
             </div>`;
     }).join("");
 
+    // 최종 컨테이너에 삽입
     container.innerHTML = bannerHTML + headerHTML + listHTML;
 }
-
     async function loadFullDetails(charName, charId, ownerName, charData) {
         const headers = { "accept": "application/json", "Authorization": API_KEY };
         try {
