@@ -376,7 +376,11 @@
 
     const container = document.getElementById('total-list-container');
 
-    if (!forceRefresh && dbData.length > 0) { renderTotalList(dbData); return; }
+    if (!forceRefresh && dbData.length > 0) {
+        renderTotalList(dbData);
+        updateProfileImages(dbData);
+        return;
+    }
 
 
 
@@ -420,7 +424,7 @@
 
                     lv: parseFloat(char.ItemAvgLevel.replace(/,/g, "")), 
 
-                    cp: parseFloat(pData?.CombatPower?.Value || pData?.CombatPower || 0), 
+                    cp: parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, "")), 
 
                     server: char.ServerName,
 
@@ -435,7 +439,8 @@
         }
 
         renderTotalList(allChars);
-
+        updateProfileImages(allChars);
+        
         document.getElementById('time-total').innerText = `최근 갱신: ${getCurrentTime()}`;
 
     } catch (e) { container.innerHTML = "데이터 로드 중 오류가 발생했습니다."; }
@@ -474,7 +479,7 @@
 
                 <div class="medal">${medals[i]}</div>
 
-                <div class="pfp">
+                <div class="pfp" data-name="${char.name || char["캐릭터명"]}">
 
                     ${pfpUrl ? `<img src="${pfpUrl}" alt="profile">` : `<div style="line-height:110px; color:#555; text-align:center;">No Image</div>`}
 
@@ -874,7 +879,40 @@
 
     }
 
+    async function updateProfileImages(data) {
+    const headers = { "accept": "application/json", "Authorization": API_KEY };
 
+    for (const char of data) {
+        const charName = char.name || char["캐릭터명"];
+
+        try {
+            const res = await fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/profiles`, { headers });
+            const pData = await res.json();
+
+            const imgUrl = pData?.CharacterImage;
+            if (!imgUrl) continue;
+
+            const container = document.querySelector(`.pfp[data-name="${charName}"]`);
+            if (!container) continue;
+
+            let img = container.querySelector("img");
+
+            if (!img) {
+                img = document.createElement("img");
+                container.innerHTML = "";
+                container.appendChild(img);
+            }
+
+            img.src = imgUrl;
+
+        } catch (e) {
+            console.error("이미지 업데이트 실패:", charName);
+        }
+
+        await new Promise(r => setTimeout(r, 120)); // rate limit 방지
+    }
+}
+    
 
     function init() {
 
