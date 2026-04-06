@@ -418,26 +418,39 @@
             for (const char of filteredSibs) {
 
                 const pRes = await fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(char.CharacterName)}/profiles`, { headers });
+const pData = await pRes.json();
 
-                const pData = await pRes.json();
+const realCp = parseFloat(
+    String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, "")
+);
 
-                
+// 🔥 DB 값 찾기
+const savedData = dbData.find(d => d["캐릭터명"] === char.CharacterName);
 
-                allChars.push({ 
+const dbCp = savedData
+    ? parseFloat(String(savedData["전투력"] || 0).replace(/,/g, ""))
+    : 0;
 
-                    name: char.CharacterName, 
+// 🔥 최종 CP 결정 (항상 최대값 유지)
+const finalCp = realCp > dbCp ? realCp : dbCp;
 
-                    job: char.CharacterClassName, 
+// 🔥 DB보다 높으면 업데이트
+if (realCp > dbCp) {
+    syncToSheet({
+        type: "update_cp_only",
+        name: char.CharacterName,
+        cp: realCp
+    });
+}
 
-                    lv: parseFloat(char.ItemAvgLevel.replace(/,/g, "")), 
-
-                    cp: parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, "")), 
-
-                    server: char.ServerName,
-
-                    pfp: pData?.CharacterImage || "" 
-
-                });
+allChars.push({ 
+    name: char.CharacterName, 
+    job: char.CharacterClassName, 
+    lv: parseFloat(char.ItemAvgLevel.replace(/,/g, "")), 
+    cp: finalCp,
+    server: char.ServerName,
+    pfp: pData?.CharacterImage || "" 
+});
 
                 await new Promise(r => setTimeout(r, 150)); 
 
@@ -781,6 +794,10 @@ async function handleMemberTab(name, forceRefresh = false) {
             return;
         }
 
+        if (!forceRefresh && listContainer.dataset.loaded === "true") {
+        return;
+        }
+        
         // 🔽 여기부터 기존 코드 그대로 유지
         listContainer.innerHTML = "";
         listContainer.dataset.loaded = "true";
