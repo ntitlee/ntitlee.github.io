@@ -28,14 +28,42 @@
         
         .char-name { font-weight: 800; color: #fff; }
         
-        /* 아크패시브 6R 이하 강조 */
-        .low-rank { color: var(--danger); font-weight: 900; }
+/* 아크패시브 6R 이하 강조 */
+.low-rank { color: var(--danger); font-weight: 900; }
 
-        /* 아크그리드 1열(질서), 2열(혼돈) 배치 */
-        .ark-grid-container { display: flex; flex-direction: column; gap: 6px; width: 100%; align-items: center; }
-        .ark-grid-row { display: flex; gap: 4px; justify-content: center; width: 100%; }
-        .grid-item { display: flex; align-items: center; gap: 3px; font-size: 0.72rem; background: #2a2a2a; padding: 2px 5px; border-radius: 3px; min-width: 75px; }
-        .grid-item img { width: 18px; height: 18px; }
+/* 아크그리드 1열(질서), 2열(혼돈) 배치 */
+.ark-grid-container { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 6px; 
+    width: 100%; 
+    align-items: center; 
+}
+
+.ark-grid-row { 
+    display: flex; 
+    gap: 8px;           /* 아이콘 사이 간격 살짝 늘림 */
+    justify-content: center; 
+    width: 100%; 
+}
+
+/* [수정됨] 배경 칸 삭제 버전 */
+.grid-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 4px; 
+    font-size: 0.75rem; 
+    white-space: nowrap; 
+    background: none !important; /* 배경색 강제 삭제 */
+    padding: 0 !important;      /* 여백 강제 삭제 */
+    min-width: 65px;            /* 정렬을 위한 최소 너비 */
+}
+
+.grid-item img { 
+    width: 20px; 
+    height: 20px; 
+    border-radius: 2px; 
+}
 
         /* 홈 화면 이미지 */
         #welcome-page { display: flex; justify-content: center; align-items: center; min-height: 60vh; flex-direction: column; }
