@@ -376,9 +376,10 @@
     const container = document.getElementById('total-list-container');
 
         if (!forceRefresh && dbData.length === 0) {
-        container.innerHTML = `<div style="padding:30px; text-align:center;">DB 로딩 중...</div>`;
-        return;
-    }   
+    container.innerHTML = `<div class="loading-dot">DB 로딩 중... ●●●</div>`;
+    setTimeout(() => loadNTITotal(false), 500);
+    return;
+}
        
     if (!forceRefresh && dbData.length > 0) {
         renderTotalList(dbData);
@@ -758,9 +759,10 @@
     const totalGold = document.getElementById(`total-gold-${name}`);
 
     if (!forceRefresh && dbData.length === 0) {
-        listContainer.innerHTML = `<div class="loading-dot">DB 로딩 중...</div>`;
-        return;
-    }
+    container.innerHTML = `<div class="loading-dot">DB 로딩 중... ●●●</div>`;
+    setTimeout(() => loadNTITotal(false), 500);
+    return;
+}
     
 
     if (!forceRefresh && listContainer.dataset.loaded === "true" && dbData.length > 0) return;
@@ -965,7 +967,8 @@
     window.onload = async () => { 
     init();
 
-    fetchDB();
+    await fetchDB();
+        
     backgroundPriceSync();
 };
 
