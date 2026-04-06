@@ -217,8 +217,8 @@ document.getElementById(`ap-${charId}`).innerHTML = apData?.Points && apData.Poi
         const fullText = `${name}: ${rankNum}랭크 ${levelNum}레벨`;
         
         // 6랭크 이하일 경우 기존에 정의한 'low-rank' 클래스 적용
-        const className = rankNum <= 6 ? 'low-rank' : '';
-        return `<span class="${className}">${fullText}</span>`;
+        const className = rankNum < 6 ? 'low-rank' : '';
+        return `<span>${name}: </span><span class="${className}">${rankNum}랭크 ${levelNum}레벨</span>`;
     }
     return ""; // 데이터 매칭 안될 경우 빈값
 }).join("<br>") : "Inactive";
