@@ -376,6 +376,11 @@
 
     const container = document.getElementById('total-list-container');
 
+        if (!forceRefresh && dbData.length === 0) {
+        container.innerHTML = `<div style="padding:30px; text-align:center;">DB 로딩 중...</div>`;
+        return;
+    }   
+       
     if (!forceRefresh && dbData.length > 0) {
         renderTotalList(dbData);
         updateProfileImages(dbData);
@@ -453,7 +458,19 @@
 
     const container = document.getElementById('total-list-container');
 
-    data.sort((a, b) => (parseFloat(b.lv || b["아이템레벨"])) - (parseFloat(a.lv || a["아이템레벨"])));
+    data.sort((a, b) => {
+    const lvA = parseFloat(a.lv || a["아이템레벨"]);
+    const lvB = parseFloat(b.lv || b["아이템레벨"]);
+
+    if (lvB !== lvA) {
+        return lvB - lvA; // 1순위: 아이템레벨
+    }
+
+    const cpA = parseFloat(a.cp || a["전투력"] || 0);
+    const cpB = parseFloat(b.cp || b["전투력"] || 0);
+
+    return cpB - cpA; // 2순위: 전투력
+});
 
     
 
@@ -941,14 +958,11 @@
 
 
     window.onload = async () => { 
+    init();
 
-        await fetchDB(); 
-
-        await backgroundPriceSync(); 
-
-        init(); 
-
-    };
+    fetchDB();
+    backgroundPriceSync();
+};
 
 </script>
 
