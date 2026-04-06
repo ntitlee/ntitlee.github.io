@@ -321,18 +321,17 @@
 
 
     async function fetchDB() {
+    try {
+        const res = await fetch(SHEET_API_URL);
+        dbData = await res.json();
 
-        try {
+        // 🔥 추가
+        console.log("DB 로드 완료");
 
-            const res = await fetch(SHEET_API_URL);
-
-            dbData = await res.json();
-
-            document.getElementById('time-total').innerText = `최근 DB 로드: ${getCurrentTime()}`;
-
-        } catch (e) { console.error("DB 로드 실패"); }
-
+    } catch (e) { 
+        console.error("DB 로드 실패"); 
     }
+}
 
 
 
@@ -760,9 +759,13 @@
 
     const totalGold = document.getElementById(`total-gold-${name}`);
 
+    if (!forceRefresh && dbData.length === 0) {
+        listContainer.innerHTML = `<div class="loading-dot">DB 로딩 중...</div>`;
+        return;
+    }
     
 
-    if (!forceRefresh && listContainer.dataset.loaded === "true") return;
+    if (!forceRefresh && listContainer.dataset.loaded === "true" && dbData.length > 0) return;
 
 
 
