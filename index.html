@@ -8,42 +8,45 @@
             --bg: #121212; --card-bg: #1e1e1e; --border: #333;
             --text: #e0e0e0; --primary: #4285f4; --highlight: #ffcc00;
         }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
-        .container { max-width: 1850px; margin: 0 auto; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); line-height: 1.2; }
         
-        .tabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 20px; gap: 5px; }
-        .tab-btn { padding: 12px 25px; cursor: pointer; border: none; background: #2a2a2a; color: #888; border-radius: 8px 8px 0 0; font-weight: 700; transition: 0.3s; }
+        /* [수정] 화면 가로폭 제한 및 중앙 정렬 */
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 40px; }
+        
+        .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 15px; gap: 4px; }
+        .tab-btn { padding: 8px 18px; cursor: pointer; border: none; background: #2a2a2a; color: #888; border-radius: 6px 6px 0 0; font-weight: 700; font-size: 0.9rem; transition: 0.3s; }
         .tab-btn.active { background: var(--primary); color: white; }
 
-        .total-grid { grid-template-columns: 100px 200px 150px 140px 180px 1fr; }
-        .member-grid { grid-template-columns: 180px 100px 100px 140px 180px 220px 250px 1fr; }
+        /* [수정] 행 높이 축소 (Compact) */
+        .total-grid { grid-template-columns: 80px 160px 130px 110px 150px 1fr; }
+        .member-grid { grid-template-columns: 160px 90px 90px 120px 130px 150px 180px 1fr; }
 
-        .list-header, .list-row { display: grid; gap: 12px; align-items: center; text-align: center; font-size: 0.85rem; }
-        .list-header { background: #252525; padding: 12px; font-weight: 800; border-bottom: 2px solid var(--border); }
-        .list-row { background: var(--card-bg); padding: 15px 12px; border-bottom: 1px solid var(--border); min-height: 85px; }
+        .list-header, .list-row { display: grid; gap: 8px; align-items: center; text-align: center; font-size: 0.82rem; }
+        .list-header { background: #252525; padding: 10px 8px; font-weight: 800; border-bottom: 2px solid var(--border); }
+        .list-row { background: var(--card-bg); padding: 8px; border-bottom: 1px solid var(--border); min-height: 65px; }
         
-        /* 티어별 배경색 */
-        .row-1750 { background-color: #4c2626 !important; }
-        .row-1730 { background-color: #4c3a26 !important; }
-        .row-1720 { background-color: #4c4626 !important; }
-        .row-1710 { background-color: #263c26 !important; }
-        .row-1700 { background-color: #26364c !important; }
+        .row-1750 { background-color: #3d1f1f !important; }
+        .row-1730 { background-color: #3d2f1f !important; }
+        .row-1720 { background-color: #3d381f !important; }
+        .row-1710 { background-color: #1f301f !important; }
+        .row-1700 { background-color: #1f2b3d !important; }
 
-        .char-name { font-weight: 800; color: #fff; font-size: 1rem; }
+        .char-name { font-weight: 800; color: #fff; font-size: 0.9rem; }
 
         /* 홈 화면 */
-        #welcome-page { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
-        .image-container { max-width: 850px; width: 100%; border-radius: 24px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.6); border: 1px solid #444; }
+        #welcome-page { display: flex; justify-content: center; align-items: center; min-height: 60vh; }
+        .image-container { max-width: 700px; width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid #444; }
         .image-container img { width: 100%; height: auto; display: block; }
 
-        /* 아크 그리드 아이콘 스타일 */
-        .grid-icon-box { display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .grid-icon-box img { width: 22px; height: 22px; border-radius: 4px; }
+        /* [수정] 아크그리드 2열 가로 배치 */
+        .grid-container { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+        .grid-row { display: flex; gap: 10px; align-items: center; justify-content: center; }
+        .grid-item { display: flex; align-items: center; gap: 3px; font-size: 0.78rem; }
+        .grid-item img { width: 16px; height: 16px; border-radius: 2px; }
 
-        /* 보석 박스 */
-        .gem-box { position: relative; text-align: left; display: flex; flex-direction: column; }
-        .gem-text { font-size: 0.78rem; color: #aaa; line-height: 1.4; padding-bottom: 15px; }
-        .gold-text { position: absolute; bottom: -5px; right: 0; color: var(--highlight); font-size: 0.95rem; font-weight: 800; }
+        .gem-box { position: relative; text-align: left; display: flex; flex-direction: column; padding-left: 5px; }
+        .gem-text { font-size: 0.75rem; color: #aaa; line-height: 1.3; padding-bottom: 12px; }
+        .gold-text { position: absolute; bottom: -2px; right: 5px; color: var(--highlight); font-size: 0.85rem; font-weight: 800; }
         
         .loading-dot { color: #555; animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
@@ -97,7 +100,7 @@
                         if (best) globalPrices[`${level}레벨 ${type}`] = best.AuctionInfo.BuyPrice;
                     }
                 } catch (e) {}
-                await new Promise(r => setTimeout(r, 150));
+                await new Promise(r => setTimeout(r, 100));
             }
         }
         priceStatus = "done";
@@ -114,7 +117,7 @@
     async function loadNTITotal() {
         const container = document.getElementById('total-list-container');
         if (container.dataset.loaded === "true") return;
-        container.innerHTML = `<div style="padding:50px; text-align:center;" class="loading-dot">데이터를 정렬 중입니다...</div>`;
+        container.innerHTML = `<div style="padding:30px; text-align:center;" class="loading-dot">집계 중...</div>`;
 
         const headers = { "accept": "application/json", "Authorization": API_KEY };
         let allChars = [];
@@ -133,7 +136,7 @@
                     let cp = parseFloat(String(rawCP).replace(/,/g, ""));
                     let tier = lv >= 1750 ? "1750" : lv >= 1730 ? "1730" : lv >= 1720 ? "1720" : lv >= 1710 ? "1710" : lv >= 1700 ? "1700" : "1680";
                     allChars.push({ tier, name: char.CharacterName, job: char.CharacterClassName, lv, cp, server: char.ServerName });
-                    await new Promise(r => setTimeout(r, 80));
+                    await new Promise(r => setTimeout(r, 60));
                 }
             }
             allChars.sort((a, b) => b.lv - a.lv || b.cp - a.cp);
@@ -142,8 +145,8 @@
                 let rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
                 return `
                     <div class="list-row total-grid row-${c.tier}">
-                        <div style="font-weight:bold; font-size:1.1rem;">${rankDisplay}</div>
-                        <div style="font-weight:bold; font-size:1rem;">${c.name}</div>
+                        <div style="font-weight:bold; font-size:1rem;">${rankDisplay}</div>
+                        <div class="char-name">${c.name}</div>
                         <div>${c.job}</div>
                         <div style="font-weight:bold; color:#fff;">${c.lv.toFixed(2)}</div>
                         <div style="font-weight:bold;">${c.cp.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
@@ -175,18 +178,24 @@
             document.getElementById(`cp-${charId}`).innerText = formattedCP;
             document.getElementById(`db-cp-${charId}`).innerText = formattedCP;
 
-            // 아크 패시브 포인트
+            // 아크패시브
             const apEl = document.getElementById(`ap-${charId}`);
             if (apData?.Points) {
-                apEl.innerHTML = apData.Points.map(p => `${stripHtml(p.Name).substring(0,2)} ${parseInt((p.Description||"").match(/(\d+)랭크/)?.[1]||0)}R`).join(" / ");
+                apEl.innerHTML = apData.Points.map(p => `${stripHtml(p.Name).substring(0,2)} ${parseInt((p.Description||"").match(/(\d+)랭크/)?.[1]||0)}R`).join("<br>");
             } else { apEl.innerText = "Inactive"; }
 
-            // [복구] 아크 그리드 아이콘 및 포인트
+            // [수정] 아크그리드 2열 가로 배치 (상단: 질서/도약/진화, 하단: 혼돈)
             const agEl = document.getElementById(`ag-${charId}`);
             if (agData?.Slots) {
-                agEl.innerHTML = `<div class="grid-icon-box">` + 
-                    agData.Slots.map(s => `<div><img src="${s.Icon}" title="${s.Name}"> <span>${s.Point}</span></div>`).join("") + 
-                    `</div>`;
+                // 질서(0,1), 혼돈(2) 정도로 구분되나 보통 슬롯 순서대로 처리
+                const row1 = agData.Slots.slice(0, 2);
+                const row2 = agData.Slots.slice(2, 3);
+                
+                let html = `<div class="grid-container">`;
+                html += `<div class="grid-row">` + row1.map(s => `<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("") + `</div>`;
+                if(row2.length > 0) html += `<div class="grid-row">` + row2.map(s => `<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("") + `</div>`;
+                html += `</div>`;
+                agEl.innerHTML = html;
             } else { agEl.innerText = "Inactive"; }
 
             const updateGems = () => {
@@ -206,7 +215,6 @@
                 document.getElementById(`gem-txt-${charId}`).innerText = Object.entries(counts).map(([k,v]) => `${k} ${v}개`).join(", ");
                 document.getElementById(`gem-gold-${charId}`).innerText = charTotalGold.toLocaleString() + " G";
                 
-                // [신규] 개인 탭 상단 총 합계 골드 누적 업데이트
                 const totalEl = document.getElementById(`total-gold-sum-${ownerName}`);
                 if (totalEl) {
                     let currentSum = parseInt(totalEl.dataset.sum || 0);
@@ -259,10 +267,10 @@
             const content = document.createElement('div'); content.id = name; content.className = 'content'; content.style.display = "none";
             content.innerHTML = `
                 <div class="list-header member-grid">
-                    <div>캐릭터</div><div>서버</div><div>레벨</div><div>전투력</div><div>최대 전투력</div><div>패시브</div><div>그리드</div>
+                    <div>캐릭터</div><div>서버</div><div>레벨</div><div>전투력</div><div>최대 전투력</div><div>아크패시브</div><div>아크그리드</div>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span>보석 현황</span>
-                        <span id="total-gold-sum-${name}" data-sum="0" style="color:var(--highlight); font-size:0.8rem;">총 합계: 0 G</span>
+                        <span id="total-gold-sum-${name}" data-sum="0" style="color:var(--highlight); font-size:0.75rem;">총 합계: 0 G</span>
                     </div>
                 </div>
                 <div id="list-${name}"></div>`;
