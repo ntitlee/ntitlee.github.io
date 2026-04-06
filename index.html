@@ -142,14 +142,35 @@
     }
 
     function renderTotalList(data) {
-        const container = document.getElementById('total-list-container');
-        data.sort((a, b) => (parseFloat(b.lv || b["아이템레벨"])) - (parseFloat(a.lv || a["아이템레벨"])));
-        container.innerHTML = data.map((c, i) => {
-            const rank = i + 1;
-            const rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
-            return `<div class="list-row total-grid"><div>${rankIcon}</div><div class="char-name">${c.name||c["캐릭터명"]}</div><div>${c.job||c["직업"]}</div><div>${parseFloat(c.lv||c["아이템레벨"]).toFixed(2)}</div><div style="font-weight:bold;">${parseFloat(c.cp||c["전투력"]).toLocaleString()}</div><div>${c.server||c["서버"]}</div></div>`;
-        }).join("");
-    }
+    const container = document.getElementById('total-list-container');
+    
+    // 레벨 기준 내림차순 정렬
+    data.sort((a, b) => (parseFloat(b.lv || b["아이템레벨"])) - (parseFloat(a.lv || a["아이템레벨"])));
+    
+    container.innerHTML = data.map((c, i) => {
+        const rank = i + 1;
+        const rankIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+        
+        // 레벨 숫자 추출
+        const level = parseFloat(c.lv || c["아이템레벨"]);
+        
+        // [복구] 레벨별 색상 로직
+        let lvColor = "#e0e0e0"; // 기본 색상
+        if (level >= 1740) lvColor = "#ff4d4d";      // 1740 이상 빨강
+        else if (level >= 1720) lvColor = "#ffcc00"; // 1720 이상 노랑
+        else if (level >= 1700) lvColor = "#4285f4"; // 1700 이상 파랑
+        
+        return `
+            <div class="list-row total-grid">
+                <div>${rankIcon}</div>
+                <div class="char-name">${c.name || c["캐릭터명"]}</div>
+                <div>${c.job || c["직업"]}</div>
+                <div style="color:${lvColor}; font-weight:800;">${level.toFixed(2)}</div>
+                <div style="font-weight:bold;">${parseFloat(c.cp || c["전투력"]).toLocaleString()}</div>
+                <div>${c.server || c["서버"]}</div>
+            </div>`;
+    }).join("");
+}
 
     async function loadFullDetails(charName, charId, ownerName, charData) {
         const headers = { "accept": "application/json", "Authorization": API_KEY };
@@ -235,28 +256,52 @@
     }
 
     async function handleMemberTab(name, forceRefresh = false) {
-        const listContainer = document.getElementById(`list-${name}`);
-        const totalGold = document.getElementById(`total-gold-${name}`);
-        if (!forceRefresh && listContainer.dataset.loaded === "true") return;
+    const listContainer = document.getElementById(`list-${name}`);
+    const totalGold = document.getElementById(`total-gold-${name}`);
+    if (!forceRefresh && listContainer.dataset.loaded === "true") return;
 
-        listContainer.innerHTML = "";
-        listContainer.dataset.loaded = "true";
-        totalGold.dataset.sum = "0";
-        totalGold.innerText = "총 합계: 0 G";
+    listContainer.innerHTML = "";
+    listContainer.dataset.loaded = "true";
+    totalGold.dataset.sum = "0";
+    totalGold.innerText = "총 합계: 0 G";
 
-        const headers = { "accept": "application/json", "Authorization": API_KEY };
-        const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { headers });
-        const targets = (await res.json()).filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640).sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
+    const headers = { "accept": "application/json", "Authorization": API_KEY };
+    const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { headers });
+    
+    // 레벨순 정렬
+    const targets = (await res.json())
+        .filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
+        .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
 
-        targets.forEach(char => {
-            const charId = (name + char.CharacterName).replace(/\s/g, '');
-            const row = document.createElement('div'); row.className = 'list-row member-grid';
-            row.innerHTML = `<div><span class="char-name">${char.CharacterName}</span></div><div>${char.ServerName}</div><div style="font-weight:800;">${char.ItemAvgLevel}</div><div id="cp-${charId}" class="loading-dot">...</div><div id="db-cp-${charId}">...</div><div id="ap-${charId}" class="loading-dot">...</div><div id="ag-${charId}" class="loading-dot">...</div><div class="gem-box"><div id="gem-txt-${charId}" class="gem-text">로딩 중...</div><div id="gem-gold-${charId}" class="gold-text">0 G</div></div>`;
-            listContainer.appendChild(row);
-            loadFullDetails(char.CharacterName, charId, name, char);
-        });
-        document.getElementById(`time-${name}`).innerText = `최근 갱신: ${getCurrentTime()}`;
-    }
+    targets.forEach((char, index) => {
+        const charId = (name + char.CharacterName).replace(/\s/g, '');
+        const row = document.createElement('div');
+        
+        // [복구] index === 0 (가장 레벨 높은 캐릭터)일 때 노란색 테두리 스타일 추가
+        const isMain = index === 0;
+        const mainStyle = isMain ? 'border: 2px solid var(--highlight); box-shadow: inset 0 0 10px rgba(255, 204, 0, 0.2);' : '';
+        
+        row.className = 'list-row member-grid';
+        if (isMain) row.style = mainStyle; // 인라인 스타일로 테두리 적용
+
+        row.innerHTML = `
+            <div><span class="char-name" ${isMain ? 'style="color:var(--highlight);"' : ''}>${char.CharacterName}</span></div>
+            <div>${char.ServerName}</div>
+            <div style="font-weight:800;">${char.ItemAvgLevel}</div>
+            <div id="cp-${charId}" class="loading-dot">...</div>
+            <div id="db-cp-${charId}">...</div>
+            <div id="ap-${charId}" class="loading-dot">...</div>
+            <div id="ag-${charId}" class="loading-dot">...</div>
+            <div class="gem-box">
+                <div id="gem-txt-${charId}" class="gem-text">로딩 중...</div>
+                <div id="gem-gold-${charId}" class="gold-text">0 G</div>
+            </div>`;
+            
+        listContainer.appendChild(row);
+        loadFullDetails(char.CharacterName, charId, name, char);
+    });
+    document.getElementById(`time-${name}`).innerText = `최근 갱신: ${getCurrentTime()}`;
+}
 
     function openTab(evt, tabName) {
         document.querySelectorAll(".content").forEach(c => c.style.display = "none");
