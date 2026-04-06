@@ -804,15 +804,47 @@ async function handleMemberTab(name, forceRefresh = false) {
             row.className = 'list-row member-grid';
             listContainer.appendChild(row);
 
-            // 👉 여기 기존 row.innerHTML 넣으면 됨 (생략된 부분)
+            row.innerHTML = `
+    <div><span class="char-name">${char.CharacterName}</span></div>
+    <div>${char.ServerName}</div>
+    <div style="font-weight:800;">${char.ItemAvgLevel}</div>
+    <div id="cp-${charId}" class="loading-dot">...</div>
+    <div id="db-cp-${charId}">
+    ${savedData ? parseFloat(savedData["전투력"]).toLocaleString() : 0}
+</div>
+    <div id="ap-${charId}" class="loading-dot">...</div>
+    <div id="ag-${charId}" class="loading-dot">...</div>
+    <div class="gem-box">
+        <div id="gem-txt-${charId}" class="gem-text">로딩 중...</div>
+        <div id="gem-gold-${charId}" class="gold-text">0 G</div>
+    </div>
+`;
 
             if (forceRefresh || !savedData) {
                 await loadFullDetails(char.CharacterName, charId, name, char);
                 await new Promise(r => setTimeout(r, 200)); // rate limit 완화
             } else {
-                renderGridFromDB(charId, savedData["아크그리드"]);
-            }
+    document.getElementById(`cp-${charId}`).innerText =
+        parseFloat(savedData["전투력"]).toLocaleString();
+
+    document.getElementById(`db-cp-${charId}`).innerText =
+        parseFloat(savedData["전투력"]).toLocaleString();
+
+    document.getElementById(`ap-${charId}`).innerText =
+        savedData["아크패시브"] || "Inactive";
+
+    renderGridFromDB(charId, savedData["아크그리드"]);
+
+    document.getElementById(`gem-txt-${charId}`).innerText =
+        savedData["보석요약"] || "No Gems";
+
+    document.getElementById(`gem-gold-${charId}`).innerText =
+        (savedData["보석합계"] || 0) + " G";
+}
         }
+
+        document.getElementById(`time-${name}`).innerText =
+    forceRefresh ? `최근 갱신: ${getCurrentTime()}` : `DB 로드 완료`;
 
     } finally {
         memberLoading[name] = false;
@@ -823,114 +855,6 @@ async function handleMemberTab(name, forceRefresh = false) {
         }
     }
 }
-    
-
-    if (!forceRefresh && listContainer.dataset.loaded === "true" && dbData.length > 0) return;
-
-
-
-    listContainer.innerHTML = "";
-
-    listContainer.dataset.loaded = "true";
-
-    totalGold.dataset.sum = "0";
-
-
-
-    const headers = { "accept": "application/json", "Authorization": API_KEY };
-
-    const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { headers });
-
-    const targets = (await res.json())
-
-        .filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
-
-        .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
-
-
-
-    targets.forEach((char, index) => {
-
-        const charId = (name + char.CharacterName).replace(/\s/g, '');
-
-        const savedData = dbData.find(d => d["캐릭터명"] === char.CharacterName);
-
-        
-
-        const isMain = index === 0;
-
-        const row = document.createElement('div');
-
-        row.className = 'list-row member-grid';
-
-        if (isMain) row.style = 'border: 2px solid var(--highlight); box-shadow: inset 0 0 10px rgba(255, 204, 0, 0.2);';
-
-
-
-        const cpVal = savedData ? parseFloat(savedData["전투력"]).toLocaleString() : "...";
-
-        const apVal = savedData ? savedData["아크패시브"].replace(/\//g, "<br>") : "...";
-
-        const agVal = savedData ? savedData["아크그리드"] : "..."; 
-
-        const gemTxtVal = savedData ? savedData["보석요약"] : "로딩 중...";
-
-        const gemGoldVal = savedData ? parseFloat(savedData["보석합계"] || 0).toLocaleString() + " G" : "0 G";
-
-
-
-        row.innerHTML = `
-
-            <div><span class="char-name" ${isMain ? 'style="color:var(--highlight);"' : ''}>${char.CharacterName}</span></div>
-
-            <div>${char.ServerName}</div>
-
-            <div style="font-weight:800;">${char.ItemAvgLevel}</div>
-
-            <div id="cp-${charId}">${cpVal}</div>
-
-            <div id="db-cp-${charId}">${cpVal}</div>
-
-            <div id="ap-${charId}">${apVal}</div>
-
-            <div id="ag-${charId}">${agVal}</div>
-
-            <div class="gem-box">
-
-                <div id="gem-txt-${charId}" class="gem-text">${gemTxtVal}</div>
-
-                <div id="gem-gold-${charId}" class="gold-text">${gemGoldVal}</div>
-
-            </div>`;
-
-            
-
-        listContainer.appendChild(row);
-
-
-
-        if (forceRefresh || !savedData) {
-
-            loadFullDetails(char.CharacterName, charId, name, char);
-
-        } else {
-
-            renderGridFromDB(charId, savedData["아크그리드"]);
-
-            let currentSum = parseInt(totalGold.dataset.sum || 0);
-
-            totalGold.dataset.sum = currentSum + parseInt(savedData["보석합계"] || 0);
-
-            totalGold.innerText = `총 합계: ${parseInt(totalGold.dataset.sum).toLocaleString()} G`;
-
-        }
-
-    });
-
-    document.getElementById(`time-${name}`).innerText = forceRefresh ? `최근 갱신: ${getCurrentTime()}` : `DB 로드 완료`;
-
-}
-
 
 
     function renderGridFromDB(charId, gridString) {
