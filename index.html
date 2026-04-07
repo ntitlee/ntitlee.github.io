@@ -521,12 +521,29 @@
     }
 
     function openTab(evt, tabName) {
+        // 모든 컨텐츠 숨기기 및 버튼 비활성화
         document.querySelectorAll(".content").forEach(c => c.style.display = "none");
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        document.getElementById(tabName).style.display = "block";
+        
+        // 선택한 탭 보여주기
+        const targetContent = document.getElementById(tabName);
+        targetContent.style.display = "block";
         evt.currentTarget.classList.add("active");
-        if (tabName === 'nti-total') loadNTITotal();
-        else if (MEMBERS[tabName]) handleMemberTab(tabName, false);
+
+        // [수정 포인트] 이미 로드된 적이 있다면(dataset.loaded === "true") 다시 API를 호출하지 않음
+        const listContainer = document.getElementById(`list-${tabName}`) || document.getElementById('total-list-container');
+        
+        if (tabName === 'nti-total') {
+            // 통합 탭: 데이터가 없을 때만 로드
+            if (!listContainer || listContainer.dataset.loaded !== "true") {
+                loadNTITotal();
+            }
+        } else if (MEMBERS[tabName]) {
+            // 개인 탭: 데이터가 없을 때만 로드
+            if (!listContainer || listContainer.dataset.loaded !== "true") {
+                handleMemberTab(tabName, false);
+            }
+        }
     }
 
     async function updateProfileImages(data) {
