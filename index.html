@@ -254,10 +254,6 @@
     font-size: 0.75rem;
 }
 
-    #ladder-game input { background: #2a2a2a; border: 1px solid #444; color: white; border-radius: 4px; text-align: center; }
-    .ladder-input-group { display: flex; flex-direction: column; gap: 5px; width: 70px; }
-    .ladder-input-group input { width: 100%; font-size: 0.75rem; padding: 4px 0; }
-        
     </style>
 
 </head>
@@ -274,8 +270,6 @@
 
         <button class="tab-btn" onclick="openTab(event, 'nti-total')">통합</button>
 
-        <button class="tab-btn" onclick="openTab(event, 'ladder-game')">사다리</button>
-        
     </div>
 
     <div id="tabContents">
@@ -311,26 +305,6 @@
 
         </div>
 
-        <div id="ladder-game" class="content" style="display:none;">
-    <div style="text-align: center; padding: 20px;">
-        <h2>📊 NTI 운명 확인 (커스텀 사다리)</h2>
-        
-        <div style="background: #252525; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: inline-block; border: 1px solid #444;">
-            <div id="member-selector" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px;">
-                </div>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
-                <span>당첨자 수: <input type="number" id="winner-count" value="1" min="1" style="width: 40px; padding: 5px;"> 명</span>
-                <button id="ladder-start-btn" class="refresh-btn" style="background: var(--primary); font-weight: 800;" onclick="runLadderGame()">운명 확인하기</button>
-                <button class="refresh-btn" style="background: #444;" onclick="resetLadderConfig()">설정 초기화</button>
-            </div>
-        </div>
-
-        <canvas id="ladder-canvas" width="800" height="450" style="background: #1e1e1e; border: 1px solid #444; border-radius: 8px;"></canvas>
-        
-        <div id="final-result" style="margin-top: 25px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: left; padding: 0 50px;"></div>
-    </div>
-</div>
-        
     </div>
 
 </div>
@@ -693,64 +667,6 @@
     function toNumber(v) {
     return parseFloat(String(v || 0).replace(/,/g, ""));
 }
-
-    let selectedMembers = Object.keys(MEMBERS); // 현재 참여할 멤버 리스트
-
-// 사다리 탭을 누를 때나 초기화할 때 실행
-function resetLadderConfig() {
-    selectedMembers = Object.keys(MEMBERS);
-    document.getElementById('winner-count').value = 1;
-    refreshMemberButtons();
-    initLadder();
-}
-
-// 멤버 선택 버튼 생성 및 갱신
-function refreshMemberButtons() {
-    const container = document.getElementById('member-selector');
-    container.innerHTML = Object.keys(MEMBERS).map(name => {
-        const isSelected = selectedMembers.includes(name);
-        return `<button onclick="toggleMember('${name}')" 
-                style="padding: 5px 12px; border-radius: 20px; border: 1px solid ${isSelected ? var(--primary) : '#555'}; 
-                background: ${isSelected ? var(--primary) : 'transparent'}; color: ${isSelected ? '#fff' : '#888'}; cursor: pointer; font-size: 0.85rem; transition: 0.2s;">
-                ${name} ${isSelected ? '✓' : '+'}
-                </button>`;
-    }).join('');
-}
-
-function toggleMember(name) {
-    if (selectedMembers.includes(name)) {
-        if (selectedMembers.length <= 2) return alert("최소 2명은 참여해야 합니다!");
-        selectedMembers = selectedMembers.filter(m => m !== name);
-    } else {
-        selectedMembers.push(name);
-    }
-    refreshMemberButtons();
-    initLadder(); // 인원 변경 시 사다리 다시 그리기
-}
-
-function initLadder() {
-    const btn = document.getElementById('ladder-start-btn');
-    btn.disabled = false;
-    btn.style.opacity = "1";
-    document.getElementById('final-result').innerHTML = "";
-    
-    const count = selectedMembers.length;
-    const winnerCount = Math.min(parseInt(document.getElementById('winner-count').value) || 1, count - 1);
-    
-    // 결과값 생성 (당첨자 수만큼 배치 후 셔플)
-    let results = new Array(count).fill("❌ 꽝");
-    for(let i=0; i<winnerCount; i++) results[i] = "💎 당첨!";
-    results.sort(() => Math.random() - 0.5); // 무작위 섞기
-    
-    ladderData.players = selectedMembers;
-    ladderData.results = results;
-    ladderData.count = count;
-
-    drawEmptyLadder();
-}
-
-// drawEmptyLadder와 runLadderGame은 기존 로직을 그대로 사용하되, 
-// ladderData.count와 ladderData.players를 기반으로 작동하게 유지합니다.
 
 </script>
 
