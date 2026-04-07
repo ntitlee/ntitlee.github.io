@@ -232,6 +232,16 @@
 
 }
 
+.ark-box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 0.75rem;
+}
+
     </style>
 
 </head>
@@ -574,7 +584,25 @@ allChars.push({
 
 }
 
+function getArkColor(grade) {
+    switch (grade) {
+        case "고대": return "#f5deb3";   // 상아색
+        case "유물": return "#ff5722";   // 다홍
+        case "전설": return "#ffd700";   // 금색
+        case "영웅": return "#9c27b0";   // 보라
+        default: return "#ccc";
+    }
+}
 
+function getArkBorderColor(grade) {
+    switch (grade) {
+        case "고대": return "#e6d3a3";
+        case "유물": return "#ff784e";
+        case "전설": return "#ffcc00";
+        case "영웅": return "#ba68c8";
+        default: return "#555";
+    }
+}
 
     async function loadFullDetails(charName, charId, ownerName, charData) {
 
@@ -698,7 +726,23 @@ allChars.push({
 
                 const row2 = agData.Slots.slice(3, 6);
 
-                agEl.innerHTML = `<div class="ark-grid-container"><div class="ark-grid-row">${row1.map(s => `<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("")}</div><div class="ark-grid-row">${row2.map(s => `<div class="grid-item"><img src="${s.Icon}"><span>${s.Point}p</span></div>`).join("")}</div></div>`;
+                agEl.innerHTML = `<div class="ark-grid-container">
+    <div class="ark-grid-row">
+        ${row1.map(s => `<div class="grid-item"
+            style="border:1px solid ${getArkBorderColor(s.Grade)}; padding:2px 4px; border-radius:4px;">
+            <img src="${s.Icon}">
+            <span style="color:${getArkColor(s.Grade)}">${s.Point}p</span>
+        </div>`).join("")}
+    </div>
+    <div class="ark-grid-row">
+        ${row2.map(s => `<div class="grid-item"
+            style="border:1px solid ${getArkBorderColor(s.Grade)}; padding:2px 4px; border-radius:4px;">
+            <img src="${s.Icon}">
+            <span style="color:${getArkColor(s.Grade)}">${s.Point}p</span>
+        </div>`).join("")}
+    </div>
+</div>`;
+                
 
             } else { agEl.innerText = "Inactive"; }
 
@@ -830,7 +874,7 @@ async function handleMemberTab(name, forceRefresh = false) {
             listContainer.appendChild(row);
             row.innerHTML = `
     <div>
-    ${index === 0 ? '<span style="color:gold; font-weight:900;">MAIN</span>' : ''}
+    ${index === 0 ? '<span style="margin-right:6px;">👑</span>' : ''}
     <span class="char-name">${char.CharacterName}</span>
     </div>
     <div>${char.ServerName}</div>
@@ -970,7 +1014,7 @@ async function handleMemberTab(name, forceRefresh = false) {
         });
 
     }
-
+    
     function toNumber(v) {
     return parseFloat(String(v || 0).replace(/,/g, ""));
 }
