@@ -481,9 +481,15 @@
     memberLoading[name] = true;
 
     const listContainer = document.getElementById(`list-${name}`);
+if (!listContainer) {
+    console.warn("listContainer not found for", name);
+    return;
+}
+        
     const btn = document.querySelector(`#${name} .refresh-btn`);
     if (btn) btn.innerText = "로딩 중...";
 
+        
     try {
         // DB 데이터가 있으면 먼저 화면에 렌더
         if (!forceRefresh && listContainer.dataset.loaded !== "true") {
