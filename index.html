@@ -480,63 +480,85 @@
         if (memberLoading[name]) return;
         
         const listContainer = document.getElementById(`list-${name}`);
-        // [체크] 이미 로드된 데이터가 있고, 강제 새로고침이 아니라면 중단 (중복 로딩 방지)
+        
+        // [핵심] 강제 새로고침이 아니고, 이미 데이터가 그려져 있다면 중단
         if (!forceRefresh && listContainer.dataset.loaded === "true") return;
 
-        memberLoading[name] = true;
         const btn = document.querySelector(`#${name} .refresh-btn`);
-        if (btn) btn.innerText = "로딩 중...";
+        
+        // 1. 강제 새로고침(API 호출) 모드
+        if (forceRefresh) {
+            memberLoading[name] = true;
+            if (btn) btn.innerText = "로딩 중...";
+            try {
+                listContainer.innerHTML = "";
+                const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { 
+                    headers: { "Authorization": API_KEY } 
+                });
+                const sibs = await res.json();
+                const targets = sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
+                                    .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
 
-        try {
-            listContainer.innerHTML = ""; // 기존 목록 초기화
-            const totalGold = document.getElementById(`total-gold-${name}`);
-            totalGold.dataset.sum = "0";
-
-            // 로스트아크 API 호출
-            const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { 
-                headers: { "Authorization": API_KEY } 
-            });
-            const sibs = await res.json();
-            
-            // 1640 이상 캐릭터만 필터링 및 정렬
-            const targets = sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
-                                .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
-
-            for (const [index, char] of targets.entries()) {
-                const charId = (name + char.CharacterName).replace(/\s/g, '');
-                const savedData = dbData.find(d => d["캐릭터명"] === char.CharacterName);
-                
-                const row = document.createElement('div');
-                row.className = `list-row member-grid ${index === 0 ? 'main-character' : ''}`;
-                row.innerHTML = `
-                    <div>${index === 0 ? '👑 ' : ''}<span class="char-name">${char.CharacterName}</span></div>
-                    <div>${char.ServerName}</div>
-                    <div style="font-weight:800;">${char.ItemAvgLevel}</div>
-                    <div id="cp-${charId}" class="loading-dot">...</div>
-                    <div id="db-cp-${charId}">${savedData ? parseFloat(savedData["전투력"]).toLocaleString() : 0}</div>
-                    <div id="ap-${charId}" class="loading-dot">...</div>
-                    <div id="ag-${charId}" class="loading-dot">...</div>
-                    <div class="gem-box">
-                        <div id="gem-txt-${charId}" class="gem-text">로딩 중...</div>
-                        <div id="gem-gold-${charId}" class="gold-text">0 G</div>
-                    </div>`;
-                
-                listContainer.appendChild(row);
-                
-                // 상세 데이터(전투력, 아크패시브, 보석 등) 로드
-                await loadFullDetails(char.CharacterName, charId, name, char);
-                await new Promise(r => setTimeout(r, 150)); // API 부하 방지
+                for (const [index, char] of targets.entries()) {
+                    renderRow(listContainer, char, name, index, true);
+                }
+                listContainer.dataset.loaded = "true";
+                document.getElementById(`time-${name}`).innerText = `최신 갱신 완료 (${getCurrentTime()})`;
+            } catch (e) {
+                console.error(e);
+            } finally {
+                memberLoading[name] = false;
+                if (btn) btn.innerText = "새로고침";
             }
+        } 
+        // 2. 일반 모드: DB 데이터에서 즉시 로드
+        else {
+            listContainer.innerHTML = "";
+            // dbData에서 해당 소유자(owner)의 캐릭터만 필터링 (DB 구조에 따라 'owner' 또는 '소유자' 확인 필요)
+            const myChars = dbData.filter(d => d.owner === name || d["소유자"] === name);
             
-            listContainer.dataset.loaded = "true"; // 로드 완료 표시
-            document.getElementById(`time-${name}`).innerText = `최근 갱신: ${getCurrentTime()}`;
-            
-        } catch (e) { 
-            console.error(e);
-            listContainer.innerHTML = "<div style='padding:20px; color:red;'>데이터를 불러오지 못했습니다. API 키를 확인하세요.</div>";
-        } finally { 
-            memberLoading[name] = false; 
-            if (btn) btn.innerText = "새로고침";
+            if (myChars.length > 0) {
+                myChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
+                myChars.forEach((char, index) => {
+                    // DB 데이터를 API 규격에 맞춰 임시 변환하여 렌더링
+                    const formattedChar = {
+                        CharacterName: char.name || char["캐릭터명"],
+                        ServerName: char.server || char["서버"],
+                        ItemAvgLevel: char.lv || char["아이템레벨"]
+                    };
+                    renderRow(listContainer, formattedChar, name, index, false);
+                });
+                listContainer.dataset.loaded = "true";
+                document.getElementById(`time-${name}`).innerText = "DB 데이터 로드됨";
+            } else {
+                listContainer.innerHTML = "<div style='padding:20px; color:#888;'>DB에 저장된 데이터가 없습니다. 새로고침을 눌러주세요.</div>";
+            }
+        }
+    }
+
+    // 반복되는 로우 생성을 위한 공통 함수
+    function renderRow(container, char, ownerName, index, isApiMode) {
+        const charId = (ownerName + char.CharacterName).replace(/\s/g, '');
+        const savedData = dbData.find(d => d["캐릭터명"] === char.CharacterName);
+        
+        const row = document.createElement('div');
+        row.className = `list-row member-grid ${index === 0 ? 'main-character' : ''}`;
+        row.innerHTML = `
+            <div>${index === 0 ? '👑 ' : ''}<span class="char-name">${char.CharacterName}</span></div>
+            <div>${char.ServerName}</div>
+            <div style="font-weight:800;">${char.ItemAvgLevel}</div>
+            <div id="cp-${charId}" class="${isApiMode ? 'loading-dot' : ''}">${isApiMode ? '...' : (savedData ? parseFloat(savedData["전투력"]).toLocaleString() : '0')}</div>
+            <div id="db-cp-${charId}">${savedData ? parseFloat(savedData["전투력"]).toLocaleString() : 0}</div>
+            <div id="ap-${charId}">${isApiMode ? '...' : (savedData?.arc || 'Inactive')}</div>
+            <div id="ag-${charId}">${isApiMode ? '...' : 'Inactive'}</div>
+            <div class="gem-box">
+                <div id="gem-txt-${charId}" class="gem-text">${isApiMode ? '로딩 중...' : 'DB 데이터'}</div>
+                <div id="gem-gold-${charId}" class="gold-text">0 G</div>
+            </div>`;
+        container.appendChild(row);
+
+        if (isApiMode) {
+            loadFullDetails(char.CharacterName, charId, ownerName, char);
         }
     }
 
