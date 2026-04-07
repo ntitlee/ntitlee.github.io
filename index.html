@@ -454,10 +454,13 @@
             const agEl = document.getElementById(`ag-${charId}`);
             if (agData?.Slots?.length > 0) {
                 const renderRow = (slots) => slots.map(s => `
-                    <div class="grid-item" style="padding:1px 2px;">
-                        <img src="${s.Icon}" style="width:18px; height:18px; ${s.Grade === "고대" ? "filter: drop-shadow(0 0 4px rgba(245,222,179,0.9));" : ""}">
-                        <span style="color:${getArkColor(s.Grade)}; font-weight:800; font-size:13px; ${s.Grade === "고대" ? "text-shadow: 0 0 6px rgba(245,222,179,0.9);" : ""}">${s.Point}</span>
-                    </div>`).join("");
+    <div class="grid-item">
+        <img src="${s.Icon}" style="width:18px; height:18px; ${s.Grade === "고대" ? "filter: drop-shadow(0 0 4px rgba(245,222,179,0.9));" : ""}">
+        
+        <span style="color:${getArkColor(s.Grade)}; font-weight:800; font-size:13px;">
+            ${s.Point}
+        </span>
+    </div>`).join("");
                 agEl.innerHTML = `<div class="ark-grid-container">
                     <div class="ark-grid-row">${renderRow(agData.Slots.slice(0, 3))}</div>
                     <div class="ark-grid-row">${renderRow(agData.Slots.slice(3, 6))}</div>
