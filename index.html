@@ -46,7 +46,7 @@
 
         .list-row { background: var(--card-bg); padding: 8px; border-bottom: 1px solid var(--border); min-height: 80px; }
 
-        
+        .main-character { border: 2px solid var(--highlight); box-shadow: 0 0 10px rgba(255, 204, 0, 0.3); }
 
         .char-name { font-weight: 800; color: #fff; }
 
@@ -824,10 +824,15 @@ async function handleMemberTab(name, forceRefresh = false) {
 
             const row = document.createElement('div');
             row.className = 'list-row member-grid';
+            if (index === 0) {
+            row.classList.add('main-character');
+            }
             listContainer.appendChild(row);
-
             row.innerHTML = `
-    <div><span class="char-name">${char.CharacterName}</span></div>
+    <div>
+    ${index === 0 ? '<span style="color:gold; font-weight:900;">MAIN</span>' : ''}
+    <span class="char-name">${char.CharacterName}</span>
+    </div>
     <div>${char.ServerName}</div>
     <div style="font-weight:800;">${char.ItemAvgLevel}</div>
     <div id="cp-${charId}" class="loading-dot">...</div>
