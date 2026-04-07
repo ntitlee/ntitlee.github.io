@@ -496,7 +496,6 @@
         const timeEl = document.getElementById(`time-${name}`);
         const btn = document.querySelector(`#${name} .refresh-btn`);
 
-        // [수정] 강제 새로고침이 아니고 이미 로드되었다면 중단
         if (!forceRefresh && listContainer.dataset.loaded === "true") return;
 
         // 1. 강제 새로고침 (API 호출) 모드
@@ -504,17 +503,23 @@
             memberLoading[name] = true;
             if (btn) btn.innerText = "로딩 중...";
             try {
-                listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">실시간 데이터를 불러오는 중...</div>';
+                listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">1680+ 캐릭터 확인 중...</div>';
                 const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { 
                     headers: { "Authorization": API_KEY } 
                 });
                 const sibs = await res.json();
-                const targets = sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
+                
+                // [수정 포인트] 필터 기준을 1680으로 상향
+                const targets = sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1680)
                                     .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
 
-                listContainer.innerHTML = ""; // 로딩 메시지 삭제
-                for (const [index, char] of targets.entries()) {
-                    renderRow(listContainer, char, name, index, true);
+                listContainer.innerHTML = "";
+                if (targets.length === 0) {
+                    listContainer.innerHTML = "<div style='padding:20px; color:#888;'>1680 레벨 이상의 캐릭터가 없습니다.</div>";
+                } else {
+                    for (const [index, char] of targets.entries()) {
+                        renderRow(listContainer, char, name, index, true);
+                    }
                 }
                 listContainer.dataset.loaded = "true";
                 timeEl.innerText = `최신 갱신 완료 (${getCurrentTime()})`;
@@ -528,15 +533,15 @@
         } 
         // 2. 일반 모드: DB 데이터 로드
         else {
-            // [추가] 아직 DB 데이터를 가져오지 못했다면 로딩 표시 후 재시도
             if (dbData.length === 0) {
                 listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">DB 데이터 확인 중...</div>';
-                setTimeout(() => handleMemberTab(name, false), 500); // 0.5초 후 재시도
+                setTimeout(() => handleMemberTab(name, false), 500);
                 return;
             }
 
             listContainer.innerHTML = "";
-            const myChars = dbData.filter(d => d.owner === name || d["소유자"] === name);
+            // [수정 포인트] DB에서 가져올 때도 1680 이상만 필터링
+            const myChars = dbData.filter(d => (d.owner === name || d["소유자"] === name) && parseFloat(String(d.lv || d["아이템레벨"]).replace(/,/g, "")) >= 1680);
             
             if (myChars.length > 0) {
                 myChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
@@ -549,9 +554,9 @@
                     renderRow(listContainer, formattedChar, name, index, false);
                 });
                 listContainer.dataset.loaded = "true";
-                timeEl.innerText = "DB 데이터 로드됨";
+                timeEl.innerText = "DB 데이터 로드됨 (1680+)";
             } else {
-                listContainer.innerHTML = "<div style='padding:20px; color:#888;'>DB에 저장된 데이터가 없습니다. 새로고침을 눌러주세요.</div>";
+                listContainer.innerHTML = "<div style='padding:20px; color:#888;'>DB 내 1680 이상 캐릭터가 없습니다. 새로고침을 눌러보세요.</div>";
             }
         }
     }
