@@ -718,35 +718,65 @@ function getArkBorderColor(grade) {
 
             let agSaveText = "Inactive";
 
-            const agEl = document.getElementById(`ag-${charId}`);
+const agEl = document.getElementById(`ag-${charId}`);
 
-            if (agData?.Slots && agData.Slots.length > 0) {
+if (agData?.Slots && agData.Slots.length > 0) {
 
-                agSaveText = agData.Slots.map(s => s.Point).join("/");
+    agSaveText = agData.Slots.map(s => s.Point).join("/");
 
-                const row1 = agData.Slots.slice(0, 3);
+    const row1 = agData.Slots.slice(0, 3);
+    const row2 = agData.Slots.slice(3, 6);
 
-                const row2 = agData.Slots.slice(3, 6);
+    agEl.innerHTML = `<div class="ark-grid-container">
+        <div class="ark-grid-row">
+            ${row1.map(s => `<div class="grid-item" style="padding:1px 2px;">
+                <img 
+                    src="${s.Icon}" 
+                    style="
+                        width:18px; 
+                        height:18px;
+                        ${s.Grade === "고대" ? "filter: drop-shadow(0 0 4px rgba(245,222,179,0.9));" : ""}
+                    "
+                >
+                <span 
+                    style="
+                        color:${getArkColor(s.Grade)};
+                        font-weight:800;
+                        font-size:13px;
+                        line-height:1;
+                        ${s.Grade === "고대" ? "text-shadow: 0 0 6px rgba(245,222,179,0.9);" : ""}
+                    "
+                >
+                    ${s.Point}
+                </span>
+            </div>`).join("")}
+        </div>
 
-                agEl.innerHTML = `<div class="ark-grid-container">
-    <div class="ark-grid-row">
-        ${row1.map(s => `<div class="grid-item"
-            style="
-        padding:1px 3px;          /* 기존보다 줄이기 */
-    border-radius:3px;        /* 살짝 작게 */
-">
-            <img src="${s.Icon}">
-            <span style="color:${getArkColor(s.Grade)}; font-weight:800;">     ${s.Point} </span>
-        </div>`).join("")}
-    </div>
-    <div class="ark-grid-row">
-        ${row2.map(s => `<div class="grid-item"
-            style="padding:2px 4px; border-radius:4px;">
-            <img src="${s.Icon}">
-            <span style="color:${getArkColor(s.Grade)}; font-weight:800;">     ${s.Point} </span>
-        </div>`).join("")}
-    </div>
-</div>`;
+        <div class="ark-grid-row">
+            ${row2.map(s => `<div class="grid-item" style="padding:1px 2px;">
+                <img 
+                    src="${s.Icon}" 
+                    style="
+                        width:18px; 
+                        height:18px;
+                        ${s.Grade === "고대" ? "filter: drop-shadow(0 0 4px rgba(245,222,179,0.9));" : ""}
+                    "
+                >
+                <span 
+                    style="
+                        color:${getArkColor(s.Grade)};
+                        font-weight:800;
+                        font-size:13px;
+                        line-height:1;
+                        ${s.Grade === "고대" ? "text-shadow: 0 0 6px rgba(245,222,179,0.9);" : ""}
+                    "
+                >
+                    ${s.Point}
+                </span>
+            </div>`).join("")}
+        </div>
+    </div>`;
+}
                 
 
             } else { agEl.innerText = "Inactive"; }
@@ -871,31 +901,34 @@ async function handleMemberTab(name, forceRefresh = false) {
             const charId = (name + char.CharacterName).replace(/\s/g, '');
             const savedData = dbData.find(d => d["캐릭터명"] === char.CharacterName);
 
-            const row = document.createElement('div');
-            row.className = 'list-row member-grid';
-            if (index === 0) {
-            row.classList.add('main-character');
-            }
-            listContainer.appendChild(row);
-            row.innerHTML = `
-    <div>
-    ${index === 0 ? '<span style="margin-right:6px;">👑</span>' : ''}
-    <span class="char-name">${char.CharacterName}</span>
-    </div>
-    <div>${char.ServerName}</div>
-    <div style="font-weight:800;">${char.ItemAvgLevel}</div>
-    <div id="cp-${charId}" class="loading-dot">...</div>
-    <div id="db-cp-${charId}">
+const row = document.createElement('div');
+row.className = 'list-row member-grid';
+
+if (index === 0) {
+    row.classList.add('main-character');
+}
+
+listContainer.appendChild(row);
+
+row.innerHTML = `
+<div style="position: relative; display: flex; align-items: center; justify-content: center;">
+    ${index === 0 ? '<span style="position: absolute; left: 0; font-size:14px; filter: drop-shadow(0 0 4px rgba(255,215,0,0.8));">👑</span>' : ''}
+    <span class="char-name" style="text-align:center; width:100%;">${char.CharacterName}</span>
+</div>
+<div>${char.ServerName}</div>
+<div style="font-weight:800;">${char.ItemAvgLevel}</div>
+<div id="cp-${charId}" class="loading-dot">...</div>
+<div id="db-cp-${charId}">
     ${savedData ? parseFloat(savedData["전투력"]).toLocaleString() : 0}
 </div>
-    <div id="ap-${charId}" class="loading-dot">...</div>
-    <div id="ag-${charId}" class="loading-dot">...</div>
-    <div class="gem-box">
-        <div id="gem-txt-${charId}" class="gem-text">로딩 중...</div>
-        <div id="gem-gold-${charId}" class="gold-text">0 G</div>
-    </div>
+<div id="ap-${charId}" class="loading-dot">...</div>
+<div id="ag-${charId}" class="loading-dot">...</div>
+<div class="gem-box">
+    <div id="gem-txt-${charId}" class="gem-text">로딩 중...</div>
+    <div id="gem-gold-${charId}" class="gold-text">0 G</div>
+</div>
 `;
-
+            
             if (forceRefresh || !savedData) {
                 await loadFullDetails(char.CharacterName, charId, name, char);
                 await new Promise(r => setTimeout(r, 200)); // rate limit 완화
