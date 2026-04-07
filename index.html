@@ -65,10 +65,20 @@
         .ark-grid-row { display: flex; gap: 8px; justify-content: center; width: 100%; }
 
         .grid-item {
-    gap: 2px;
-    font-size: 0.7rem;
-}
-        .grid-item img { width: 20px; height: 20px; border-radius: 2px; }
+            display: flex;         /* flex로 변경 */
+            align-items: center;   /* 수직 중앙 정렬 */
+            justify-content: center; /* 수평 중앙 정렬 */
+            gap: 4px;             /* 아이콘과 숫자 간격 */
+            font-size: 0.75rem;
+            min-width: 45px;      /* 정렬 유지를 위한 최소 너비 */
+        }
+        
+        .grid-item img { 
+            width: 18px; 
+            height: 18px; 
+            border-radius: 2px; 
+            display: block;        /* 여백 제거 */
+        }
 
 
 
@@ -539,26 +549,47 @@
     // 반복되는 로우 생성을 위한 공통 함수
     function renderRow(container, char, ownerName, index, isApiMode) {
         const charId = (ownerName + char.CharacterName).replace(/\s/g, '');
-        const savedData = dbData.find(d => d["캐릭터명"] === char.CharacterName);
+        // DB에서 해당 캐릭터의 기존 데이터를 찾음
+        const savedData = dbData.find(d => (d.name || d["캐릭터명"]) === char.CharacterName);
         
         const row = document.createElement('div');
         row.className = `list-row member-grid ${index === 0 ? 'main-character' : ''}`;
+        
+        // DB에 저장된 값들 (없으면 기본값 설정)
+        const dbCp = savedData ? (savedData.cp || savedData["전투력"] || "0") : "0";
+        const dbArc = savedData ? (savedData.arc || savedData["아크패시브"] || "Inactive") : "Inactive";
+        const dbGemTxt = savedData ? (savedData.gem_text || savedData["보석"] || "정보 없음") : "정보 없음";
+        const dbGemGold = savedData ? (savedData.gold || savedData["보석골드"] || "0") : "0";
+
         row.innerHTML = `
             <div>${index === 0 ? '👑 ' : ''}<span class="char-name">${char.CharacterName}</span></div>
             <div>${char.ServerName}</div>
             <div style="font-weight:800;">${char.ItemAvgLevel}</div>
-            <div id="cp-${charId}" class="${isApiMode ? 'loading-dot' : ''}">${isApiMode ? '...' : (savedData ? parseFloat(savedData["전투력"]).toLocaleString() : '0')}</div>
-            <div id="db-cp-${charId}">${savedData ? parseFloat(savedData["전투력"]).toLocaleString() : 0}</div>
-            <div id="ap-${charId}">${isApiMode ? '...' : (savedData?.arc || 'Inactive')}</div>
+            
+            <div id="cp-${charId}" class="${isApiMode ? 'loading-dot' : ''}">${isApiMode ? '...' : parseFloat(String(dbCp).replace(/,/g, "")).toLocaleString()}</div>
+            
+            <div id="db-cp-${charId}">${parseFloat(String(dbCp).replace(/,/g, "")).toLocaleString()}</div>
+            
+            <div id="ap-${charId}" style="font-size:0.75rem;">${isApiMode ? '...' : dbArc}</div>
+            
             <div id="ag-${charId}">${isApiMode ? '...' : 'Inactive'}</div>
+            
             <div class="gem-box">
-                <div id="gem-txt-${charId}" class="gem-text">${isApiMode ? '로딩 중...' : 'DB 데이터'}</div>
-                <div id="gem-gold-${charId}" class="gold-text">0 G</div>
+                <div id="gem-txt-${charId}" class="gem-text">${isApiMode ? '로딩 중...' : dbGemTxt}</div>
+                <div id="gem-gold-${charId}" class="gold-text">${parseFloat(String(dbGemGold).replace(/,/g, "")).toLocaleString()} G</div>
             </div>`;
+            
         container.appendChild(row);
 
+        // API 모드(새로고침 클릭 시)일 때만 실시간 데이터 로드
         if (isApiMode) {
             loadFullDetails(char.CharacterName, charId, ownerName, char);
+        } else if (savedData) {
+            // DB 모드일 때 전체 합계 골드 계산을 위해 데이터 셋업
+            const totalEl = document.getElementById(`total-gold-${ownerName}`);
+            const currentGold = parseInt(String(dbGemGold).replace(/,/g, "")) || 0;
+            totalEl.dataset.sum = (parseInt(totalEl.dataset.sum || 0) + currentGold);
+            totalEl.innerText = `총 합계: ${parseInt(totalEl.dataset.sum).toLocaleString()} G`;
         }
     }
 
