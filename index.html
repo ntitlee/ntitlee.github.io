@@ -493,18 +493,18 @@
         if (memberLoading[name]) return;
         
         const listContainer = document.getElementById(`list-${name}`);
-        
-        // [핵심] 강제 새로고침이 아니고, 이미 데이터가 그려져 있다면 중단
+        const timeEl = document.getElementById(`time-${name}`);
+        const btn = document.querySelector(`#${name} .refresh-btn`);
+
+        // [수정] 강제 새로고침이 아니고 이미 로드되었다면 중단
         if (!forceRefresh && listContainer.dataset.loaded === "true") return;
 
-        const btn = document.querySelector(`#${name} .refresh-btn`);
-        
-        // 1. 강제 새로고침(API 호출) 모드
+        // 1. 강제 새로고침 (API 호출) 모드
         if (forceRefresh) {
             memberLoading[name] = true;
             if (btn) btn.innerText = "로딩 중...";
             try {
-                listContainer.innerHTML = "";
+                listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">실시간 데이터를 불러오는 중...</div>';
                 const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { 
                     headers: { "Authorization": API_KEY } 
                 });
@@ -512,28 +512,35 @@
                 const targets = sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
                                     .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
 
+                listContainer.innerHTML = ""; // 로딩 메시지 삭제
                 for (const [index, char] of targets.entries()) {
                     renderRow(listContainer, char, name, index, true);
                 }
                 listContainer.dataset.loaded = "true";
-                document.getElementById(`time-${name}`).innerText = `최신 갱신 완료 (${getCurrentTime()})`;
+                timeEl.innerText = `최신 갱신 완료 (${getCurrentTime()})`;
             } catch (e) {
                 console.error(e);
+                listContainer.innerHTML = "<div style='padding:20px; color:red;'>API 호출에 실패했습니다.</div>";
             } finally {
                 memberLoading[name] = false;
                 if (btn) btn.innerText = "새로고침";
             }
         } 
-        // 2. 일반 모드: DB 데이터에서 즉시 로드
+        // 2. 일반 모드: DB 데이터 로드
         else {
+            // [추가] 아직 DB 데이터를 가져오지 못했다면 로딩 표시 후 재시도
+            if (dbData.length === 0) {
+                listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">DB 데이터 확인 중...</div>';
+                setTimeout(() => handleMemberTab(name, false), 500); // 0.5초 후 재시도
+                return;
+            }
+
             listContainer.innerHTML = "";
-            // dbData에서 해당 소유자(owner)의 캐릭터만 필터링 (DB 구조에 따라 'owner' 또는 '소유자' 확인 필요)
             const myChars = dbData.filter(d => d.owner === name || d["소유자"] === name);
             
             if (myChars.length > 0) {
                 myChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
                 myChars.forEach((char, index) => {
-                    // DB 데이터를 API 규격에 맞춰 임시 변환하여 렌더링
                     const formattedChar = {
                         CharacterName: char.name || char["캐릭터명"],
                         ServerName: char.server || char["서버"],
@@ -542,7 +549,7 @@
                     renderRow(listContainer, formattedChar, name, index, false);
                 });
                 listContainer.dataset.loaded = "true";
-                document.getElementById(`time-${name}`).innerText = "DB 데이터 로드됨";
+                timeEl.innerText = "DB 데이터 로드됨";
             } else {
                 listContainer.innerHTML = "<div style='padding:20px; color:#888;'>DB에 저장된 데이터가 없습니다. 새로고침을 눌러주세요.</div>";
             }
