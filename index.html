@@ -855,7 +855,6 @@ if (agData?.Slots && agData.Slots.length > 0) {
     const memberLoading = {}; // 🔥 전역에 추가 (한 번만 선언)
 
 async function handleMemberTab(name, forceRefresh = false) {
-
     if (memberLoading[name]) return;
     memberLoading[name] = true;
 
@@ -866,81 +865,85 @@ async function handleMemberTab(name, forceRefresh = false) {
     }
 
     try {
-
         const listContainer = document.getElementById(`list-${name}`);
         const totalGold = document.getElementById(`total-gold-${name}`);
 
-        // 🔥 DB 없을 때 (기존 로직 유지 가능)
         if (!forceRefresh && dbData.length === 0) {
             listContainer.innerHTML = `<div class="loading-dot">DB 로딩 중... ●●●</div>`;
-            
-            // ❗ 여기 중요: 바로 return 하면 finally 실행됨 (OK)
-            setTimeout(() => handleMemberTab(name, false), 500);
+            setTimeout(() => {
+                memberLoading[name] = false; // 재시도를 위해 플래그 해제
+                handleMemberTab(name, false);
+            }, 500);
             return;
         }
 
         if (!forceRefresh && listContainer.dataset.loaded === "true") {
-        return;
+            return;
         }
         
-        // 🔽 여기부터 기존 코드 그대로 유지
         listContainer.innerHTML = "";
-        listContainer.dataset.loaded = "true";
         totalGold.dataset.sum = "0";
 
         const headers = { "accept": "application/json", "Authorization": API_KEY };
-
         const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { headers });
+        const resData = await res.json();
+        
+        if (!resData) return;
 
-        const targets = (await res.json())
+        const targets = resData
             .filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1640)
             .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
 
-        // 🔥 여기 핵심 변경 (forEach → for of)
         for (const [index, char] of targets.entries()) {
-
             const charId = (name + char.CharacterName).replace(/\s/g, '');
             const savedData = dbData.find(d => d["캐릭터명"] === char.CharacterName);
 
-const row = document.createElement('div');
-row.className = 'list-row member-grid';
+            const row = document.createElement('div');
+            row.className = 'list-row member-grid';
+            if (index === 0) row.classList.add('main-character');
 
-if (index === 0) {
-    row.classList.add('main-character');
-}
-
-const row = document.createElement('div'); row.className = 'list-row member-grid'; if (index === 0) { row.classList.add('main-character'); } listContainer.appendChild(row); row.innerHTML = <div> ${index === 0 ? '<span style="margin-right:6px;">👑</span>' : ''} <span class="char-name">${char.CharacterName}</span> </div> <div>${char.ServerName}</div> <div style="font-weight:800;">${char.ItemAvgLevel}</div> <div id="cp-${charId}" class="loading-dot">...</div> <div id="db-cp-${charId}"> ${savedData ? parseFloat(savedData["전투력"]).toLocaleString() : 0} </div> <div id="ap-${charId}" class="loading-dot">...</div> <div id="ag-${charId}" class="loading-dot">...</div> <div class="gem-box"> <div id="gem-txt-${charId}" class="gem-text">로딩 중...</div> <div id="gem-gold-${charId}" class="gold-text">0 G</div> </div> ;
-
+            // HTML 구조를 백틱(`)으로 정확히 감싸고 내부 변수 처리 수정
+            row.innerHTML = `
+                <div>
+                    ${index === 0 ? '<span style="margin-right:6px;">👑</span>' : ''}
+                    <span class="char-name">${char.CharacterName}</span>
+                </div>
+                <div>${char.ServerName}</div>
+                <div style="font-weight:800;">${char.ItemAvgLevel}</div>
+                <div id="cp-${charId}" class="loading-dot">...</div>
+                <div id="db-cp-${charId}">${savedData ? parseFloat(String(savedData["전투력"]).replace(/,/g, "")).toLocaleString() : 0}</div>
+                <div id="ap-${charId}" class="loading-dot">...</div>
+                <div id="ag-${charId}" class="loading-dot">...</div>
+                <div class="gem-box">
+                    <div id="gem-txt-${charId}" class="gem-text">로딩 중...</div>
+                    <div id="gem-gold-${charId}" class="gold-text">0 G</div>
+                </div>`;
             
+            listContainer.appendChild(row);
+
             if (forceRefresh || !savedData) {
                 await loadFullDetails(char.CharacterName, charId, name, char);
-                await new Promise(r => setTimeout(r, 200)); // rate limit 완화
+                await new Promise(r => setTimeout(r, 200)); 
             } else {
-    document.getElementById(`cp-${charId}`).innerText =
-        parseFloat(savedData["전투력"]).toLocaleString();
-
-    document.getElementById(`db-cp-${charId}`).innerText =
-        parseFloat(savedData["전투력"]).toLocaleString();
-
-    document.getElementById(`ap-${charId}`).innerText =
-        savedData["아크패시브"] || "Inactive";
-
-    renderGridFromDB(charId, savedData["아크그리드"]);
-
-    document.getElementById(`gem-txt-${charId}`).innerText =
-        savedData["보석요약"] || "No Gems";
-
-    document.getElementById(`gem-gold-${charId}`).innerText =
-        (savedData["보석합계"] || 0) + " G";
-}
+                // DB 데이터가 있을 경우 즉시 표시
+                document.getElementById(`cp-${charId}`).innerText = parseFloat(String(savedData["전투력"]).replace(/,/g, "")).toLocaleString();
+                document.getElementById(`db-cp-${charId}`).innerText = parseFloat(String(savedData["전투력"]).replace(/,/g, "")).toLocaleString();
+                document.getElementById(`ap-${charId}`).innerText = savedData["아크패시브"] || "Inactive";
+                renderGridFromDB(charId, savedData["아크그리드"]);
+                document.getElementById(`gem-txt-${charId}`).innerText = savedData["보석요약"] || "No Gems";
+                document.getElementById(`gem-gold-${charId}`).innerText = (savedData["보석합계"] || 0).toLocaleString() + " G";
+                
+                // 로딩 클래스 제거
+                document.querySelectorAll(`#cp-${charId}, #ap-${charId}, #ag-${charId}`).forEach(el => el.classList.remove('loading-dot'));
+            }
         }
+        listContainer.dataset.loaded = "true";
+        document.getElementById(`time-${name}`).innerText = forceRefresh ? `최근 갱신: ${getCurrentTime()}` : `DB 로드 완료`;
 
-        document.getElementById(`time-${name}`).innerText =
-    forceRefresh ? `최근 갱신: ${getCurrentTime()}` : `DB 로드 완료`;
-
+    } catch (e) {
+        console.error(e);
     } finally {
         memberLoading[name] = false;
-
         if (btn) {
             btn.disabled = false;
             btn.innerText = "새로고침";
