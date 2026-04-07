@@ -65,13 +65,8 @@
         .ark-grid-row { display: flex; gap: 8px; justify-content: center; width: 100%; }
 
         .grid-item {
-    display: flex;
-    align-items: center;
-    gap: 3px;              /* 기존 4 → 3 */
-    font-size: 0.7rem;     /* 살짝 줄이기 */
-    white-space: nowrap;
-    padding: 1px 3px;      /* 핵심: 줄이기 */
-    min-width: auto;       /* 🔥 이거 중요 */
+    gap: 2px;
+    font-size: 0.7rem;
 }
         .grid-item img { width: 20px; height: 20px; border-radius: 2px; }
 
@@ -737,19 +732,18 @@ function getArkBorderColor(grade) {
     <div class="ark-grid-row">
         ${row1.map(s => `<div class="grid-item"
             style="
-    border:1px solid ${getArkBorderColor(s.Grade)};
-    padding:1px 3px;          /* 기존보다 줄이기 */
+        padding:1px 3px;          /* 기존보다 줄이기 */
     border-radius:3px;        /* 살짝 작게 */
 ">
             <img src="${s.Icon}">
-            <span style="color:${getArkColor(s.Grade)}">${s.Point}</span>
+            <span style="color:${getArkColor(s.Grade)}; font-weight:800;">     ${s.Point} </span>
         </div>`).join("")}
     </div>
     <div class="ark-grid-row">
         ${row2.map(s => `<div class="grid-item"
-            style="border:1px solid ${getArkBorderColor(s.Grade)}; padding:2px 4px; border-radius:4px;">
+            style="padding:2px 4px; border-radius:4px;">
             <img src="${s.Icon}">
-            <span style="color:${getArkColor(s.Grade)}">${s.Point}</span>
+            <span style="color:${getArkColor(s.Grade)}; font-weight:800;">     ${s.Point} </span>
         </div>`).join("")}
     </div>
 </div>`;
