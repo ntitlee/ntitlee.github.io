@@ -16,33 +16,33 @@
 }
 </script>
 <meta charset=UTF-8><meta http-equiv=X-UA-Compatible content="ie=edge">
-<title>Marble Roulette - Pro Minimal</title>
+<title>Marble Roulette - Pro Minimal v2</title>
 <link rel=stylesheet href="./roulette.193c4cf4.css">
 <style>
   :root { color-scheme: dark; }
-  body { background-color: #000 !important; margin: 0; overflow: hidden; font-size: 13px; }
+  body { background-color: #000 !important; margin: 0; overflow: hidden; font-size: 13px; font-family: sans-serif; }
 
-  /* 1. UI 전체 컨테이너 (왼쪽 하단) */
+  /* 1. UI 전체 컨테이너 */
   .settings {
     display: flex !important;
     flex-direction: row !important;
     gap: 15px !important;
-    padding: 15px !important;
-    background: rgba(45, 45, 45, 0.95) !important;
+    padding: 12px 15px !important;
+    background: rgba(40, 40, 40, 0.95) !important;
     border-radius: 10px !important;
     position: fixed !important;
     bottom: 20px !important;
     left: 20px !important;
     width: auto !important;
-    min-width: 480px !important;
+    min-width: 460px !important;
     border: 1px solid #444 !important;
     z-index: 1000;
     box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
   }
 
-  /* 2. 왼쪽: 인원 선택 */
+  /* 2. 왼쪽: 인원 선택 섹션 */
   .left-side {
-    flex: 0 0 200px !important;
+    flex: 0 0 190px !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
@@ -50,32 +50,60 @@
     padding-right: 15px !important;
   }
   .header-row { display: flex !important; justify-content: space-between !important; align-items: center !important; }
-  .header-row h3 { margin: 0 !important; font-size: 13px !important; color: #fff !important; }
+  .header-row h3 { margin: 0 !important; font-size: 12px !important; color: #aaa !important; font-weight: normal !important; }
   
-  #member-checks { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 5px !important; }
-  .m-label { cursor: pointer !important; display: flex !important; align-items: center !important; background: #333 !important; padding: 5px 8px !important; border-radius: 4px !important; color: #eee !important; font-size: 12px !important; }
-  .m-label input { margin-right: 6px !important; }
+  #member-checks { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 4px !important; }
+  .m-label { 
+    cursor: pointer !important; display: flex !important; align-items: center !important; 
+    background: #2a2a2a !important; padding: 4px 8px !important; border-radius: 4px !important; 
+    color: #eee !important; font-size: 11px !important; border: 1px solid transparent;
+  }
+  .m-label:hover { background: #383838 !important; }
+  
+  /* 체크박스 크기 축소 */
+  .m-label input { 
+    width: 12px !important; height: 12px !important; margin-right: 6px !important; 
+    cursor: pointer !important; accent-color: #d32f2f;
+  }
 
-  /* 3. 오른쪽: 설정 및 버튼 */
+  /* 3. 오른쪽: 설정 및 버튼 섹션 */
   .right-side {
     flex: 1 !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 12px !important;
-    justify-content: space-between !important;
+    gap: 10px !important;
+    justify-content: center !important;
   }
-  .config-row { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 10px !important; }
-  .config-row label { color: #aaa !important; font-size: 11px !important; white-space: nowrap !important; }
+  .config-row { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 8px !important; }
+  .config-row label { color: #888 !important; font-size: 11px !important; white-space: nowrap !important; }
   
-  select, #in_winningRank { background: #222 !important; color: #fff !important; border: 1px solid #555 !important; height: 26px !important; border-radius: 4px !important; font-size: 12px !important; }
+  select, #in_winningRank { 
+    background: #1a1a1a !important; color: #fff !important; border: 1px solid #555 !important; 
+    height: 24px !important; border-radius: 4px !important; font-size: 11px !important; 
+  }
 
-  /* 버튼 영역 */
+  /* 순위 버튼 그룹 */
+  .rank-btns { display: flex !important; gap: 2px !important; }
+  .rank-btns button { 
+    font-size: 10px !important; padding: 2px 6px !important; background: #333 !important; 
+    border: 1px solid #444 !important; border-radius: 3px !important; color: #888 !important; cursor: pointer !important; 
+  }
+  .rank-btns button.active { background: #555 !important; color: #fff !important; border-color: #666 !important; }
+
+  /* 메인 버튼 */
   .btn-actions { display: flex !important; gap: 5px !important; margin-top: 5px !important; }
-  .btn-actions button { flex: 1 !important; height: 36px !important; cursor: pointer !important; border-radius: 6px !important; border: none !important; font-weight: bold !important; font-size: 13px !important; }
-  #btnStart { background: #b71c1c !important; color: #fff !important; }
+  .btn-actions button { 
+    flex: 1 !important; height: 34px !important; cursor: pointer !important; 
+    border-radius: 6px !important; border: none !important; font-weight: bold !important; font-size: 12px !important; 
+  }
+  #btnStart { background: #ce4242 !important; color: #fff !important; }
   #btnShuffle { background: #444 !important; color: #ddd !important; }
 
-  .m-btn { background: #444 !important; color: #ccc !important; border: 1px solid #555 !important; padding: 2px 5px !important; font-size: 10px !important; cursor: pointer !important; border-radius: 3px !important; }
+  .m-btn { 
+    background: #333 !important; color: #999 !important; border: 1px solid #444 !important; 
+    padding: 1px 4px !important; font-size: 10px !important; cursor: pointer !important; border-radius: 3px !important; 
+  }
+  .m-btn:hover { color: #fff; background: #444 !important; }
 
   /* 불필요 요소 제거 */
   #notice, #btnNotice, #btnShop, .row-toggles, .row-theme, .copyright, .sep, #in_names_visible { display: none !important; }
@@ -97,13 +125,16 @@
   <div class="right-side">
     <div class="config-row">
       <label>맵</label>
-      <select id=sltMap style="width: 130px;"></select>
+      <select id=sltMap style="width: 120px;"></select>
     </div>
     <div class="config-row">
       <label>순위</label>
-      <div style="display:flex; align-items:center; gap:5px;">
-        <button id="setFirst" style="font-size:10px; padding:3px 6px; background:#444; border:1px solid #555; border-radius:3px; color:#fff; cursor:pointer;">처음</button>
-        <input type=number id=in_winningRank value=1 min=1 style="width: 40px;">
+      <div style="display:flex; align-items:center; gap:4px;">
+        <div class="rank-btns">
+          <button id="setFirst" class="active">처음</button>
+          <button id="setLast">마지막</button>
+        </div>
+        <input type=number id=in_winningRank value=1 min=1 style="width: 35px;">
       </div>
     </div>
     <div class="btn-actions">
@@ -117,7 +148,6 @@
 
 <script type=module src="./roulette.31f8fbbf.js"></script>
 <script>
-  // 1. 고정 멤버 (요청하신 이름 반영)
   const MEMBERS = ["민구", "기태", "찬엽", "민기", "준영", "석준", "동근"];
 
   function getNames(){return document.querySelector("#in_names").value.split(',').map(e=>e.trim()).filter(e=>!!e)}
@@ -127,17 +157,20 @@
     localStorage.setItem("mbr_names", e.join(","));
   }
   
-  function setWinnerRank(e){
-    document.querySelector("#in_winningRank").value=e;
-    window.options.winningRank=e-1;
+  function setWinnerRank(val){
+    document.querySelector("#in_winningRank").value = val;
+    window.options.winningRank = val - 1;
     window.roulette.setWinningRank(window.options.winningRank);
+    
+    // 버튼 활성화 표시
+    document.querySelector("#setFirst").classList.toggle("active", val === 1);
+    document.querySelector("#setLast").classList.toggle("active", val !== 1);
   }
 
   let ready=!1;
   function initialize(){
     if(!window.roulette || !window.roulette.isReady){ setTimeout(initialize, 100); return; }
     
-    // 엔진 설정
     window.options.useSkills = false;
     window.options.autoRecording = false;
     window.options.darkMode = true;
@@ -147,7 +180,6 @@
     const nameInput = document.querySelector("#in_names");
     const checkArea = document.querySelector("#member-checks");
 
-    // 체크박스 생성 함수
     function drawChecks() {
       const current = nameInput.value.split(',').map(n=>n.trim());
       checkArea.innerHTML = '';
@@ -167,12 +199,16 @@
       });
     }
 
-    // 전체/해제 버튼
     document.querySelector("#allOn").addEventListener("click", ()=>{ nameInput.value=MEMBERS.join(','); drawChecks(); getReady(); });
     document.querySelector("#allOff").addEventListener("click", ()=>{ nameInput.value=''; drawChecks(); getReady(); });
+    
+    // 순위 버튼 로직 복구
     document.querySelector("#setFirst").addEventListener("click", ()=>setWinnerRank(1));
+    document.querySelector("#setLast").addEventListener("click", ()=>{
+      const count = getNames().length;
+      if(count > 0) setWinnerRank(count);
+    });
 
-    // 데이터 복구 및 실행
     let saved = localStorage.getItem("mbr_names");
     nameInput.value = (saved !== null) ? saved : MEMBERS.join(',');
     drawChecks();
@@ -180,7 +216,6 @@
     document.querySelector("#btnShuffle").addEventListener("click", getReady);
     document.querySelector("#btnStart").addEventListener("click", () => { if(ready) window.roulette.start(); });
     
-    // 맵 로드
     let i = window.roulette.getMaps(), a = document.querySelector("#sltMap");
     i.forEach(e => { let t = document.createElement("option"); t.value = e.index; t.innerHTML = e.title; a.append(t); });
     a.addEventListener("change", e => window.roulette.setMap(e.target.value));
