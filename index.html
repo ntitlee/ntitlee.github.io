@@ -254,6 +254,14 @@
     font-size: 0.75rem;
 }
 
+/* 룰렛 전용 스타일 */
+.roulette-container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; background: #252525; padding: 30px; border-radius: 15px; }
+#roulette-canvas { background: #1e1e1e; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.5); border: 5px solid #333; }
+.roulette-controls { margin-top: 20px; display: flex; gap: 10px; }
+.spin-btn { padding: 12px 30px; font-size: 1.1rem; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 800; }
+.spin-btn:disabled { background: #555; cursor: not-allowed; }
+#roulette-result { margin-top: 15px; font-size: 1.5rem; font-weight: 900; color: var(--highlight); height: 1.8rem; }
+
     </style>
 
 </head>
@@ -269,7 +277,9 @@
         <button class="tab-btn active" onclick="openTab(event, 'welcome-page')">Home</button>
 
         <button class="tab-btn" onclick="openTab(event, 'nti-total')">통합</button>
-
+        
+        <button class="tab-btn" onclick="openTab(event, 'nti-roulette')">룰렛</button>
+        
     </div>
 
     <div id="tabContents">
@@ -305,6 +315,19 @@
 
         </div>
 
+        <div id="nti-roulette" class="content" style="display:none;">
+    <div class="roulette-container">
+        <div id="roulette-result">누구를 뽑을까요?</div>
+        <canvas id="roulette-canvas" width="450" height="450"></canvas>
+        <div class="roulette-controls">
+            <button class="spin-btn" id="spin-button" onclick="spinRoulette()">돌리기!</button>
+        </div>
+        <p style="color:#666; font-size:0.8rem; margin-top:15px;">* 현재 멤버 리스트(7명)를 기반으로 생성됩니다.</p>
+    </div>
+</div>
+
+
+        
     </div>
 
 </div>
@@ -668,6 +691,106 @@
     return parseFloat(String(v || 0).replace(/,/g, ""));
 }
 
+
+//룰렛
+let isSpinning = false;
+
+function drawRoulette() {
+    const canvas = document.getElementById('roulette-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const names = Object.keys(MEMBERS);
+    const colors = ["#4285f4", "#34a853", "#fbbc05", "#ea4335", "#9c27b0", "#00bcd4", "#ff5722"];
+    
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = canvas.width / 2 - 10;
+    const arc = Math.PI / (names.length / 2);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    names.forEach((name, i) => {
+        const angle = i * arc;
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, angle, angle + arc);
+        ctx.lineTo(centerX, centerY);
+        ctx.fill();
+        ctx.stroke();
+
+        // 텍스트 그리기
+        ctx.save();
+        ctx.fillStyle = "white";
+        ctx.font = "bold 16px Pretendard";
+        ctx.translate(centerX + Math.cos(angle + arc / 2) * radius * 0.7, centerY + Math.sin(angle + arc / 2) * radius * 0.7);
+        ctx.rotate(angle + arc / 2 + Math.PI / 2);
+        ctx.fillText(name, -ctx.measureText(name).width / 2, 0);
+        ctx.restore();
+    });
+
+    // 화살표 그리기
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.moveTo(centerX - 10, 0);
+    ctx.lineTo(centerX + 10, 0);
+    ctx.lineTo(centerX, 25);
+    ctx.fill();
+}
+
+async function spinRoulette() {
+    if (isSpinning) return;
+    isSpinning = true;
+    
+    const canvas = document.getElementById('roulette-canvas');
+    const btn = document.getElementById('spin-button');
+    const resultEl = document.getElementById('roulette-result');
+    const names = Object.keys(MEMBERS);
+    
+    btn.disabled = true;
+    resultEl.innerText = "두구두구두구...";
+
+    let currentRotation = 0;
+    const totalRotation = 360 * 5 + Math.random() * 360; // 최소 5바퀴 + 랜덤
+    const duration = 4000; // 4초간 회전
+    const start = performance.now();
+
+    function animate(time) {
+        const elapsed = time - start;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Ease-out 효과 (점점 느려지게)
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const rotation = easeOut * totalRotation;
+        
+        canvas.style.transform = `rotate(${rotation}deg)`;
+
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            isSpinning = false;
+            btn.disabled = false;
+            
+            // 결과 계산
+            const finalRotation = rotation % 360;
+            const segmentAngle = 360 / names.length;
+            // 캔버스 기본 각도와 화살표 위치(상단)를 고려한 인덱스 계산
+            const winIndex = Math.floor(((360 - finalRotation + 270) % 360) / segmentAngle);
+            resultEl.innerText = `🎉 당첨! : [${names[winIndex]}]`;
+        }
+    }
+    requestAnimationFrame(animate);
+}
+
+// 탭 전환 시 룰렛 그리기 트리거 추가
+const originalOpenTab = openTab;
+openTab = function(evt, tabName) {
+    originalOpenTab(evt, tabName);
+    if (tabName === 'nti-roulette') {
+        setTimeout(drawRoulette, 100); // 탭이 보이고 난 뒤 그려야 함
+    }
+}
+    
 </script>
 
 </body>
