@@ -1,414 +1,675 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html lang="ko">
+
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5899C1DJM0"></script>
-  <script defer src="https://umami.lazygyu.net/script.js" data-website-id="205aee0d-30b6-4c69-a053-0c72c8377be0"></script>
 
-  <title>Marble Roulette</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="apple-touch-icon" sizes="57x57" href="assets/apple-icon-57x57.png">
-  <link rel="apple-touch-icon" sizes="60x60" href="assets/apple-icon-60x60.png">
-  <link rel="apple-touch-icon" sizes="72x72" href="assets/apple-icon-72x72.png">
-  <link rel="apple-touch-icon" sizes="76x76" href="assets/apple-icon-76x76.png">
-  <link rel="apple-touch-icon" sizes="114x114" href="assets/apple-icon-114x114.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="assets/apple-icon-120x120.png">
-  <link rel="apple-touch-icon" sizes="144x144" href="assets/apple-icon-144x144.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="assets/apple-icon-152x152.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-icon-180x180.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="assets/android-icon-192x192.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon-96x96.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
-  <link rel="manifest" href="assets/manifest.json">
+    <meta charset="UTF-8">
 
-  <meta name="msapplication-TileColor" content="#ffffff">
-  <meta name="msapplication-TileImage" content="assets/ms-icon-144x144.png">
-  <meta name="theme-color" content="#ffffff">
+    <title>LOA NTI Dashboard - Final Fix</title>
 
-  <meta name="description" content="A lucky draw by dropping marbles, made by lazygyu">
-  <meta property="og:url" content="https://lazygyu.github.io/roulette/">
-  <meta property="og:title" content="Marble Roulette">
-  <meta property="og:description" content="A lucky draw by dropping marbles, made by lazygyu">
-  <meta property="og:site_name" content="lazygyu.github.io">
-  <meta property="og:type" content="website">
+    <style>
 
-  <link rel='stylesheet' href='assets/style.scss' />
+        :root { 
+
+            --bg: #121212; --card-bg: #1e1e1e; --border: #333;
+
+            --text: #e0e0e0; --primary: #4285f4; --highlight: #ffcc00; --danger: #ff4d4d;
+
+        }
+
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); line-height: 1.2; }
+
+        .container { max-width: 1650px; margin: 0 auto; padding: 0 20px; }
+
+        
+
+        .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 15px; gap: 4px; align-items: center; }
+
+        .tab-btn { padding: 8px 18px; cursor: pointer; border: none; background: #2a2a2a; color: #888; border-radius: 6px 6px 0 0; font-weight: 700; font-size: 0.9rem; transition: 0.3s; }
+
+        .tab-btn.active { background: var(--primary); color: white; }
+
+
+
+        .controls { margin-left: auto; display: flex; align-items: center; gap: 15px; }
+
+        .last-update { font-size: 0.75rem; color: #888; }
+
+        .refresh-btn { padding: 6px 15px; font-size: 0.8rem; background: #444; color: #eee; border: none; border-radius: 4px; cursor: pointer; }
+
+        .member-grid { grid-template-columns: 150px 90px 90px 110px 110px 130px 280px 1fr; }
+
+        .list-header, .list-row { display: grid; gap: 8px; align-items: center; text-align: center; font-size: 0.82rem; }
+
+        .list-header { background: #252525; padding: 10px 8px; font-weight: 800; border-bottom: 2px solid var(--border); }
+
+        .list-row { background: var(--card-bg); padding: 8px; border-bottom: 1px solid var(--border); min-height: 80px; }
+
+        .main-character { border: 2px solid var(--highlight); box-shadow: 0 0 10px rgba(255, 204, 0, 0.3); }
+
+        .char-name { font-weight: 800; color: #fff; }
+
+        
+
+        /* 아크패시브 6R 이하 강조 */
+
+        .low-rank { color: var(--danger); font-weight: 900; }
+
+
+
+        /* 아크그리드 배치 */
+
+        .ark-grid-container { display: flex; flex-direction: column; gap: 6px; width: 100%; align-items: center; }
+
+        .ark-grid-row { display: flex; gap: 8px; justify-content: center; width: 100%; }
+
+        .grid-item {
+            display: flex;         /* flex로 변경 */
+            align-items: center;   /* 수직 중앙 정렬 */
+            justify-content: center; /* 수평 중앙 정렬 */
+            gap: 4px;             /* 아이콘과 숫자 간격 */
+            font-size: 0.75rem;
+            min-width: 45px;      /* 정렬 유지를 위한 최소 너비 */
+        }
+        
+        .grid-item img { 
+            width: 18px; 
+            height: 18px; 
+            border-radius: 2px; 
+            display: block;        /* 여백 제거 */
+        }
+
+
+
+        #welcome-page { display: flex; justify-content: center; align-items: center; min-height: 60vh; flex-direction: column; }
+
+        .image-container { max-width: 700px; width: 100%; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid #444; margin-bottom: 20px; }
+
+        .image-container img { width: 100%; height: auto; display: block; }
+
+
+
+        .gem-box { position: relative; text-align: left; display: flex; flex-direction: column; padding-left: 5px; }
+
+        .gem-text { font-size: 0.72rem; color: #aaa; line-height: 1.3; margin-bottom: 15px; }
+
+        .gold-text { position: absolute; bottom: 0; right: 5px; color: var(--highlight); font-size: 0.85rem; font-weight: 800; }
+
+        
+
+        .loading-dot { color: #555; animation: blink 1s infinite; }
+
+        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+
+
+    /* 통합 그리드 비율 */
+
+.total-grid { 
+
+    display: grid;
+
+    grid-template-columns: 60px 160px 130px 110px 150px 80px; 
+
+    gap: 8px; 
+
+    align-items: center; 
+
+    text-align: center;
+
+    margin-top: 10px; 
+
+}
+
+
+
+/* --- 랭킹 프로필 카드 스타일 --- */
+
+.ranking-banner { 
+
+    display: flex; 
+
+    gap: 30px; 
+
+    margin: 40px 0; 
+
+    justify-content: center; 
+
+    align-items: flex-end; 
+
+}
+
+
+
+.rank-card { 
+
+    position: relative; 
+
+    width: 320px; 
+
+    height: 140px; 
+
+    background: linear-gradient(135deg, #1e1e1e 0%, #252525 100%);
+
+    border-radius: 16px; 
+
+    border: 1px solid var(--border);
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 15px;
+
+    box-sizing: border-box;
+
+}
+
+
+
+.rank-card.top1 { 
+
+    width: 360px; height: 160px; 
+
+    border: 2px solid var(--highlight); 
+
+    box-shadow: 0 0 25px rgba(255, 204, 0, 0.2);
+
+    z-index: 2;
+
+}
+
+
+
+.rank-card .pfp { 
+
+    width: 110px; 
+
+    height: 110px; 
+
+    border-radius: 12px; 
+
+    overflow: hidden; 
+
+    background: #000;
+
+    border: 2px solid rgba(255,255,255,0.1);
+
+    flex-shrink: 0;
+
+}
+
+.rank-card.top1 .pfp { width: 130px; height: 130px; } 
+
+.rank-card .pfp img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+
+
+.rank-card .info { 
+
+    flex: 1; 
+
+    margin-left: 20px; 
+
+    display: flex; 
+
+    flex-direction: column; 
+
+    justify-content: center;
+
+    text-align: left;
+
+}
+
+.rank-card .info .job { font-size: 0.9rem; color: #aaa; font-weight: 600; }
+
+.rank-card .info .name { font-size: 1.3rem; color: #fff; font-weight: 900; margin-top: 5px; }
+
+.rank-card .info .cp { font-size: 1rem; color: var(--highlight); font-weight: 800; margin-top: 8px; }
+
+
+
+.rank-card .medal { 
+
+    position: absolute; 
+
+    top: -25px; 
+
+    left: -10px; 
+
+    font-size: 3.5rem; 
+
+    z-index: 3;
+
+}
+
+.ark-box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 0.75rem;
+}
+
+    </style>
+
 </head>
+
 <body>
-<script type="module" src="./src/index.ts"></script>
-<script type="text/javascript">
-  window.dataLayer = window.dataLayer || [];
 
-  function gtag() {
-    dataLayer.push(arguments);
-  }
 
-  gtag('js', new Date());
-  gtag('config', 'G-5899C1DJM0');
 
-  function getNames() {
-    const value = document.querySelector('#in_names').value.trim();
-    return value.split(/[,\r\n]/g).map(v => v.trim()).filter(v => !!v);
-  }
+<div class="container">
 
-  function parseName(nameStr) {
-    const weightRegex = /(\/\d+)/;
-    const countRegex = /(\*\d+)/;
-    const hasWeight = weightRegex.test(nameStr);
-    const hasCount = countRegex.test(nameStr);
-    const name = /^\s*([^\/*]+)?/.exec(nameStr)[1];
-    const weight = hasWeight ? parseInt(weightRegex.exec(nameStr)[1].replace('/', '')) : 1;
-    const count = hasCount ? parseInt(countRegex.exec(nameStr)[1].replace('*', '')) : 1;
-    return {
-      name,
-      weight,
-      count,
-    };
-  }
+    <div id="tabMenu" class="tabs">
 
-  function getReady() {
-    const names = getNames();
-    window.roulette.setMarbles(names);
-    ready = names.length > 0;
-    localStorage.setItem('mbr_names', names.join(','));
-    switch (winnerType) {
-      case 'first':
-        setWinnerRank(1);
-        break;
-      case 'last':
-        const total = window.roulette.getCount();
-        setWinnerRank(total);
-        break;
+        <button class="tab-btn active" onclick="openTab(event, 'welcome-page')">Home</button>
+
+        <button class="tab-btn" onclick="openTab(event, 'nti-total')">통합</button>
+
+    </div>
+
+    <div id="tabContents">
+
+        <div id="welcome-page" class="content">
+
+            <div class="image-container"><img src="welcome.png"></div>
+
+            <h2>LOA NTI Dashboard</h2>
+
+            <p style="color:#888;">상단 메뉴에서 데이터를 확인하세요.</p>
+
+
+        </div>
+
+        
+
+        <div id="nti-total" class="content" style="display:none;">
+
+            <div style="display:flex; align-items:center; margin-bottom:10px;">
+
+                <div class="controls">
+
+                    <span id="time-total" class="last-update"></span>
+
+                    <button class="refresh-btn" onclick="loadNTITotal(true)">새로고침</button>
+
+                </div>
+
+            </div>
+
+            <div id="total-list-container"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+    const MEMBERS = { "기태": "로우프", "동근": "저녁별빛", "민구": "그저애송이", "민기": "minki", "석준": "famousamos", "준영": "DD키리", "찬엽": "탑소라카" };
+    const API_KEY = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyIsImtpZCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyJ9.eyJpc3MiOiJodHRwczovL2x1ZHkuZ2FtZS5vbnN0b3ZlLmNvbSIsImF1ZCI6Imh0dHBzOi8vbHVkeS5nYW1lLm9uc3RvdmUuY29tL3Jlc291cmNlcyIsImNsaWVudF9pZCI6IjEwMDAwMDAwMDA1OTA2ODYifQ.oGh7TNKFkdANL7nZJbKMAqjmQBO_EauyWaRDuq0QJQ2l0sABfpTTKvYEdkixZ8hZqW5iVN_mDIsYdI6pcnIJ-w3j7EFTI8GKdUNo-QVn412LALUhx_gXd-a2WekBYtDgjZAaAfmjqal63JjfoXdJYz5mNRZX9bqkcpuX7gkSDU9bi7Bvik4gmT4kEt6WJ1sOnch8Bbi3bDGLUoXEbRjWiebszAdo2qmsg6sXu3Ah26PhMsosIzkPaW0y5wBDnSOQtt2N4sEFNO0jiwzfaygOO4pu6jQFzTsUjL4xNBKtqpB1HS5gpxadAwJD1umBEMaF-BQZEu3pdu9Ja8MvDpqfUg"; 
+    const BASE_URL = "https://developer-lostark.game.onstove.com";
+    const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbwGkUNXR8uGB_ouu9qsrDKt7ws6stnmCVA0Hs-sF9xd0fhMwcBtBxeQtGwrPzglUxiLmw/exec";
+
+    let dbData = []; 
+    let globalPrices = {};
+    const memberLoading = {}; // 전역 로딩 상태
+
+    function getCurrentTime() {
+        const now = new Date();
+        return `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
     }
-  }
 
-  function setWinnerRank(rank) {
-    document.querySelector('#in_winningRank').value = rank;
-    window.options.winningRank = rank - 1;
-    window.roulette.setWinningRank(window.options.winningRank);
-
-    if (winnerType === 'first') {
-      document.querySelector('.btn-first-winner').classList.toggle('active', true);
-      document.querySelector('.btn-last-winner').classList.toggle('active', false);
-      document.querySelector('#in_winningRank').classList.toggle('active', false);
-    } else if (winnerType === 'last') {
-      document.querySelector('.btn-first-winner').classList.toggle('active', false);
-      document.querySelector('.btn-last-winner').classList.toggle('active', true);
-      document.querySelector('#in_winningRank').classList.toggle('active', false);
-    } else if (winnerType === 'custom') {
-      document.querySelector('.btn-first-winner').classList.toggle('active', false);
-      document.querySelector('.btn-last-winner').classList.toggle('active', false);
-      document.querySelector('#in_winningRank').classList.toggle('active', true);
+    async function syncToSheet(data) {
+        try { fetch(SHEET_API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) }); } catch (e) {}
     }
-  }
 
-
-  let ready = false;
-  let winnerType = 'first';
-
-  document.addEventListener('DOMContentLoaded', () => {
-    initialize();
-  });
-
-  function initialize() {
-    if (!window.roulette || !window.roulette.isReady) {
-      console.log('does not loaded yet');
-      setTimeout(initialize, 100);
-      return;
+    async function fetchDB() {
+        try {
+            const res = await fetch(SHEET_API_URL);
+            dbData = await res.json();
+            console.log("DB 로드 완료");
+        } catch (e) { console.error("DB 로드 실패"); }
     }
-    console.log('initializing start');
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const namesFromUrl = urlParams.get('names');
-
-    if (namesFromUrl) {
-      document.querySelector('#in_names').value = namesFromUrl.replace(/,/g, '\n');
-    } else {
-      const savedNames = localStorage.getItem('mbr_names');
-      if (savedNames) {
-        document.querySelector('#in_names').value = savedNames;
-      }
-    }
-    document.querySelector('#in_names').addEventListener('input', () => {
-      getReady();
-    });
-
-    document.querySelector('#in_names').addEventListener('blur', () => {
-      const nameSource = getNames();
-      const nameSet = new Set();
-      const nameCounts = {};
-      nameSource.forEach(nameSrc => {
-        const name = parseName(nameSrc);
-        const key = name.weight > 1 ? `${name.name}/${name.weight}` : name.name;
-        if (!nameSet.has(key)) {
-          nameSet.add(key);
-          nameCounts[key] = 0;
+    async function backgroundPriceSync() {
+        const levels = [7, 8, 9, 10];
+        const headers = { "accept": "application/json", "Authorization": API_KEY, "Content-Type": "application/json" };
+        for (const level of levels) {
+            for (const type of ["겁화", "작열"]) {
+                try {
+                    const res = await fetch(`${BASE_URL}/auctions/items`, { method: 'POST', headers, body: JSON.stringify({ "CategoryCode": 210000, "ItemTier": 4, "ItemName": `${level}레벨 ${type}의 보석`, "PageNo": 1, "Sort": "BUY_PRICE" }) });
+                    const data = await res.json();
+                    if (data.Items?.length > 0) {
+                        const best = data.Items.find(i => i.AuctionInfo?.BuyPrice > 0);
+                        if (best) globalPrices[`${level}레벨 ${type}`] = best.AuctionInfo.BuyPrice;
+                    }
+                } catch (e) {}
+                await new Promise(r => setTimeout(r, 100));
+            }
         }
-        nameCounts[key] += name.count;
-      });
-      const result = [];
-      Object.keys(nameCounts).forEach(key => {
-        if (nameCounts[key] > 1) {
-          result.push(`${key}*${nameCounts[key]}`);
-        } else {
-          result.push(key);
+    }
+
+    async function loadNTITotal(forceRefresh = false) {
+        const container = document.getElementById('total-list-container');
+        if (!forceRefresh && dbData.length === 0) {
+            container.innerHTML = `<div class="loading-dot">DB 로딩 중...</div>`;
+            setTimeout(() => loadNTITotal(false), 500);
+            return;
         }
-      });
+        if (!forceRefresh && container.dataset.loaded === "true") return;
 
-      const oldValue = document.querySelector('#in_names').value;
-      const newValue = result.join(',');
+        renderTotalList(dbData);
+        updateProfileImages(dbData);
+        container.dataset.loaded = "true";
+        document.getElementById('time-total').innerText = `최근 갱신: ${getCurrentTime()}`;
+    }
 
-      if (oldValue !== newValue) {
-        document.querySelector('#in_names').value = newValue;
-        getReady();
-      }
-    });
-
-    document.querySelector('#btnShuffle').addEventListener('click', () => {
-      getReady();
-    });
-
-    document.querySelector('#btnStart').addEventListener('click', () => {
-      if (!ready) return;
-      gtag && gtag('event', 'start', {
-        'event_category': 'roulette',
-        'event_label': 'start',
-        'value': window.roulette.getCount(),
-      });
-      const names = getNames();
-      const marbles = names.map(n => {
-        const p = parseName(n);
-        return { name: p.name, count: p.count };
-      });
-      if (typeof umami !== 'undefined') {
-        umami.track('start', { count: window.roulette.getCount() });
-        marbles.forEach(m => {
-          umami.track('marble', { name: m.name, count: m.count });
+    function renderTotalList(data) {
+        const container = document.getElementById('total-list-container');
+        const sortedData = [...data].sort((a, b) => {
+            const cpA = parseFloat(String(a.cp || a["전투력"] || 0).replace(/,/g, ""));
+            const cpB = parseFloat(String(b.cp || b["전투력"] || 0).replace(/,/g, ""));
+            return cpB - cpA;
         });
-      }
-      window.roulette.start();
-      document.querySelector('#settings').classList.add('hide');
-      document.querySelector('#donate').classList.add('hide');
-    });
 
-    document.querySelector('#chkAutoRecording').addEventListener('change', (e) => {
-      window.options.autoRecording = e.target.matches(':checked');
-      window.roulette.setAutoRecording(window.options.autoRecording);
-    });
+        let bannerHTML = `<div class="ranking-banner">`;
+        const medals = ['🥇', '🥈', '🥉'];
+        for (let i = 0; i < Math.min(3, sortedData.length); i++) {
+            const char = sortedData[i];
+            const pfpUrl = char.pfp || char["사진"] || ""; 
+            bannerHTML += `
+                <div class="rank-card top${i+1}">
+                    <div class="medal">${medals[i]}</div>
+                    <div class="pfp" data-name="${char.name || char["캐릭터명"]}">
+                        ${pfpUrl ? `<img src="${pfpUrl}">` : `<div style="line-height:110px; color:#555; text-align:center;">No Image</div>`}
+                    </div>
+                    <div class="info">
+                        <div class="job">${char.job || char["직업"]}</div>
+                        <div class="name">${char.name || char["캐릭터명"]}</div>
+                        <div class="cp">${parseFloat(String(char.cp || char["전투력"]).replace(/,/g, "")).toLocaleString()}</div>
+                    </div>
+                </div>`;
+        }
+        bannerHTML += `</div>`;
 
-    document.querySelector('#chkSkill').addEventListener('change', (e) => {
-      window.options.useSkills = e.target.matches(':checked');
-      window.roulette.setWinningRank(window.options.winningRank);
-    });
+        let headerHTML = `<div class="list-header total-grid"><div>순위</div><div>캐릭터명</div><div>직업</div><div>아이템레벨</div><div>전투력</div><div>서버</div></div>`;
+        let listHTML = sortedData.map((c, i) => `
+            <div class="list-row total-grid">
+                <div>${i + 1}</div>
+                <div class="char-name">${c.name || c["캐릭터명"]}</div>
+                <div>${c.job || c["직업"]}</div>
+                <div style="font-weight:800;">${parseFloat(c.lv || c["아이템레벨"] || 0).toFixed(2)}</div>
+                <div>${parseFloat(String(c.cp || c["전투력"]).replace(/,/g, "")).toLocaleString()}</div>
+                <div>${c.server || c["서버"]}</div>
+            </div>`).join("");
 
-    document.querySelector('#chkDarkMode').addEventListener('change', (e) => {
-      window.options.darkMode = e.target.matches(':checked');
-      window.roulette.setTheme(window.options.darkMode ? 'dark' : 'light');
-      document.documentElement.classList.toggle('light', !window.options.darkMode);
-    });
-
-    document.querySelector('#in_winningRank').addEventListener('change', (e) => {
-      const v = parseInt(e.target.value, 10);
-      winnerType = 'custom';
-      setWinnerRank(isNaN(v) ? 0 : v);
-    });
-
-    document.querySelector('.btn-last-winner').addEventListener('click', () => {
-      const total = window.roulette.getCount();
-      winnerType = 'last';
-      setWinnerRank(total);
-    });
-    document.querySelector('.btn-first-winner').addEventListener('click', () => {
-      winnerType = 'first';
-      setWinnerRank(1);
-    });
-
-    window.roulette.addEventListener('goal', () => {
-      ready = false;
-      setTimeout(() => {
-        document.querySelector('#settings').classList.remove('hide');
-        document.querySelector('#donate').classList.remove('hide');
-      }, 3000);
-    });
-
-    window.roulette.addEventListener('message', (e) => {
-      simpleToast(e.detail);
-    });
-
-    const toggleBtn = document.querySelector('#btnToggleSettings');
-    const collapsible = document.querySelector('.collapsible-rows');
-    toggleBtn.addEventListener('click', () => {
-      collapsible.classList.toggle('collapsed');
-      toggleBtn.querySelector('.toggle-arrow').textContent =
-        collapsible.classList.contains('collapsed') ? '▲' : '▼';
-    });
-
-    document.querySelector('#btnShuffle').click();
-
-    const maps = window.roulette.getMaps();
-    const mapSelector = document.querySelector('#sltMap');
-    maps.forEach((map) => {
-      const option = document.createElement('option');
-      option.value = map.index;
-      option.innerHTML = map.title;
-      option.setAttribute('data-trans', '');
-      window.translateElement(option);
-      mapSelector.append(option);
-    });
-    mapSelector.addEventListener('change', (e) => {
-      const index = e.target.value;
-      window.roulette.setMap(index);
-    });
-
-    // const checkDonateButtonLoaded = () => {
-    //   const btn = document.querySelector('span.bmc-btn-text');
-    //   if (!btn) {
-    //     setTimeout(checkDonateButtonLoaded, 100);
-    //   } else {
-    //     console.log('donation button has been loaded');
-    //     btn.setAttribute('data-trans', '');
-    //     window.translateElement(btn);
-    //   }
-    // };
-    // setTimeout(checkDonateButtonLoaded, 100);
-
-    const currentNotice = 5;
-    const noticeKey = 'lastViewedNotification';
-
-    const closeNotice = () => {
-      document.querySelector('#notice').style.display = 'none';
-      localStorage.setItem(noticeKey, currentNotice.toString());
-    };
-
-    const openNotice = () => {
-      console.log('openNotice');
-      document.querySelector('#notice').style.display = 'flex';
-    };
-
-    document.querySelector('#closeNotice').addEventListener('click', () => {
-      closeNotice();
-    });
-
-    document.querySelector('#btnNotice').addEventListener('click', () => {
-      openNotice();
-    });
-
-    function simpleToast(msg) {
-      const toast = document.createElement('div');
-      toast.classList.add('toast');
-      toast.innerHTML = msg;
-
-      if (window.translateElement) {
-        console.log('try to translate');
-        window.translateElement(toast);
-      }
-
-      document.body.appendChild(toast);
-      setTimeout(() => {
-        document.body.removeChild(toast);
-      }, 1200);
+        container.innerHTML = bannerHTML + headerHTML + listHTML;
     }
 
-    const checkNotice = () => {
-      const lastViewed = localStorage.getItem(noticeKey);
-      console.log('lastViewed', lastViewed);
-      if (lastViewed === null || Number(lastViewed) < currentNotice) {
-        openNotice();
-      }
-    };
+    function getArkColor(grade) {
+        const colors = { "고대": "#f5deb3", "유물": "#ff5722", "전설": "#ffd700", "영웅": "#9c27b0" };
+        return colors[grade] || "#ccc";
+    }
 
-    checkNotice();
-  }
+    async function loadFullDetails(charName, charId, ownerName, charData) {
+        const headers = { "accept": "application/json", "Authorization": API_KEY };
+        try {
+            const [pRes, apRes, agRes, gRes] = await Promise.all([
+                fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/profiles`, { headers }),
+                fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/arkpassive`, { headers }),
+                fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/arkgrid`, { headers }),
+                fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/gems`, { headers })
+            ]);
+            const pData = await pRes.json();
+            const apData = await apRes.json();
+            const agData = await agRes.json();
+            const gData = await gRes.json();
+
+            let currentCp = parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, ""));
+            document.getElementById(`cp-${charId}`).innerText = currentCp.toLocaleString();
+
+            const dbCpEl = document.getElementById(`db-cp-${charId}`);
+            let existingDbCp = parseFloat(dbCpEl.innerText.replace(/,/g, "")) || 0;
+            let finalMaxCp = Math.max(currentCp, existingDbCp);
+            dbCpEl.innerText = finalMaxCp.toLocaleString();
+
+            // 아크패시브
+            const apEl = document.getElementById(`ap-${charId}`);
+            if (apData?.Points?.length > 0) {
+                apEl.innerHTML = apData.Points.map(p => {
+                    const m = (p.Description||"").match(/(\d+)랭크\s+(\d+)레벨/);
+                    return m ? `<span>${p.Name}: </span><span class="${parseInt(m[1]) < 6 ? 'low-rank' : ''}">${m[1]}랭크 ${m[2]}레벨</span>` : "";
+                }).join("<br>");
+            } else { apEl.innerText = "Inactive"; }
+
+            // 아크그리드 (스타일 유지)
+            const agEl = document.getElementById(`ag-${charId}`);
+            if (agData?.Slots?.length > 0) {
+                const renderRow = (slots) => slots.map(s => `
+    <div class="grid-item">
+        <img src="${s.Icon}" style="width:18px; height:18px; ${s.Grade === "고대" ? "filter: drop-shadow(0 0 4px rgba(245,222,179,0.9));" : ""}">
+        
+        <span style="color:${getArkColor(s.Grade)}; font-weight:800; font-size:13px;">
+            ${s.Point}
+        </span>
+    </div>`).join("");
+                agEl.innerHTML = `<div class="ark-grid-container">
+                    <div class="ark-grid-row">${renderRow(agData.Slots.slice(0, 3))}</div>
+                    <div class="ark-grid-row">${renderRow(agData.Slots.slice(3, 6))}</div>
+                </div>`;
+            } else { agEl.innerText = "Inactive"; }
+
+            // 보석
+            let charTotalGold = 0, gemLabels = [];
+            if (gData?.Gems) {
+                let counts = {};
+                gData.Gems.forEach(g => {
+                    const name = g.Name.replace(/<[^>]*>?/gm, '').replace(/의 보석/g, "").trim();
+                    const isBind = name.includes("귀속") || name.includes("이벤트");
+                    const cleanName = name.replace(/\(귀속\)|\(이벤트\)/g, "").trim();
+                    if (!isBind) charTotalGold += globalPrices[cleanName.includes("광휘") ? cleanName.replace("광휘", "작열") : cleanName] || 0;
+                    counts[isBind ? cleanName + "(귀속)" : cleanName] = (counts[isBind ? cleanName + "(귀속)" : cleanName] || 0) + 1;
+                });
+                document.getElementById(`gem-txt-${charId}`).innerText = Object.entries(counts).map(([k,v]) => `${k} ${v}`).join(", ");
+                document.getElementById(`gem-gold-${charId}`).innerText = charTotalGold.toLocaleString() + " G";
+                const totalEl = document.getElementById(`total-gold-${ownerName}`);
+                totalEl.dataset.sum = (parseInt(totalEl.dataset.sum || 0) + charTotalGold);
+                totalEl.innerText = `총 합계: ${parseInt(totalEl.dataset.sum).toLocaleString()} G`;
+            }
+
+            document.querySelectorAll(`#cp-${charId}, #ap-${charId}, #ag-${charId}`).forEach(el => el.classList.remove('loading-dot'));
+        } catch (e) { console.error(e); }
+    }
+
+    async function handleMemberTab(name, forceRefresh = false) {
+        if (memberLoading[name]) return;
+        
+        const listContainer = document.getElementById(`list-${name}`);
+        const timeEl = document.getElementById(`time-${name}`);
+        const btn = document.querySelector(`#${name} .refresh-btn`);
+
+        if (!forceRefresh && listContainer.dataset.loaded === "true") return;
+
+        // 1. 강제 새로고침 (API 호출) 모드
+        if (forceRefresh) {
+            memberLoading[name] = true;
+            if (btn) btn.innerText = "로딩 중...";
+            try {
+                listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">1680+ 캐릭터 확인 중...</div>';
+                const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { 
+                    headers: { "Authorization": API_KEY } 
+                });
+                const sibs = await res.json();
+                
+                // [수정 포인트] 필터 기준을 1680으로 상향
+                const targets = sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1680)
+                                    .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
+
+                listContainer.innerHTML = "";
+                if (targets.length === 0) {
+                    listContainer.innerHTML = "<div style='padding:20px; color:#888;'>1680 레벨 이상의 캐릭터가 없습니다.</div>";
+                } else {
+                    for (const [index, char] of targets.entries()) {
+                        renderRow(listContainer, char, name, index, true);
+                    }
+                }
+                listContainer.dataset.loaded = "true";
+                timeEl.innerText = `최신 갱신 완료 (${getCurrentTime()})`;
+            } catch (e) {
+                console.error(e);
+                listContainer.innerHTML = "<div style='padding:20px; color:red;'>API 호출에 실패했습니다.</div>";
+            } finally {
+                memberLoading[name] = false;
+                if (btn) btn.innerText = "새로고침";
+            }
+        } 
+        // 2. 일반 모드: DB 데이터 로드
+        else {
+            if (dbData.length === 0) {
+                listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">DB 데이터 확인 중...</div>';
+                setTimeout(() => handleMemberTab(name, false), 500);
+                return;
+            }
+
+            listContainer.innerHTML = "";
+            // [수정 포인트] DB에서 가져올 때도 1680 이상만 필터링
+            const myChars = dbData.filter(d => (d.owner === name || d["소유자"] === name) && parseFloat(String(d.lv || d["아이템레벨"]).replace(/,/g, "")) >= 1680);
+            
+            if (myChars.length > 0) {
+                myChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
+                myChars.forEach((char, index) => {
+                    const formattedChar = {
+                        CharacterName: char.name || char["캐릭터명"],
+                        ServerName: char.server || char["서버"],
+                        ItemAvgLevel: char.lv || char["아이템레벨"]
+                    };
+                    renderRow(listContainer, formattedChar, name, index, false);
+                });
+                listContainer.dataset.loaded = "true";
+                timeEl.innerText = "DB 데이터 로드됨 (1680+)";
+            } else {
+                listContainer.innerHTML = "<div style='padding:20px; color:#888;'>DB 내 1680 이상 캐릭터가 없습니다. 새로고침을 눌러보세요.</div>";
+            }
+        }
+    }
+
+    // 반복되는 로우 생성을 위한 공통 함수
+    function renderRow(container, char, ownerName, index, isApiMode) {
+        const charId = (ownerName + char.CharacterName).replace(/\s/g, '');
+        // DB에서 해당 캐릭터의 기존 데이터를 찾음
+        const savedData = dbData.find(d => (d.name || d["캐릭터명"]) === char.CharacterName);
+        
+        const row = document.createElement('div');
+        row.className = `list-row member-grid ${index === 0 ? 'main-character' : ''}`;
+        
+        // DB에 저장된 값들 (없으면 기본값 설정)
+        const dbCp = savedData ? (savedData.cp || savedData["전투력"] || "0") : "0";
+        const dbArc = savedData ? (savedData.arc || savedData["아크패시브"] || "Inactive") : "Inactive";
+        const dbGemTxt = savedData ? (savedData.gem_text || savedData["보석"] || "정보 없음") : "정보 없음";
+        const dbGemGold = savedData ? (savedData.gold || savedData["보석골드"] || "0") : "0";
+
+        row.innerHTML = `
+            <div>${index === 0 ? '👑 ' : ''}<span class="char-name">${char.CharacterName}</span></div>
+            <div>${char.ServerName}</div>
+            <div style="font-weight:800;">${char.ItemAvgLevel}</div>
+            
+            <div id="cp-${charId}" class="${isApiMode ? 'loading-dot' : ''}">${isApiMode ? '...' : parseFloat(String(dbCp).replace(/,/g, "")).toLocaleString()}</div>
+            
+            <div id="db-cp-${charId}">${parseFloat(String(dbCp).replace(/,/g, "")).toLocaleString()}</div>
+            
+            <div id="ap-${charId}" style="font-size:0.75rem;">${isApiMode ? '...' : dbArc}</div>
+            
+            <div id="ag-${charId}">${isApiMode ? '...' : 'Inactive'}</div>
+            
+            <div class="gem-box">
+                <div id="gem-txt-${charId}" class="gem-text">${isApiMode ? '로딩 중...' : dbGemTxt}</div>
+                <div id="gem-gold-${charId}" class="gold-text">${parseFloat(String(dbGemGold).replace(/,/g, "")).toLocaleString()} G</div>
+            </div>`;
+            
+        container.appendChild(row);
+
+        // API 모드(새로고침 클릭 시)일 때만 실시간 데이터 로드
+        if (isApiMode) {
+            loadFullDetails(char.CharacterName, charId, ownerName, char);
+        } else if (savedData) {
+            // DB 모드일 때 전체 합계 골드 계산을 위해 데이터 셋업
+            const totalEl = document.getElementById(`total-gold-${ownerName}`);
+            const currentGold = parseInt(String(dbGemGold).replace(/,/g, "")) || 0;
+            totalEl.dataset.sum = (parseInt(totalEl.dataset.sum || 0) + currentGold);
+            totalEl.innerText = `총 합계: ${parseInt(totalEl.dataset.sum).toLocaleString()} G`;
+        }
+    }
+
+    function openTab(evt, tabName) {
+        // 모든 컨텐츠 숨기기 및 버튼 비활성화
+        document.querySelectorAll(".content").forEach(c => c.style.display = "none");
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        
+        // 선택한 탭 보여주기
+        const targetContent = document.getElementById(tabName);
+        targetContent.style.display = "block";
+        evt.currentTarget.classList.add("active");
+
+        // [수정 포인트] 이미 로드된 적이 있다면(dataset.loaded === "true") 다시 API를 호출하지 않음
+        const listContainer = document.getElementById(`list-${tabName}`) || document.getElementById('total-list-container');
+        
+        if (tabName === 'nti-total') {
+            // 통합 탭: 데이터가 없을 때만 로드
+            if (!listContainer || listContainer.dataset.loaded !== "true") {
+                loadNTITotal();
+            }
+        } else if (MEMBERS[tabName]) {
+            // 개인 탭: 데이터가 없을 때만 로드
+            if (!listContainer || listContainer.dataset.loaded !== "true") {
+                handleMemberTab(tabName, false);
+            }
+        }
+    }
+
+    async function updateProfileImages(data) {
+        for (const char of data) {
+            const charName = char.name || char["캐릭터명"];
+            try {
+                const res = await fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/profiles`, { headers: { "Authorization": API_KEY } });
+                const pData = await res.json();
+                if (pData?.CharacterImage) {
+                    const imgCont = document.querySelector(`.pfp[data-name="${charName}"]`);
+                    if (imgCont) imgCont.innerHTML = `<img src="${pData.CharacterImage}">`;
+                }
+            } catch (e) {}
+            await new Promise(r => setTimeout(r, 100));
+        }
+    }
+
+    function init() {
+        const menu = document.getElementById('tabMenu');
+        const container = document.getElementById('tabContents');
+        Object.keys(MEMBERS).forEach(name => {
+            const btn = document.createElement('button'); btn.className = 'tab-btn'; btn.innerText = name;
+            btn.onclick = (e) => openTab(e, name);
+            menu.appendChild(btn);
+            const content = document.createElement('div'); content.id = name; content.className = 'content'; content.style.display = "none";
+            content.innerHTML = `<div style="display:flex; align-items:center; margin-bottom:10px;"><div class="controls"><span id="time-${name}" class="last-update"></span><button class="refresh-btn" onclick="handleMemberTab('${name}', true)">새로고침</button></div></div><div class="list-header member-grid"><div>캐릭터</div><div>서버</div><div>레벨</div><div>전투력</div><div>DB전투력</div><div>아크패시브</div><div>아크그리드</div><div style="display:flex; justify-content:space-between;"><span>보석</span><span id="total-gold-${name}" style="color:var(--highlight); font-size:0.75rem;">총 합계: 0 G</span></div></div><div id="list-${name}"></div>`;
+            container.appendChild(content);
+        });
+    }
+
+    window.onload = async () => { init(); await fetchDB(); backgroundPriceSync(); };
+    
+    function toNumber(v) {
+    return parseFloat(String(v || 0).replace(/,/g, ""));
+}
+
 </script>
-<div id="settings" class="settings">
-  <div class="right">
-    <button id="btnToggleSettings" class="btn-toggle-settings">
-      <span data-trans>Settings</span>
-      <i class="toggle-arrow">▲</i>
-    </button>
-    <div class="collapsible-rows collapsed">
-      <div class="row">
-        <label for='sltMap'>
-          <i class="icon map"></i>
-          <span data-trans>Map</span>
-        </label>
-        <select id="sltMap"></select>
-      </div>
-      <div class="row row-toggles">
-        <div class='toggle-item'>
-          <label for='chkAutoRecording'>
-            <i class="icon record"></i>
-            <span data-trans>Recording</span>
-          </label>
-          <input type="checkbox" id="chkAutoRecording" />
-        </div>
-        <div class='toggle-item'>
-          <label for='chkSkill'>
-            <i class="icon bomb"></i>
-            <span data-trans>Using skills</span>
-          </label>
-          <input type="checkbox" id="chkSkill" checked />
-        </div>
-      </div>
-      <div class="row">
-        <label>
-          <i class="icon trophy"></i>
-          <span data-trans>The winner is</span>
-        </label>
-        <div class="btn-group">
-          <button class="btn-winner btn-first-winner active" data-trans>First</button>
-          <button class="btn-winner btn-last-winner" data-trans>Last</button>
-          <input type="number" id="in_winningRank" value="1" min="1" />
-        </div>
-      </div>
-      <div class="row row-theme">
-        <div class='theme'>
-          <i class='icon sun'></i>
-          <input type='checkbox' id='chkDarkMode' checked />
-          <i class='icon moon'></i>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="left">
-    <h3 data-trans>Enter names below</h3>
-    <textarea id="in_names" placeholder="Input names separated by commas or line feed here" data-trans="placeholder">수박*2,키위*2,귤*2</textarea>
-    <div class="actions">
-      <button id="btnNotice">
-        <i class="icon megaphone"></i>
-      </button>
-      <a href='https://marblerouletteshop.com' target='_blank' id="btnShop" class='btn new' title='MarbleRoulette Shop'>
-        <img src='assets/images/marblerouletteshop.png' />
-      </a>
-      <div class="sep"></div>
-      <button id="btnShuffle">
-        <i class="icon shuffle"></i>
-        <span data-trans>Shuffle</span>
-      </button>
-      <button id="btnStart">
-        <i class="icon play"></i>
-        <span data-trans>Start</span>
-      </button>
-    </div>
-  </div>
-</div>
-<div id="notice">
-  <h1>Notice</h1>
-  <div class="notice-body">
-    <h2>커스텀 룰렛 기능 오픈!</h2>
-    <p>나만의 특별한 룰렛을 만들 수 있는 커스텀 룰렛 기능이 오픈했어요!</p>
-    <p>
-      <a href='https://marblerouletteshop.com/intro/roulette' target='_blank' class='shop-button holographic'><img
-        src='assets/images/marblerouletteshop.png' width='125' height='125' /> 룰렛 꾸미러 가기</a>
-    </p>
-  </div>
-  <div class="notice-action">
-    <button id="closeNotice" data-trans>Close</button>
-  </div>
-</div>
-<div class="copyright">&copy; 2022-2026.<a href="https://lazygyu.net" target="_blank">lazygyu</a> <span data-trans>This program is freeware and may be used freely anywhere, including in broadcasts and videos.</span>
-</div>
+
 </body>
+
 </html>
