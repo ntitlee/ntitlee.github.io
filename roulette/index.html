@@ -24,7 +24,7 @@
   :root { color-scheme: dark; }
   body { background-color: #000 !important; margin: 0; overflow: hidden; font-size: 13px; }
 
-  /* 2. 전체 UI 레이아웃 최적화 (슬림 버전) */
+  /* 2. 전체 UI 레이아웃 최적화 (왼쪽 하단 고정) */
   .settings {
     display: flex !important;
     flex-direction: row !important;
@@ -32,15 +32,20 @@
     padding: 12px !important;
     background: rgba(40, 40, 40, 0.9) !important;
     border-radius: 8px !important;
+    
+    /* 위치 설정: 왼쪽 하단으로 이동 */
     position: fixed !important;
-    bottom: 20px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
+    bottom: 20px !important;  /* 하단에서 20px 띄움 */
+    left: 20px !important;    /* 왼쪽에서 20px 띄움 */
+    right: auto !important;   /* 오른쪽 자동 */
+    transform: none !important; /* 기존 가운데 정렬 해제 */
+    
     width: auto !important;
-    min-width: 650px !important;
+    min-width: 600px !important; 
     align-items: flex-end !important;
     border: 1px solid #444 !important;
     z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important; /* 약간의 그림자로 입체감 추가 */
   }
 
   /* 3. 좌측: 이름 입력 및 실행 버튼 */
@@ -145,30 +150,54 @@
 
   let ready=!1, winnerType="first";
   function initialize(){
-    if(!window.roulette||!window.roulette.isReady){setTimeout(initialize,100);return}
-    // 기본 설정 강제 고정 (스킬 OFF, 녹화 OFF, 다크모드 ON)
+    if(!window.roulette || !window.roulette.isReady){
+        setTimeout(initialize, 100);
+        return;
+    }
+
+    // 1. 불필요한 외부 통신(KeywordService) 시도 자체를 안 하도록 설정
+    // 원본 JS 내부에 해당 로직이 있다면, 아래처럼 옵션을 강제로 꺼버리는 것이 최선입니다.
+    if(window.keywordService) window.keywordService = null; 
+
+    // 2. 기본 설정 강제 고정
     window.options.useSkills = false;
     window.options.autoRecording = false;
     window.options.darkMode = true;
     window.roulette.setTheme("dark");
 
-    let e=localStorage.getItem("mbr_names");
-    if(e) document.querySelector("#in_names").value=e;
+    // 3. 로컬 스토리지 데이터 복구
+    let e = localStorage.getItem("mbr_names");
+    if(e) document.querySelector("#in_names").value = e;
 
-    document.querySelector("#in_names").addEventListener("input",getReady);
-    document.querySelector("#btnShuffle").addEventListener("click",getReady);
-    document.querySelector("#btnStart").addEventListener("click",()=>{if(ready) window.roulette.start();});
+    // 4. 이벤트 리스너 등록
+    document.querySelector("#in_names").addEventListener("input", getReady);
+    document.querySelector("#btnShuffle").addEventListener("click", getReady);
+    document.querySelector("#btnStart").addEventListener("click", () => {
+        if(ready) window.roulette.start();
+    });
     
-    document.querySelector(".btn-last-winner").addEventListener("click",()=>{setWinnerRank(window.roulette.getCount())});
-    document.querySelector(".btn-first-winner").addEventListener("click",()=>{setWinnerRank(1)});
+    document.querySelector(".btn-last-winner").addEventListener("click", () => {
+        setWinnerRank(window.roulette.getCount());
+    });
+    document.querySelector(".btn-first-winner").addEventListener("click", () => {
+        setWinnerRank(1);
+    });
     
-    // 맵 로드
-    let i=window.roulette.getMaps(),a=document.querySelector("#sltMap");
-    i.forEach(e=>{let t=document.createElement("option");t.value=e.index;t.innerHTML=e.title;a.append(t)});
-    a.addEventListener("change",e=>{window.roulette.setMap(e.target.value)});
+    // 5. 맵 로드 및 설정
+    let i = window.roulette.getMaps(), a = document.querySelector("#sltMap");
+    i.forEach(e => {
+        let t = document.createElement("option");
+        t.value = e.index;
+        t.innerHTML = e.title;
+        a.append(t);
+    });
+    a.addEventListener("change", e => {
+        window.roulette.setMap(e.target.value);
+    });
     
     getReady();
-  }
+    console.log("Minimal UI Initialized: External requests blocked.");
+}
   document.addEventListener("DOMContentLoaded",initialize);
 </script>
 </body></html>
