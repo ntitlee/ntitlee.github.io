@@ -16,93 +16,126 @@
 }
 </script>
 <meta charset=UTF-8><meta http-equiv=X-UA-Compatible content="ie=edge">
-<title>Marble Roulette - Fixed Layout</title>
+<title>Marble Roulette - UI Fix</title>
 <link rel=stylesheet href="./roulette.193c4cf4.css">
 <style>
   :root { color-scheme: dark; }
-  body { background-color: #000 !important; margin: 0; overflow: hidden; font-size: 13px; font-family: sans-serif; }
+  body { background-color: #000 !important; margin: 0; overflow: hidden; font-size: 13px; }
 
-  /* 1. UI 전체 컨테이너 */
+  /* UI 전체 컨테이너 */
   .settings {
     display: flex !important;
     flex-direction: row !important;
-    gap: 15px !important;
-    padding: 12px 15px !important;
-    background: rgba(35, 35, 35, 0.98) !important;
-    border-radius: 10px !important;
+    gap: 20px !important;
+    padding: 15px 20px !important;
+    background: rgba(30, 30, 30, 0.98) !important;
+    border-radius: 12px !important;
     position: fixed !important;
-    bottom: 20px !important;
-    left: 20px !important;
-    width: auto !important;
-    min-width: 520px !important; /* 너비를 조금 더 확보해서 이름이 안 가려지게 함 */
+    bottom: 25px !important;
+    left: 25px !important;
+    min-width: 580px !important;
     border: 1px solid #444 !important;
-    z-index: 1000;
-    box-shadow: 0 4px 25px rgba(0,0,0,0.7) !important;
+    z-index: 9999;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
   }
 
-  /* 2. 왼쪽: 인원 선택 섹션 */
+  /* 왼쪽: 인원 선택 섹션 */
   .left-side {
-    flex: 0 0 240px !important; /* 너비 확장 */
+    flex: 0 0 280px !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 8px !important;
+    gap: 10px !important;
     border-right: 1px solid #555 !important;
-    padding-right: 15px !important;
+    padding-right: 20px !important;
   }
-  .header-row { display: flex !important; justify-content: space-between !important; align-items: center !important; }
-  .header-row h3 { margin: 0 !important; font-size: 12px !important; color: #aaa !important; }
+  .header-row { display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 5px; }
+  .header-row h3 { margin: 0 !important; font-size: 14px !important; color: #fff !important; }
   
   #member-checks { 
     display: grid !important; 
     grid-template-columns: 1fr 1fr !important; 
-    gap: 4px !important;
-    max-height: 120px; /* 이름이 많아져도 폼이 안 깨지게 높이 제한 */
+    gap: 8px !important;
   }
-  .m-label { 
-    cursor: pointer !important; display: flex !important; align-items: center !important; 
-    background: #2a2a2a !important; padding: 4px 6px !important; border-radius: 4px !important; 
-    color: #eee !important; font-size: 11px !important; border: 1px solid transparent;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; /* 텍스트 넘침 방지 */
-  }
-  .m-label:hover { background: #383838 !important; }
-  .m-label input { width: 12px !important; height: 12px !important; margin-right: 5px !important; accent-color: #d32f2f; flex-shrink: 0; }
 
-  /* 3. 오른쪽: 설정 및 버튼 섹션 */
+  /* 체크박스 라벨 및 커스텀 디자인 */
+  .m-label { 
+    cursor: pointer !important; 
+    display: flex !important; 
+    align-items: center !important; 
+    background: #222 !important; 
+    padding: 8px 10px !important; 
+    border-radius: 6px !important; 
+    color: #fff !important; 
+    font-size: 13px !important; 
+    border: 1px solid #444 !important;
+    transition: all 0.2s;
+  }
+  .m-label:hover { background: #333 !important; }
+
+  /* 중복 체크박스 해결: 기본 체크박스 숨기기 및 커스텀 스타일 */
+  .m-label input { 
+    appearance: none !important; /* 브라우저 기본 파란색 점 제거 */
+    -webkit-appearance: none !important;
+    width: 16px !important; 
+    height: 16px !important; 
+    border: 2px solid #666 !important; 
+    border-radius: 3px !important; 
+    margin-right: 10px !important; 
+    position: relative !important; 
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    background: #111 !important;
+  }
+  /* 체크되었을 때의 빨간색 표시 */
+  .m-label input:checked {
+    background-color: #d32f2f !important;
+    border-color: #d32f2f !important;
+  }
+  .m-label input:checked::after {
+    content: '✔' !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    color: white !important;
+    font-size: 10px !important;
+  }
+
+  /* 오른쪽 설정 영역 */
   .right-side {
     flex: 1 !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 10px !important;
+    gap: 12px !important;
     justify-content: center !important;
   }
-  .config-row { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 8px !important; }
-  .config-row label { color: #888 !important; font-size: 11px !important; }
+  .config-row { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 10px !important; }
+  .config-row label { color: #aaa !important; font-size: 12px !important; }
   
   select, #in_winningRank { 
     background: #1a1a1a !important; color: #fff !important; border: 1px solid #555 !important; 
-    height: 24px !important; border-radius: 4px !important; font-size: 11px !important; 
+    height: 28px !important; border-radius: 4px !important; padding: 0 5px !important;
   }
 
   .rank-btns { display: flex !important; gap: 2px !important; }
   .rank-btns button { 
-    font-size: 10px !important; padding: 2px 6px !important; background: #333 !important; 
-    border: 1px solid #444 !important; border-radius: 3px !important; color: #888 !important; cursor: pointer !important; 
+    font-size: 11px !important; padding: 4px 8px !important; background: #333 !important; 
+    border: 1px solid #444 !important; border-radius: 4px !important; color: #888 !important; cursor: pointer !important; 
   }
   .rank-btns button.active { background: #555 !important; color: #fff !important; }
 
-  .btn-actions { display: flex !important; gap: 5px !important; margin-top: 5px !important; }
+  .btn-actions { display: flex !important; gap: 8px !important; margin-top: 5px !important; }
   .btn-actions button { 
-    flex: 1 !important; height: 34px !important; cursor: pointer !important; 
-    border-radius: 6px !important; border: none !important; font-weight: bold !important; font-size: 12px !important; 
+    flex: 1 !important; height: 38px !important; cursor: pointer !important; 
+    border-radius: 8px !important; border: none !important; font-weight: bold !important; font-size: 14px !important; 
   }
-  #btnStart { background: #ce4242 !important; color: #fff !important; }
+  #btnStart { background: #d32f2f !important; color: #fff !important; }
   #btnShuffle { background: #444 !important; color: #ddd !important; }
 
   .m-btn { 
-    background: #333 !important; color: #999 !important; border: 1px solid #444 !important; 
-    padding: 1px 4px !important; font-size: 10px !important; cursor: pointer !important; border-radius: 3px !important; 
+    background: #333 !important; color: #bbb !important; border: 1px solid #444 !important; 
+    padding: 3px 8px !important; font-size: 11px !important; cursor: pointer !important; border-radius: 4px !important; 
   }
-  .m-btn:hover { color: #fff; background: #444 !important; }
 
   #notice, #btnNotice, #btnShop, .row-toggles, .row-theme, .copyright, .sep, #in_names_visible { display: none !important; }
 </style>
@@ -123,16 +156,16 @@
   <div class="right-side">
     <div class="config-row">
       <label>맵</label>
-      <select id=sltMap style="width: 120px;"></select>
+      <select id=sltMap style="width: 140px;"></select>
     </div>
     <div class="config-row">
       <label>순위</label>
-      <div style="display:flex; align-items:center; gap:4px;">
+      <div style="display:flex; align-items:center; gap:8px;">
         <div class="rank-btns">
           <button id="setFirst" class="active">처음</button>
           <button id="setLast">마지막</button>
         </div>
-        <input type=number id=in_winningRank value=1 min=1 style="width: 35px;">
+        <input type=number id=in_winningRank value=1 min=1 style="width: 45px;">
       </div>
     </div>
     <div class="btn-actions">
@@ -146,9 +179,7 @@
 
 <script type=module src="./roulette.31f8fbbf.js"></script>
 <script>
-  // 명단 수정 및 예비1 추가
   const MEMBERS = ["민구", "기태", "찬엽", "민기", "준영", "석준", "동근", "예비1"];
-  // 기본적으로 체크될 멤버 (예비1 제외)
   const DEFAULT_SELECTED = ["민구", "기태", "찬엽", "민기", "준영", "석준", "동근"];
 
   function getNames(){return document.querySelector("#in_names").value.split(',').map(e=>e.trim()).filter(e=>!!e)}
@@ -174,7 +205,6 @@
     window.options.autoRecording = false;
     window.options.darkMode = true;
     window.roulette.setTheme("dark");
-    if(window.keywordService) window.keywordService = null;
 
     const nameInput = document.querySelector("#in_names");
     const checkArea = document.querySelector("#member-checks");
@@ -186,7 +216,8 @@
         const isChecked = current.includes(name) ? 'checked' : '';
         const label = document.createElement('label');
         label.className = 'm-label';
-        label.innerHTML = `<input type="checkbox" value="${name}" ${isChecked}>${name}`;
+        label.innerHTML = `<input type="checkbox" value="${name}" ${isChecked}><span>${name}</span>`;
+        
         label.querySelector('input').addEventListener('change', (e)=>{
           let arr = nameInput.value.split(',').map(n=>n.trim()).filter(n=>!!n);
           if(e.target.checked) { if(!arr.includes(name)) arr.push(name); }
@@ -207,7 +238,6 @@
     });
 
     let saved = localStorage.getItem("mbr_names");
-    // 저장된 데이터가 없으면 예비1을 제외한 기본 멤버만 설정
     nameInput.value = (saved !== null) ? saved : DEFAULT_SELECTED.join(',');
     drawChecks();
 
