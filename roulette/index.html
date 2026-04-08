@@ -1,56 +1,4 @@
 <!DOCTYPE html><html lang=en>
-
-<style>
-  /* 1. 전체 설정창 레이아웃 (좌우 정렬 고정) */
-  .settings {
-    display: flex !important;
-    flex-direction: row !important; /* 좌측 입력창 / 우측 설정창 나란히 */
-    align-items: flex-start !important;
-    gap: 20px !important;
-    padding: 15px !important;
-    max-width: 1000px !important;
-    margin: 0 auto !important;
-  }
-
-  /* 2. 하단 버튼들(셔플, 시작 등) 한 줄로 정렬 */
-  .actions {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important; /* 절대 줄바꿈 금지 */
-    align-items: center !important;
-    gap: 8px !important;
-    margin-top: 10px !important;
-  }
-
-  /* 3. 버튼 크기 및 텍스트 최적화 */
-  .actions button, .actions a.btn {
-    padding: 6px 12px !important;
-    height: 36px !important; /* 버튼 높이 통일 */
-    font-size: 14px !important;
-    white-space: nowrap !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  /* 4. 우측 설정 항목(맵, 우승자 등) 줄바꿈 방지 */
-  .row {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    min-width: 250px !important; /* 설정창이 너무 찌그러지지 않게 */
-    margin-bottom: 8px !important;
-  }
-
-  /* 5. 텍스트 입력창 높이 고정 */
-  #in_names {
-    height: 100px !important;
-    min-height: 100px !important;
-    resize: none !important;
-  }
-</style>
-
   
 <script type=importmap>
 {
@@ -97,6 +45,81 @@
 <meta property=og:site_name content=lazygyu.github.io>
 <meta property=og:type content=website>
 <link rel=stylesheet href="./roulette.193c4cf4.css">
+
+  <style>
+  /* [필독] 원본 CSS의 rem 단위를 무력화하기 위해 중요(important) 속성을 사용합니다. */
+
+  /* 1. 전체 UI 박스 크기 슬림화 및 하단 고정 */
+  .settings {
+    font-size: 11px !important;    /* ★핵심: 기본 폰트 크기를 왕창 줄여서 모든 UI 크기를 축소 */
+    padding: 8px !important;      /* 내부 여백 축소 */
+    width: 95% !important;        /* 너무 퍼지지 않게 */
+    max-width: 780px !important;  /* 최대 너비 제한 */
+    left: 50% !important;
+    transform: translateX(-50%) !important; /* 가운데 정렬 */
+    bottom: 20px !important;       /* 하단 여백 줄임 */
+    display: flex !important;
+    flex-direction: row !important; /* 좌우 레이아웃 고정 */
+    gap: 10px !important;
+    height: auto !important;      /* 높이 자동 */
+  }
+
+  /* 2. 좌측 입력창 영역 */
+  .left {
+    flex: 0 0 55% !important; /* 좌측 공간 비율 */
+  }
+
+  /* 텍스트 입력창 높이 축소 */
+  #in_names {
+    height: 60px !important; 
+    font-size: 11px !important;
+  }
+
+  /* 하단 버튼 바 촘촘하게 */
+  .actions {
+    margin-top: 5px !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important; /* 줄바꿈 절대 금지 */
+  }
+
+  /* 버튼 크기 축소 */
+  .actions button, .actions a.btn {
+    padding: 4px 8px !important;
+    height: 28px !important; /* 버튼 높이 축소 */
+    font-size: 11px !important;
+  }
+
+  /* 3. 우측 설정창 영역 */
+  .right {
+    flex: 1 1 auto !important;
+  }
+
+  /* 설정 항목(맵, 우승자 등) 간격 축소 */
+  .collapsed.comp, .row {
+    gap: 4px !important;
+    margin-bottom: 0px !important;
+  }
+
+  /* 각 설정 줄 (Row) 설정 */
+  .row {
+    padding: 2px 0 !important;
+    justify-content: flex-start !important; /* 왼쪽 정렬 */
+  }
+
+  /* 선택 박스 및 입력창 크기 축소 */
+  select, input[type="number"] {
+    height: 24px !important;
+    font-size: 11px !important;
+    padding: 0 4px !important;
+  }
+
+  /* 4. 저작권 문구 처리 */
+  .copyright {
+    display: none !important; /* 원본처럼 하단 공간 확보를 위해 저작권 문구를 일단 숨김 */
+  }
+</style>
+  
+  
 <body>
 <script type=module src="./roulette.31f8fbbf.js"></script>
 <script>
