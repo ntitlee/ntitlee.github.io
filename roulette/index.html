@@ -1,4 +1,42 @@
 <!DOCTYPE html><html lang=en>
+
+<style>
+  /* 전체 UI 박스 크기 조절 */
+  .settings {
+    max-width: 900px !important; /* 전체 너비를 제한해서 깔끔하게 모음 */
+    margin: 0 auto !important;   /* 가운데 정렬 */
+    padding: 10px !important;
+    font-size: 14px !important;  /* 글자 크기 살짝 축소 */
+  }
+
+  /* 버튼들이 들어가는 액션 칸 줄바꿈 방지 */
+  .actions {
+    display: flex !important;
+    flex-wrap: nowrap !important; /* 줄바꿈 절대 금지 */
+    align-items: center !important;
+    gap: 8px !important;          /* 버튼 사이 간격 */
+  }
+
+  /* 버튼 내부 텍스트 처리 */
+  .actions button, .actions a {
+    white-space: nowrap !important; /* 글자가 길어도 아래로 안 떨어지게 */
+    padding: 6px 12px !important;   /* 버튼 여백 축소 */
+    height: auto !important;
+  }
+
+  /* 텍스트 입력창 높이 조절 */
+  #in_names {
+    height: 80px !important;      /* 너무 크지 않게 조절 */
+    min-height: 50px !important;
+  }
+
+  /* 설정창(오른쪽) 레이아웃 교정 */
+  .collapsible-rows .row {
+    padding: 5px 0 !important;
+  }
+</style>
+
+  
 <script type=importmap>
 {
   "imports": {
