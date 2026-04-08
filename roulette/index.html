@@ -5,150 +5,133 @@
     "2rDQN": "./Box2D.simd.dd31b167.wasm",
     "8BShk": "./Box2D.simd.13a3a125.js",
     "9DwmV": "./kkwak.673a610d.png",
+    "9YLvj": "./waldokun.7e88dd59.png",
+    "cdgIR": "./chamru.d6926a56.png",
+    "fkRhi": "./junyoop.d27f0cbf.png",
     "h7cmx": "./Box2D.b9b16b27.wasm",
-    "ilUZb": "./Box2D.4b04ba8e.js"
+    "ilUZb": "./Box2D.4b04ba8e.js",
+    "juMvj": "./ff.7fdc9e82.svg",
+    "lfSvD": "./kubin.f3647b70.png"
   }
 }
 </script>
 <meta charset=UTF-8><meta http-equiv=X-UA-Compatible content="ie=edge">
-<title>Marble Roulette - Checkbox Edition</title>
+<title>Marble Roulette - Checkbox Minimal</title>
+<meta name=viewport content="width=device-width, initial-scale=1.0">
 <link rel=stylesheet href="./roulette.193c4cf4.css">
 <style>
   :root { color-scheme: dark; }
-  body { background-color: #000 !important; margin: 0; overflow: hidden; font-family: sans-serif; }
+  body { background-color: #000 !important; margin: 0; overflow: hidden; font-size: 13px; }
 
-  /* 전체 UI 레이아웃 */
   .settings {
     display: flex !important;
     flex-direction: row !important;
     gap: 15px !important;
-    padding: 15px !important;
-    background: rgba(30, 30, 30, 0.95) !important;
-    border-radius: 12px !important;
+    padding: 12px !important;
+    background: rgba(40, 40, 40, 0.9) !important;
+    border-radius: 8px !important;
     position: fixed !important;
     bottom: 20px !important;
-    left: 20px !important; /* 왼쪽 하단 고정 */
-    min-width: 550px !important;
+    left: 20px !important;
+    width: auto !important;
+    min-width: 650px !important;
+    align-items: flex-end !important;
     border: 1px solid #444 !important;
     z-index: 1000;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.8) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
   }
 
-  /* 왼쪽: 멤버 체크박스 영역 */
-  .member-list {
-    flex: 0 0 220px !important;
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important; /* 2줄 정렬 */
-    gap: 8px !important;
-    border-right: 1px solid #444 !important;
-    padding-right: 15px !important;
-  }
+  .left { flex: 0 0 380px !important; display: flex !important; flex-direction: column !important; gap: 8px !important; }
+  .left h3 { margin: 0 0 2px 0 !important; font-size: 13px !important; color: #ccc; }
   
-  .member-item {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    cursor: pointer !important;
-    color: #eee !important;
-    font-size: 13px !important;
-    padding: 5px !important;
-    background: #222 !important;
+  /* 체크박스 영역 스타일 */
+  #member-checks {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+    background: #1a1a1a !important;
+    padding: 10px !important;
     border-radius: 4px !important;
-    transition: 0.2s;
-  }
-  .member-item:hover { background: #333 !important; }
-  .member-item input { cursor: pointer !important; width: 16px; height: 16px; }
-
-  /* 오른쪽: 제어 영역 */
-  .control-panel {
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 12px !important;
-    justify-content: center !important;
+    border: 1px solid #333 !important;
   }
 
-  /* 맵/순위 설정 한 줄 정렬 */
-  .row { display: flex !important; align-items: center !important; gap: 8px !important; font-size: 12px !important; color: #aaa !important; }
-  select, #in_winningRank {
-    background: #111 !important; color: #fff !important; border: 1px solid #444 !important;
-    height: 26px !important; border-radius: 4px !important; flex: 1 !important;
+  #in_names {
+    width: 100% !important;
+    height: 50px !important;
+    background: #111 !important;
+    color: #fff !important;
+    border: 1px solid #333 !important;
+    border-radius: 4px !important;
+    padding: 8px !important;
+    font-size: 12px !important;
+    resize: none !important;
   }
 
-  /* 버튼 영역 */
-  .actions { display: flex !important; gap: 8px !important; margin-top: 5px !important; }
+  .actions { display: flex !important; gap: 6px !important; align-items: center !important; }
   .actions button {
-    flex: 1 !important; height: 36px !important; border: none !important; border-radius: 6px !important;
-    font-weight: bold !important; cursor: pointer !important; display: flex !important;
-    align-items: center !important; justify-content: center !important; gap: 5px !important;
+    flex: 1 !important; height: 32px !important; font-size: 13px !important;
+    cursor: pointer !important; border-radius: 4px !important; border: none !important;
+    display: flex !important; align-items: center !important; justify-content: center !important; gap: 4px !important;
   }
-  #btnStart { background: #ce4242 !important; color: white !important; }
-  #btnShuffle { background: #444 !important; color: #ddd !important; }
+  #btnStart { background: #4a4a4a !important; color: #fff !important; font-weight: bold; }
+  #btnShuffle { background: #333 !important; color: #bbb !important; }
 
-  /* 불필요 요소 제거 */
-  #notice, .row-toggles, .row-theme, .copyright, #in_names, h3 { display: none !important; }
+  .right { flex: 1 !important; display: flex !important; flex-direction: column !important; gap: 10px !important; padding-bottom: 5px; }
+  .row { display: flex !important; align-items: center !important; gap: 10px !important; white-space: nowrap !important; }
+  .row label { min-width: 60px !important; color: #aaa !important; font-size: 12px !important; }
+  
+  select, #in_winningRank {
+    background: #222 !important; color: #eee !important; border: 1px solid #444 !important;
+    height: 28px !important; border-radius: 4px !important; font-size: 12px !important; padding: 0 5px !important;
+  }
+
+  .btn-group { display: flex !important; gap: 2px !important; }
+  .btn-group button { padding: 4px 8px !important; font-size: 11px !important; background: #333 !important; color: #888 !important; border: 1px solid #444 !important; }
+  .btn-group button.active { background: #555 !important; color: #fff !important; }
+
+  #notice, #btnNotice, #btnShop, .row-toggles, .row-theme, .btn-toggle-settings, .copyright, .sep { display: none !important; }
 </style>
 
 <body>
-<div class=settings>
-  <div id=memberList class=member-list>
-    </div>
-
-  <div class=control-panel>
-    <div class=row>
-      <label>맵</label>
-      <select id=sltMap></select>
-    </div>
-    <div class=row>
-      <label>순위</label>
-      <div class="btn-group" style="display:flex; gap:2px;">
-        <button class="active btn-first-winner" style="padding:2px 6px; font-size:10px;">처음</button>
-        <button class="btn-last-winner" style="padding:2px 6px; font-size:10px;">마지막</button>
-      </div>
-      <input type=number id=in_winningRank value=1 min=1 style="width:40px; flex:none !important;">
-    </div>
+<div id=settings class=settings>
+  <div class=left>
+    <h3>멤버 선택</h3>
+    <div id="member-checks"></div>
+    
+    <h3 style="margin-top:5px;">참가 명단 (직접 수정 가능)</h3>
+    <textarea id=in_names placeholder="체크박스를 누르거나 직접 입력"></textarea>
     
     <div class=actions>
       <button id=btnShuffle><i class="icon shuffle"></i> 셔플</button>
       <button id=btnStart><i class="icon play"></i> 시작</button>
     </div>
   </div>
+  
+  <div class=right>
+    <div class=row>
+      <label>맵 선택</label>
+      <select id=sltMap style="width: 100%;"></select>
+    </div>
+    <div class=row>
+      <label>당첨 순위</label>
+      <div class=btn-group>
+        <button class="active btn-first-winner">첫번째</button>
+        <button class="btn-last-winner">마지막</button>
+      </div>
+      <input type=number id=in_winningRank value=1 min=1 style="width: 50px;">
+    </div>
+  </div>
 </div>
-
-<textarea id=in_names style="display:none !important;"></textarea>
 
 <script type=module src="./roulette.31f8fbbf.js"></script>
 <script>
-  // 1. 고정 멤버 명단 (여기서 이름만 수정하세요!)
-  const MEMBERS = ["민구", "기태", "찬엽", "민기", "준엽", "석준", "동근"];
-
-  function setupMemberList() {
-    const container = document.getElementById('memberList');
-    const saved = JSON.parse(localStorage.getItem('selected_members') || '[]');
-    
-    MEMBERS.forEach(name => {
-      const label = document.createElement('label');
-      label.className = 'member-item';
-      const isChecked = saved.length === 0 || saved.includes(name) ? 'checked' : '';
-      label.innerHTML = `<input type="checkbox" value="${name}" ${isChecked}> ${name}`;
-      container.appendChild(label);
-      
-      label.querySelector('input').addEventListener('change', updateRouletteNames);
-    });
+  function getNames(){return document.querySelector("#in_names").value.trim().split(/[,\r\n]/g).map(e=>e.trim()).filter(e=>!!e)}
+  function getReady(){
+    let e=getNames(); ready=e.length>0;
+    if(window.roulette) window.roulette.setMarbles(e);
+    localStorage.setItem("mbr_names", e.join(","));
   }
-
-  function updateRouletteNames() {
-    const selected = Array.from(document.querySelectorAll('#memberList input:checked')).map(el => el.value);
-    document.querySelector("#in_names").value = selected.join(",");
-    localStorage.setItem('selected_members', JSON.stringify(selected));
-    
-    if(window.roulette && window.roulette.isReady) {
-      window.roulette.setMarbles(selected);
-      ready = selected.length > 0;
-    }
-  }
-
-  // 기본 엔진 로직
+  
   function setWinnerRank(e){
     document.querySelector("#in_winningRank").value=e;
     window.options.winningRank=e-1;
@@ -157,29 +140,65 @@
     document.querySelector(".btn-last-winner").classList.toggle("active",e!==1);
   }
 
-  let ready = false;
-  function initialize() {
-    if(!window.roulette || !window.roulette.isReady) { setTimeout(initialize, 100); return; }
-    
+  let ready=!1;
+  function initialize(){
+    if(!window.roulette || !window.roulette.isReady){ setTimeout(initialize, 100); return; }
+
+    if(window.keywordService) window.keywordService = null; 
     window.options.useSkills = false;
     window.options.autoRecording = false;
     window.options.darkMode = true;
     window.roulette.setTheme("dark");
 
-    setupMemberList();
-    updateRouletteNames();
+    // --- 체크박스 로직 시작 ---
+    const members = ["민구", "기태", "찬엽", "민기", "준엽", "석준", "동근"];
+    const checkContainer = document.querySelector("#member-checks");
+    const nameInput = document.querySelector("#in_names");
 
-    document.querySelector("#btnShuffle").addEventListener("click", updateRouletteNames);
+    function refreshChecks() {
+        const currentNames = nameInput.value.split(',').map(n => n.trim());
+        checkContainer.innerHTML = '';
+        members.forEach(name => {
+            const isChecked = currentNames.includes(name) ? 'checked' : '';
+            const label = document.createElement('label');
+            label.style.cssText = "cursor:pointer; font-size:12px; color:#eee; display:flex; align-items:center;";
+            label.innerHTML = `<input type="checkbox" value="${name}" ${isChecked} style="margin-right:4px;">${name}`;
+            
+            label.querySelector('input').addEventListener('change', (e) => {
+                let names = nameInput.value.split(',').map(n => n.trim()).filter(n => n !== "");
+                if (e.target.checked) {
+                    if (!names.includes(e.target.value)) names.push(e.target.value);
+                } else {
+                    names = names.filter(n => n !== e.target.value);
+                }
+                nameInput.value = names.join(',');
+                getReady();
+            });
+            checkContainer.appendChild(label);
+        });
+    }
+
+    let saved = localStorage.getItem("mbr_names");
+    nameInput.value = saved || members.join(","); // 저장된게 없으면 7명 전원 기본값
+    
+    refreshChecks();
+    nameInput.addEventListener('input', refreshChecks);
+    // --- 체크박스 로직 끝 ---
+
+    document.querySelector("#btnShuffle").addEventListener("click", getReady);
     document.querySelector("#btnStart").addEventListener("click", () => { if(ready) window.roulette.start(); });
     document.querySelector(".btn-last-winner").addEventListener("click", () => setWinnerRank(window.roulette.getCount()));
     document.querySelector(".btn-first-winner").addEventListener("click", () => setWinnerRank(1));
-
-    // 맵 로드
-    let i=window.roulette.getMaps(), a=document.querySelector("#sltMap");
-    i.forEach(e => { let t=document.createElement("option"); t.value=e.index; t.innerHTML=e.title; a.append(t); });
+    
+    let i = window.roulette.getMaps(), a = document.querySelector("#sltMap");
+    i.forEach(e => {
+        let t = document.createElement("option");
+        t.value = e.index; t.innerHTML = e.title; a.append(t);
+    });
     a.addEventListener("change", e => window.roulette.setMap(e.target.value));
+    
+    getReady();
   }
-
   document.addEventListener("DOMContentLoaded", initialize);
 </script>
 </body></html>
