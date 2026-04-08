@@ -5,199 +5,181 @@
     "2rDQN": "./Box2D.simd.dd31b167.wasm",
     "8BShk": "./Box2D.simd.13a3a125.js",
     "9DwmV": "./kkwak.673a610d.png",
-    "9YLvj": "./waldokun.7e88dd59.png",
-    "cdgIR": "./chamru.d6926a56.png",
-    "fkRhi": "./junyoop.d27f0cbf.png",
     "h7cmx": "./Box2D.b9b16b27.wasm",
-    "ilUZb": "./Box2D.4b04ba8e.js",
-    "juMvj": "./ff.7fdc9e82.svg",
-    "lfSvD": "./kubin.f3647b70.png"
+    "ilUZb": "./Box2D.4b04ba8e.js"
   }
 }
 </script>
 <meta charset=UTF-8><meta http-equiv=X-UA-Compatible content="ie=edge">
-<title>Marble Roulette - Minimal</title>
-<meta name=viewport content="width=device-width, initial-scale=1.0">
+<title>Marble Roulette - Checkbox Edition</title>
 <link rel=stylesheet href="./roulette.193c4cf4.css">
 <style>
-  /* 1. 다크모드 강제 고정 및 배경 설정 */
   :root { color-scheme: dark; }
-  body { background-color: #000 !important; margin: 0; overflow: hidden; font-size: 13px; }
+  body { background-color: #000 !important; margin: 0; overflow: hidden; font-family: sans-serif; }
 
-  /* 2. 전체 UI 레이아웃 최적화 (왼쪽 하단 고정) */
+  /* 전체 UI 레이아웃 */
   .settings {
     display: flex !important;
     flex-direction: row !important;
     gap: 15px !important;
-    padding: 12px !important;
-    background: rgba(40, 40, 40, 0.9) !important;
-    border-radius: 8px !important;
-    
-    /* 위치 설정: 왼쪽 하단으로 이동 */
+    padding: 15px !important;
+    background: rgba(30, 30, 30, 0.95) !important;
+    border-radius: 12px !important;
     position: fixed !important;
-    bottom: 20px !important;  /* 하단에서 20px 띄움 */
-    left: 20px !important;    /* 왼쪽에서 20px 띄움 */
-    right: auto !important;   /* 오른쪽 자동 */
-    transform: none !important; /* 기존 가운데 정렬 해제 */
-    
-    width: auto !important;
-    min-width: 600px !important; 
-    align-items: flex-end !important;
+    bottom: 20px !important;
+    left: 20px !important; /* 왼쪽 하단 고정 */
+    min-width: 550px !important;
     border: 1px solid #444 !important;
     z-index: 1000;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important; /* 약간의 그림자로 입체감 추가 */
+    box-shadow: 0 8px 32px rgba(0,0,0,0.8) !important;
   }
 
-  /* 3. 좌측: 이름 입력 및 실행 버튼 */
-  .left { flex: 0 0 350px !important; display: flex !important; flex-direction: column !important; gap: 8px !important; }
-  .left h3 { margin: 0 0 2px 0 !important; font-size: 13px !important; color: #ccc; }
-  #in_names {
-    width: 100% !important;
-    height: 70px !important;
-    background: #1a1a1a !important;
-    color: #fff !important;
-    border: 1px solid #333 !important;
-    border-radius: 4px !important;
-    padding: 8px !important;
-    font-size: 12px !important;
-    resize: none !important;
+  /* 왼쪽: 멤버 체크박스 영역 */
+  .member-list {
+    flex: 0 0 220px !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* 2줄 정렬 */
+    gap: 8px !important;
+    border-right: 1px solid #444 !important;
+    padding-right: 15px !important;
   }
-
-  /* 하단 실행 버튼 정렬 */
-  .actions { display: flex !important; gap: 6px !important; align-items: center !important; }
-  .actions button {
-    flex: 1 !important;
-    height: 32px !important;
-    font-size: 13px !important;
-    cursor: pointer !important;
-    border-radius: 4px !important;
-    border: none !important;
+  
+  .member-item {
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
-    gap: 4px !important;
-  }
-  #btnStart { background: #4a4a4a !important; color: #fff !important; font-weight: bold; }
-  #btnShuffle { background: #333 !important; color: #bbb !important; }
-
-  /* 4. 우측: 맵 및 당첨 설정 (불필요 요소 제거됨) */
-  .right { flex: 1 !important; display: flex !important; flex-direction: column !important; gap: 10px !important; padding-bottom: 5px; }
-  .row { display: flex !important; align-items: center !important; gap: 10px !important; white-space: nowrap !important; }
-  .row label { min-width: 60px !important; color: #aaa !important; font-size: 12px !important; }
-  
-  select, #in_winningRank {
-    background: #222 !important;
+    gap: 8px !important;
+    cursor: pointer !important;
     color: #eee !important;
-    border: 1px solid #444 !important;
-    height: 28px !important;
+    font-size: 13px !important;
+    padding: 5px !important;
+    background: #222 !important;
     border-radius: 4px !important;
-    font-size: 12px !important;
-    padding: 0 5px !important;
+    transition: 0.2s;
+  }
+  .member-item:hover { background: #333 !important; }
+  .member-item input { cursor: pointer !important; width: 16px; height: 16px; }
+
+  /* 오른쪽: 제어 영역 */
+  .control-panel {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    justify-content: center !important;
   }
 
-  .btn-group { display: flex !important; gap: 2px !important; }
-  .btn-group button { 
-    padding: 4px 8px !important; 
-    font-size: 11px !important; 
-    background: #333 !important; 
-    color: #888 !important; 
-    border: 1px solid #444 !important;
+  /* 맵/순위 설정 한 줄 정렬 */
+  .row { display: flex !important; align-items: center !important; gap: 8px !important; font-size: 12px !important; color: #aaa !important; }
+  select, #in_winningRank {
+    background: #111 !important; color: #fff !important; border: 1px solid #444 !important;
+    height: 26px !important; border-radius: 4px !important; flex: 1 !important;
   }
-  .btn-group button.active { background: #555 !important; color: #fff !important; }
 
-  /* 5. 숨김 처리 (사용하지 않는 기능들) */
-  #notice, #btnNotice, #btnShop, .row-toggles, .row-theme, .btn-toggle-settings, .copyright, .sep {
-    display: none !important;
+  /* 버튼 영역 */
+  .actions { display: flex !important; gap: 8px !important; margin-top: 5px !important; }
+  .actions button {
+    flex: 1 !important; height: 36px !important; border: none !important; border-radius: 6px !important;
+    font-weight: bold !important; cursor: pointer !important; display: flex !important;
+    align-items: center !important; justify-content: center !important; gap: 5px !important;
   }
+  #btnStart { background: #ce4242 !important; color: white !important; }
+  #btnShuffle { background: #444 !important; color: #ddd !important; }
+
+  /* 불필요 요소 제거 */
+  #notice, .row-toggles, .row-theme, .copyright, #in_names, h3 { display: none !important; }
 </style>
 
 <body>
-<div id=settings class=settings>
-  <div class=left>
-    <h3>이름들을 입력하세요</h3>
-    <textarea id=in_names placeholder="콤마나 줄바꿈으로 구분">수박*2,키위*2,귤*2</textarea>
+<div class=settings>
+  <div id=memberList class=member-list>
+    </div>
+
+  <div class=control-panel>
+    <div class=row>
+      <label>맵</label>
+      <select id=sltMap></select>
+    </div>
+    <div class=row>
+      <label>순위</label>
+      <div class="btn-group" style="display:flex; gap:2px;">
+        <button class="active btn-first-winner" style="padding:2px 6px; font-size:10px;">처음</button>
+        <button class="btn-last-winner" style="padding:2px 6px; font-size:10px;">마지막</button>
+      </div>
+      <input type=number id=in_winningRank value=1 min=1 style="width:40px; flex:none !important;">
+    </div>
+    
     <div class=actions>
       <button id=btnShuffle><i class="icon shuffle"></i> 셔플</button>
       <button id=btnStart><i class="icon play"></i> 시작</button>
     </div>
   </div>
-  
-  <div class=right>
-    <div class=row>
-      <label>맵 선택</label>
-      <select id=sltMap style="width: 100%;"></select>
-    </div>
-    <div class=row>
-      <label>당첨 순위</label>
-      <div class=btn-group>
-        <button class="active btn-first-winner">첫번째</button>
-        <button class="btn-last-winner">마지막</button>
-      </div>
-      <input type=number id=in_winningRank value=1 min=1 style="width: 50px;">
-    </div>
-  </div>
 </div>
+
+<textarea id=in_names style="display:none !important;"></textarea>
 
 <script type=module src="./roulette.31f8fbbf.js"></script>
 <script>
-  // 핵심 로직만 유지, 테마/녹화/스킬/공지 관련 코드 제거
-  function getNames(){return document.querySelector("#in_names").value.trim().split(/[,\r\n]/g).map(e=>e.trim()).filter(e=>!!e)}
-  function parseName(e){let t=/(\/\d+)/,n=/(\*\d+)/,o=t.test(e),i=n.test(e),a=/^\s*([^\/*]+)?/.exec(e)[1];return{name:a,weight:o?parseInt(t.exec(e)[1].replace("/","")):1,count:i?parseInt(n.exec(e)[1].replace("*","")):1}}
-  function getReady(){let e=getNames();ready=e.length>0;window.roulette.setMarbles(e);localStorage.setItem("mbr_names",e.join(","));}
-  function setWinnerRank(e){document.querySelector("#in_winningRank").value=e;window.options.winningRank=e-1;window.roulette.setWinningRank(window.options.winningRank);
-    document.querySelector(".btn-first-winner").classList.toggle("active",e===1);
-    document.querySelector(".btn-last-winner").classList.toggle("active",e!==1);}
+  // 1. 고정 멤버 명단 (여기서 이름만 수정하세요!)
+  const MEMBERS = ["민구", "기태", "찬엽", "민기", "준엽", "석준", "동근"];
 
-  let ready=!1, winnerType="first";
-  function initialize(){
-    if(!window.roulette || !window.roulette.isReady){
-        setTimeout(initialize, 100);
-        return;
+  function setupMemberList() {
+    const container = document.getElementById('memberList');
+    const saved = JSON.parse(localStorage.getItem('selected_members') || '[]');
+    
+    MEMBERS.forEach(name => {
+      const label = document.createElement('label');
+      label.className = 'member-item';
+      const isChecked = saved.length === 0 || saved.includes(name) ? 'checked' : '';
+      label.innerHTML = `<input type="checkbox" value="${name}" ${isChecked}> ${name}`;
+      container.appendChild(label);
+      
+      label.querySelector('input').addEventListener('change', updateRouletteNames);
+    });
+  }
+
+  function updateRouletteNames() {
+    const selected = Array.from(document.querySelectorAll('#memberList input:checked')).map(el => el.value);
+    document.querySelector("#in_names").value = selected.join(",");
+    localStorage.setItem('selected_members', JSON.stringify(selected));
+    
+    if(window.roulette && window.roulette.isReady) {
+      window.roulette.setMarbles(selected);
+      ready = selected.length > 0;
     }
+  }
 
-    // 1. 불필요한 외부 통신(KeywordService) 시도 자체를 안 하도록 설정
-    // 원본 JS 내부에 해당 로직이 있다면, 아래처럼 옵션을 강제로 꺼버리는 것이 최선입니다.
-    if(window.keywordService) window.keywordService = null; 
+  // 기본 엔진 로직
+  function setWinnerRank(e){
+    document.querySelector("#in_winningRank").value=e;
+    window.options.winningRank=e-1;
+    window.roulette.setWinningRank(window.options.winningRank);
+    document.querySelector(".btn-first-winner").classList.toggle("active",e===1);
+    document.querySelector(".btn-last-winner").classList.toggle("active",e!==1);
+  }
 
-    // 2. 기본 설정 강제 고정
+  let ready = false;
+  function initialize() {
+    if(!window.roulette || !window.roulette.isReady) { setTimeout(initialize, 100); return; }
+    
     window.options.useSkills = false;
     window.options.autoRecording = false;
     window.options.darkMode = true;
     window.roulette.setTheme("dark");
 
-    // 3. 로컬 스토리지 데이터 복구
-    let e = localStorage.getItem("mbr_names");
-    if(e) document.querySelector("#in_names").value = e;
+    setupMemberList();
+    updateRouletteNames();
 
-    // 4. 이벤트 리스너 등록
-    document.querySelector("#in_names").addEventListener("input", getReady);
-    document.querySelector("#btnShuffle").addEventListener("click", getReady);
-    document.querySelector("#btnStart").addEventListener("click", () => {
-        if(ready) window.roulette.start();
-    });
-    
-    document.querySelector(".btn-last-winner").addEventListener("click", () => {
-        setWinnerRank(window.roulette.getCount());
-    });
-    document.querySelector(".btn-first-winner").addEventListener("click", () => {
-        setWinnerRank(1);
-    });
-    
-    // 5. 맵 로드 및 설정
-    let i = window.roulette.getMaps(), a = document.querySelector("#sltMap");
-    i.forEach(e => {
-        let t = document.createElement("option");
-        t.value = e.index;
-        t.innerHTML = e.title;
-        a.append(t);
-    });
-    a.addEventListener("change", e => {
-        window.roulette.setMap(e.target.value);
-    });
-    
-    getReady();
-    console.log("Minimal UI Initialized: External requests blocked.");
-}
-  document.addEventListener("DOMContentLoaded",initialize);
+    document.querySelector("#btnShuffle").addEventListener("click", updateRouletteNames);
+    document.querySelector("#btnStart").addEventListener("click", () => { if(ready) window.roulette.start(); });
+    document.querySelector(".btn-last-winner").addEventListener("click", () => setWinnerRank(window.roulette.getCount()));
+    document.querySelector(".btn-first-winner").addEventListener("click", () => setWinnerRank(1));
+
+    // 맵 로드
+    let i=window.roulette.getMaps(), a=document.querySelector("#sltMap");
+    i.forEach(e => { let t=document.createElement("option"); t.value=e.index; t.innerHTML=e.title; a.append(t); });
+    a.addEventListener("change", e => window.roulette.setMap(e.target.value));
+  }
+
+  document.addEventListener("DOMContentLoaded", initialize);
 </script>
 </body></html>
