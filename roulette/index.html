@@ -16,7 +16,7 @@
 }
 </script>
 <meta charset=UTF-8><meta http-equiv=X-UA-Compatible content="ie=edge">
-<title>Marble Roulette - UI Fix</title>
+<title>Marble Roulette - Checkbox Fix</title>
 <link rel=stylesheet href="./roulette.193c4cf4.css">
 <style>
   :root { color-scheme: dark; }
@@ -33,7 +33,7 @@
     position: fixed !important;
     bottom: 25px !important;
     left: 25px !important;
-    min-width: 580px !important;
+    min-width: 550px !important;
     border: 1px solid #444 !important;
     z-index: 9999;
     box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
@@ -41,23 +41,19 @@
 
   /* 왼쪽: 인원 선택 섹션 */
   .left-side {
-    flex: 0 0 280px !important;
+    flex: 0 0 260px !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 10px !important;
     border-right: 1px solid #555 !important;
     padding-right: 20px !important;
   }
-  .header-row { display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 5px; }
+  .header-row { display: flex !important; justify-content: space-between !important; align-items: center !important; }
   .header-row h3 { margin: 0 !important; font-size: 14px !important; color: #fff !important; }
   
-  #member-checks { 
-    display: grid !important; 
-    grid-template-columns: 1fr 1fr !important; 
-    gap: 8px !important;
-  }
+  #member-checks { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
 
-  /* 체크박스 라벨 및 커스텀 디자인 */
+  /* 체크박스 라벨 컨테이너 */
   .m-label { 
     cursor: pointer !important; 
     display: flex !important; 
@@ -68,37 +64,44 @@
     color: #fff !important; 
     font-size: 13px !important; 
     border: 1px solid #444 !important;
-    transition: all 0.2s;
+    position: relative !important;
+    transition: background 0.2s;
   }
   .m-label:hover { background: #333 !important; }
 
-  /* 중복 체크박스 해결: 기본 체크박스 숨기기 및 커스텀 스타일 */
+  /* 핵심: 기존 체크박스는 투명하게 숨기고 커스텀 디자인만 노출 */
   .m-label input { 
-    appearance: none !important; /* 브라우저 기본 파란색 점 제거 */
-    -webkit-appearance: none !important;
-    width: 16px !important; 
-    height: 16px !important; 
-    border: 2px solid #666 !important; 
-    border-radius: 3px !important; 
-    margin-right: 10px !important; 
-    position: relative !important; 
+    opacity: 0 !important; /* 완전히 숨김 */
+    position: absolute !important;
     cursor: pointer !important;
-    flex-shrink: 0 !important;
-    background: #111 !important;
   }
-  /* 체크되었을 때의 빨간색 표시 */
-  .m-label input:checked {
+
+  /* 가짜 체크박스 (디자인용) */
+  .custom-check {
+    width: 16px !important;
+    height: 16px !important;
+    border: 2px solid #666 !important;
+    border-radius: 3px !important;
+    margin-right: 10px !important;
+    display: inline-block !important;
+    position: relative !important;
+    background: #111 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* 실제 input이 체크되었을 때 가짜 체크박스 스타일 변경 */
+  .m-label input:checked + .custom-check {
     background-color: #d32f2f !important;
     border-color: #d32f2f !important;
   }
-  .m-label input:checked::after {
+  .m-label input:checked + .custom-check::after {
     content: '✔' !important;
     position: absolute !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
     color: white !important;
-    font-size: 10px !important;
+    font-size: 11px !important;
   }
 
   /* 오른쪽 설정 영역 */
@@ -132,10 +135,7 @@
   #btnStart { background: #d32f2f !important; color: #fff !important; }
   #btnShuffle { background: #444 !important; color: #ddd !important; }
 
-  .m-btn { 
-    background: #333 !important; color: #bbb !important; border: 1px solid #444 !important; 
-    padding: 3px 8px !important; font-size: 11px !important; cursor: pointer !important; border-radius: 4px !important; 
-  }
+  .m-btn { background: #333 !important; color: #bbb !important; border: 1px solid #444 !important; padding: 3px 8px !important; font-size: 11px !important; cursor: pointer !important; border-radius: 4px !important; }
 
   #notice, #btnNotice, #btnShop, .row-toggles, .row-theme, .copyright, .sep, #in_names_visible { display: none !important; }
 </style>
@@ -216,7 +216,8 @@
         const isChecked = current.includes(name) ? 'checked' : '';
         const label = document.createElement('label');
         label.className = 'm-label';
-        label.innerHTML = `<input type="checkbox" value="${name}" ${isChecked}><span>${name}</span>`;
+        // 가짜 체크박스 span 추가
+        label.innerHTML = `<input type="checkbox" value="${name}" ${isChecked}><span class="custom-check"></span><span class="m-text">${name}</span>`;
         
         label.querySelector('input').addEventListener('change', (e)=>{
           let arr = nameInput.value.split(',').map(n=>n.trim()).filter(n=>!!n);
