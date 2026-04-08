@@ -1,38 +1,53 @@
 <!DOCTYPE html><html lang=en>
 
 <style>
-  /* 전체 UI 박스 크기 조절 */
+  /* 1. 전체 설정창 레이아웃 (좌우 정렬 고정) */
   .settings {
-    max-width: 900px !important; /* 전체 너비를 제한해서 깔끔하게 모음 */
-    margin: 0 auto !important;   /* 가운데 정렬 */
-    padding: 10px !important;
-    font-size: 14px !important;  /* 글자 크기 살짝 축소 */
+    display: flex !important;
+    flex-direction: row !important; /* 좌측 입력창 / 우측 설정창 나란히 */
+    align-items: flex-start !important;
+    gap: 20px !important;
+    padding: 15px !important;
+    max-width: 1000px !important;
+    margin: 0 auto !important;
   }
 
-  /* 버튼들이 들어가는 액션 칸 줄바꿈 방지 */
+  /* 2. 하단 버튼들(셔플, 시작 등) 한 줄로 정렬 */
   .actions {
     display: flex !important;
-    flex-wrap: nowrap !important; /* 줄바꿈 절대 금지 */
+    flex-direction: row !important;
+    flex-wrap: nowrap !important; /* 절대 줄바꿈 금지 */
     align-items: center !important;
-    gap: 8px !important;          /* 버튼 사이 간격 */
+    gap: 8px !important;
+    margin-top: 10px !important;
   }
 
-  /* 버튼 내부 텍스트 처리 */
-  .actions button, .actions a {
-    white-space: nowrap !important; /* 글자가 길어도 아래로 안 떨어지게 */
-    padding: 6px 12px !important;   /* 버튼 여백 축소 */
-    height: auto !important;
+  /* 3. 버튼 크기 및 텍스트 최적화 */
+  .actions button, .actions a.btn {
+    padding: 6px 12px !important;
+    height: 36px !important; /* 버튼 높이 통일 */
+    font-size: 14px !important;
+    white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
-  /* 텍스트 입력창 높이 조절 */
+  /* 4. 우측 설정 항목(맵, 우승자 등) 줄바꿈 방지 */
+  .row {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    min-width: 250px !important; /* 설정창이 너무 찌그러지지 않게 */
+    margin-bottom: 8px !important;
+  }
+
+  /* 5. 텍스트 입력창 높이 고정 */
   #in_names {
-    height: 80px !important;      /* 너무 크지 않게 조절 */
-    min-height: 50px !important;
-  }
-
-  /* 설정창(오른쪽) 레이아웃 교정 */
-  .collapsible-rows .row {
-    padding: 5px 0 !important;
+    height: 100px !important;
+    min-height: 100px !important;
+    resize: none !important;
   }
 </style>
 
