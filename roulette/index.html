@@ -16,7 +16,7 @@
 }
 </script>
 <meta charset=UTF-8><meta http-equiv=X-UA-Compatible content="ie=edge">
-<title>Marble Roulette - Pro Minimal v2</title>
+<title>Marble Roulette - Fixed Layout</title>
 <link rel=stylesheet href="./roulette.193c4cf4.css">
 <style>
   :root { color-scheme: dark; }
@@ -28,21 +28,21 @@
     flex-direction: row !important;
     gap: 15px !important;
     padding: 12px 15px !important;
-    background: rgba(40, 40, 40, 0.95) !important;
+    background: rgba(35, 35, 35, 0.98) !important;
     border-radius: 10px !important;
     position: fixed !important;
     bottom: 20px !important;
     left: 20px !important;
     width: auto !important;
-    min-width: 460px !important;
+    min-width: 520px !important; /* 너비를 조금 더 확보해서 이름이 안 가려지게 함 */
     border: 1px solid #444 !important;
     z-index: 1000;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.7) !important;
   }
 
   /* 2. 왼쪽: 인원 선택 섹션 */
   .left-side {
-    flex: 0 0 190px !important;
+    flex: 0 0 240px !important; /* 너비 확장 */
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
@@ -50,21 +50,22 @@
     padding-right: 15px !important;
   }
   .header-row { display: flex !important; justify-content: space-between !important; align-items: center !important; }
-  .header-row h3 { margin: 0 !important; font-size: 12px !important; color: #aaa !important; font-weight: normal !important; }
+  .header-row h3 { margin: 0 !important; font-size: 12px !important; color: #aaa !important; }
   
-  #member-checks { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 4px !important; }
+  #member-checks { 
+    display: grid !important; 
+    grid-template-columns: 1fr 1fr !important; 
+    gap: 4px !important;
+    max-height: 120px; /* 이름이 많아져도 폼이 안 깨지게 높이 제한 */
+  }
   .m-label { 
     cursor: pointer !important; display: flex !important; align-items: center !important; 
-    background: #2a2a2a !important; padding: 4px 8px !important; border-radius: 4px !important; 
+    background: #2a2a2a !important; padding: 4px 6px !important; border-radius: 4px !important; 
     color: #eee !important; font-size: 11px !important; border: 1px solid transparent;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; /* 텍스트 넘침 방지 */
   }
   .m-label:hover { background: #383838 !important; }
-  
-  /* 체크박스 크기 축소 */
-  .m-label input { 
-    width: 12px !important; height: 12px !important; margin-right: 6px !important; 
-    cursor: pointer !important; accent-color: #d32f2f;
-  }
+  .m-label input { width: 12px !important; height: 12px !important; margin-right: 5px !important; accent-color: #d32f2f; flex-shrink: 0; }
 
   /* 3. 오른쪽: 설정 및 버튼 섹션 */
   .right-side {
@@ -75,22 +76,20 @@
     justify-content: center !important;
   }
   .config-row { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 8px !important; }
-  .config-row label { color: #888 !important; font-size: 11px !important; white-space: nowrap !important; }
+  .config-row label { color: #888 !important; font-size: 11px !important; }
   
   select, #in_winningRank { 
     background: #1a1a1a !important; color: #fff !important; border: 1px solid #555 !important; 
     height: 24px !important; border-radius: 4px !important; font-size: 11px !important; 
   }
 
-  /* 순위 버튼 그룹 */
   .rank-btns { display: flex !important; gap: 2px !important; }
   .rank-btns button { 
     font-size: 10px !important; padding: 2px 6px !important; background: #333 !important; 
     border: 1px solid #444 !important; border-radius: 3px !important; color: #888 !important; cursor: pointer !important; 
   }
-  .rank-btns button.active { background: #555 !important; color: #fff !important; border-color: #666 !important; }
+  .rank-btns button.active { background: #555 !important; color: #fff !important; }
 
-  /* 메인 버튼 */
   .btn-actions { display: flex !important; gap: 5px !important; margin-top: 5px !important; }
   .btn-actions button { 
     flex: 1 !important; height: 34px !important; cursor: pointer !important; 
@@ -105,7 +104,6 @@
   }
   .m-btn:hover { color: #fff; background: #444 !important; }
 
-  /* 불필요 요소 제거 */
   #notice, #btnNotice, #btnShop, .row-toggles, .row-theme, .copyright, .sep, #in_names_visible { display: none !important; }
 </style>
 
@@ -148,7 +146,10 @@
 
 <script type=module src="./roulette.31f8fbbf.js"></script>
 <script>
-  const MEMBERS = ["민구", "기태", "찬엽", "민기", "준영", "석준", "동근"];
+  // 명단 수정 및 예비1 추가
+  const MEMBERS = ["민구", "기태", "찬엽", "민기", "준영", "석준", "동근", "예비1"];
+  // 기본적으로 체크될 멤버 (예비1 제외)
+  const DEFAULT_SELECTED = ["민구", "기태", "찬엽", "민기", "준영", "석준", "동근"];
 
   function getNames(){return document.querySelector("#in_names").value.split(',').map(e=>e.trim()).filter(e=>!!e)}
   function getReady(){
@@ -161,8 +162,6 @@
     document.querySelector("#in_winningRank").value = val;
     window.options.winningRank = val - 1;
     window.roulette.setWinningRank(window.options.winningRank);
-    
-    // 버튼 활성화 표시
     document.querySelector("#setFirst").classList.toggle("active", val === 1);
     document.querySelector("#setLast").classList.toggle("active", val !== 1);
   }
@@ -201,8 +200,6 @@
 
     document.querySelector("#allOn").addEventListener("click", ()=>{ nameInput.value=MEMBERS.join(','); drawChecks(); getReady(); });
     document.querySelector("#allOff").addEventListener("click", ()=>{ nameInput.value=''; drawChecks(); getReady(); });
-    
-    // 순위 버튼 로직 복구
     document.querySelector("#setFirst").addEventListener("click", ()=>setWinnerRank(1));
     document.querySelector("#setLast").addEventListener("click", ()=>{
       const count = getNames().length;
@@ -210,7 +207,8 @@
     });
 
     let saved = localStorage.getItem("mbr_names");
-    nameInput.value = (saved !== null) ? saved : MEMBERS.join(',');
+    // 저장된 데이터가 없으면 예비1을 제외한 기본 멤버만 설정
+    nameInput.value = (saved !== null) ? saved : DEFAULT_SELECTED.join(',');
     drawChecks();
 
     document.querySelector("#btnShuffle").addEventListener("click", getReady);
