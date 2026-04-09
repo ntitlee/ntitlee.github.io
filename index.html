@@ -458,17 +458,18 @@
     const cpEl = document.getElementById(`cp-${charId}`);
     const dbCpEl = document.getElementById(`db-cp-${charId}`);
     const apEl = document.getElementById(`ap-${charId}`);
+    const agEl = document.getElementById(`ag-${charId}`);
 
-    // [1] 기준값 추출 (키값이 lv인지 아이템레벨인지 몰라서 다 뒤져서 가져옴)
+    // [1] 숫자 변환기 & 기준값 추출 (시트의 필드명이 대문자든 소문자든 다 찾음)
     const toNum = (v) => parseFloat(String(v || 0).replace(/[^0-9.]/g, "")) || 0;
     
-    // 아재 시트의 실제 키값을 몰라서 가능한 모든 경우의 수를 다 넣어놨습니다.
-    const savedLv = toNum(charData.lv || charData["아이템레벨"] || charData["level"]);
-    const savedCp = toNum(charData.cp || charData["전투력"] || charData["power"]);
-    const savedApText = String(charData.arkPassive || charData["아크패시브"] || "");
+    // charData 내부를 뒤져서 레벨, 전투력, 아크패시브 값을 어떻게든 찾아냅니다.
+    const savedLv = toNum(charData.lv || charData.Lv || charData["아이템레벨"] || charData["level"]);
+    const savedCp = toNum(charData.cp || charData.Cp || charData["전투력"] || charData["CombatPower"] || charData["power"]);
+    const savedApText = String(charData.arkPassive || charData.ArkPassive || charData["아크패시브"] || "");
 
-    // [디버깅] 아재요, F12 콘솔에 이 숫자들이 잘 찍히는지 꼭 보세요!
-    console.log(`[${charName}] DB기준값 -> 레벨: ${savedLv}, 전투력: ${savedCp}`);
+    console.log(`[${charName}] DB데이터 체크:`, charData); // 데이터 구조 확인용
+    console.log(`[${charName}] 읽어온 기준값 -> 레벨: ${savedLv}, 전투력: ${savedCp}`);
 
     const headers = { "accept": "application/json", "Authorization": API_KEY };
 
@@ -482,32 +483,30 @@
         
         const pData = await pRes.json();
         const apData = await apRes.json();
+        const agData = await agRes.json(); // agData 정의 확인
+        const gData = await gRes.json();
 
-        // 현재 API에서 가져온 따끈따끈한 값
         const currentLv = toNum(pData.ItemAvgLevel);
         const currentCp = Math.floor(toNum(pData?.CombatPower?.Value || pData?.CombatPower || 0));
 
-        // --- 반짝임 로직 다시 정밀 조준 ---
+        // --- 반짝임 로직 ---
 
-        // 1. 아이템 레벨 (DB보다 0.01이라도 높으면 반짝)
+        // 1. 아이템 레벨 (상승 시 반짝)
         if (lvEl) {
             lvEl.classList.remove('glow-text');
-            // 소수점 오차 방지를 위해 100 곱해서 정수로 비교
             if (savedLv > 0 && Math.round(currentLv * 100) > Math.round(savedLv * 100)) {
-                console.log("아이템레벨 반짝임 ON");
                 lvEl.classList.add('glow-text');
             }
             lvEl.innerText = currentLv.toFixed(2);
         }
 
-        // 2. 전투력 (DB보다 높으면 DB전투력 칸만 반짝)
+        // 2. 전투력 (상승 시 DB전투력 칸만 반짝)
         if (cpEl && dbCpEl) {
             cpEl.classList.remove('glow-text');
             dbCpEl.classList.remove('glow-text');
             cpEl.innerText = currentCp.toLocaleString();
             
             if (savedCp > 0 && currentCp > savedCp) {
-                console.log("DB전투력 반짝임 ON");
                 dbCpEl.classList.add('glow-text');
                 dbCpEl.innerText = currentCp.toLocaleString();
             } else {
@@ -515,7 +514,7 @@
             }
         }
 
-        // 3. 아크패시브 (DB 텍스트 내의 랭크보다 현재 랭크가 높으면 반짝)
+        // 3. 아크패시브 (랭크 상승 시 해당 줄만 반짝)
         if (apData?.Points?.length > 0) {
             apEl.innerHTML = apData.Points.map(p => {
                 const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
@@ -524,54 +523,52 @@
                 const newLevel = m[2];
 
                 let isRankUp = false;
-                // DB에서 해당 이름의 랭크를 찾음
                 const regex = new RegExp(`${p.Name}:\\s*(\\d+)랭크`);
                 const match = savedApText.match(regex);
-                
-                if (match && newRank > parseInt(match[1])) {
-                    console.log(`아크패시브(${p.Name}) 랭크업! 반짝임 ON`);
-                    isRankUp = true;
-                }
+                if (match && newRank > parseInt(match[1])) isRankUp = true;
 
                 return `<span>${p.Name}: </span><span class="${newRank < 6 ? 'low-rank' : ''} ${isRankUp ? 'glow-text' : ''}">${newRank}랭크 ${newLevel}레벨</span>`;
             }).join("<br>");
         }
 
-
-        // [아크그리드 렌더링]
-        if (agData?.Slots?.length > 0) {
-            const renderRow = (slots) => slots.map(s => {
+        // [아크그리드 렌더링] - agData 에러 방지용 조건부 실행
+        if (agEl && agData?.Slots?.length > 0) {
+            const renderGridRow = (slots) => slots.map(s => {
                 const isHighGrade = s.Grade === "고대";
                 const iconStyle = isHighGrade ? "filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.9)) brightness(1.1);" : "";
                 return `
                 <div class="grid-item">
                     <img src="${s.Icon}" style="width:18px; height:18px; ${iconStyle}">
-                    <span style="color:${getArkColor(s.Grade)}; font-weight:800; font-size:13px;">${s.Point}</span>
+                    <span style="color:${typeof getArkColor === 'function' ? getArkColor(s.Grade) : '#fff'}; font-weight:800; font-size:13px;">${s.Point}</span>
                 </div>`;
             }).join("");
             agEl.innerHTML = `
                 <div class="ark-grid-container">
-                    <div class="ark-grid-row">${renderRow(agData.Slots.slice(0, 3))}</div>
-                    <div class="ark-grid-row">${renderRow(agData.Slots.slice(3, 6))}</div>
+                    <div class="ark-grid-row">${renderGridRow(agData.Slots.slice(0, 3))}</div>
+                    <div class="ark-grid-row">${renderGridRow(agData.Slots.slice(3, 6))}</div>
                 </div>`;
         }
 
-        // [보석 계산 및 시트 전송]
+        // [보석 처리 및 시트 전송]
         let charTotalGold = 0;
+        const gemTxtEl = document.getElementById(`gem-txt-${charId}`);
+        const gemGoldEl = document.getElementById(`gem-gold-${charId}`);
+
         if (gData?.Gems) {
             let counts = {};
             gData.Gems.forEach(g => {
                 const name = g.Name.replace(/<[^>]*>?/gm, '').replace(/의 보석/g, "").trim();
                 const isBind = name.includes("귀속") || name.includes("이벤트");
                 const cleanName = name.replace(/\(귀속\)|\(이벤트\)/g, "").trim();
-                if (!isBind) charTotalGold += globalPrices[cleanName.includes("광휘") ? cleanName.replace("광휘", "작열") : cleanName] || 0;
+                if (!isBind) charTotalGold += (typeof globalPrices !== 'undefined' ? (globalPrices[cleanName.includes("광휘") ? cleanName.replace("광휘", "작열") : cleanName] || 0) : 0);
                 counts[isBind ? cleanName + "(귀속)" : cleanName] = (counts[isBind ? cleanName + "(귀속)" : cleanName] || 0) + 1;
             });
-            document.getElementById(`gem-txt-${charId}`).innerText = Object.entries(counts).map(([k,v]) => `${k} ${v}`).join(", ");
-            document.getElementById(`gem-gold-${charId}`).innerText = charTotalGold.toLocaleString() + " G";
+            const summary = Object.entries(counts).map(([k,v]) => `${k} ${v}`).join(", ");
+            if (gemTxtEl) gemTxtEl.innerText = summary;
+            if (gemGoldEl) gemGoldEl.innerText = charTotalGold.toLocaleString() + " G";
         }
 
-        // 구글 시트 업데이트
+        // GAS 업데이트
         const gasPayload = {
             type: "update_all",
             name: charName,
@@ -581,13 +578,14 @@
                 const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
                 return m ? `${p.Name}: ${m[1]}랭크 ${m[2]}레벨` : "";
             }).filter(s => s !== "").join(" / ") : "Inactive",
-            arkGrid: agData.Slots ? agData.Slots.map(s => s.Point).join("/") : "Inactive",
-            gemSummary: document.getElementById(`gem-txt-${charId}`).innerText,
+            arkGrid: agData?.Slots ? agData.Slots.map(s => s.Point).join("/") : "Inactive",
+            gemSummary: gemTxtEl ? gemTxtEl.innerText : "",
             gemTotal: charTotalGold
         };
-        fetch(SHEET_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(gasPayload) });
+        if (typeof SHEET_API_URL !== 'undefined') {
+            fetch(SHEET_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(gasPayload) });
+        }
 
-        // 로딩 클래스 제거
         [cpEl, apEl, agEl].forEach(el => el?.classList.remove('loading-dot'));
 
     } catch (e) { console.error("데이터 로드 중 오류:", e); }
