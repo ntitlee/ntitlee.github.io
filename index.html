@@ -498,21 +498,22 @@
             dbCpEl.innerText = Math.max(currentCp, oldCp).toLocaleString();
         }
 
-        // [6] 아이템 레벨 비교 및 갱신
+        // [6] 아이템 레벨 비교 및 갱신 (DB 데이터 직접 비교 버전)
         if (lvEl) {
-            // 비교를 위해 기존 숫자와 새 숫자를 뽑아냅니다.
-            const oldLv = parseFloat(lvEl.innerText.replace(/,/g, "")) || 0;
+            // 1. 화면에 적힌 글자 대신, DB에서 넘어온 '진짜 과거 레벨'을 사용합니다.
+            // charData는 구글 시트에서 처음 긁어온 순수한 과거 데이터입니다.
+            const dbLv = parseFloat(String(charData.lv || charData.ItemAvgLevel || 0).replace(/,/g, ""));
             const currentLv = parseFloat(pData.ItemAvgLevel.replace(/,/g, ""));
 
-            // 브라우저 개발자도구(F12) 콘솔창에 값을 찍어줍니다 (확인용)
-            console.log(`[${charName}] 기존레벨: ${oldLv} / 새레벨: ${currentLv}`);
+            // 확인용 로그 (이제 DB 레벨이 1735로 찍힐 겁니다!)
+            console.log(`[${charName}] DB레벨: ${dbLv} / API레벨: ${currentLv}`);
 
-            // 1. 일단 텍스트를 최신 레벨로 바꿉니다.
+            // 2. 화면 텍스트를 최신 레벨로 갱신
             lvEl.innerText = currentLv.toLocaleString();
 
-            // 2. 만약 기존보다 올랐다면? (0이 아닐 때만)
-            if (oldLv > 0 && currentLv > oldLv) {
-                console.log("👉 레벨업 감지! 반짝임 발동!");
+            // 3. DB 값보다 현재 레벨이 높으면 반짝임!
+            if (dbLv > 0 && currentLv > dbLv) {
+                console.log("👉 레벨업 확정! 반짝임 발동!");
                 lvEl.classList.add('glow-text');
             }
         }
