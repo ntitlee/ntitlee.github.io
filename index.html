@@ -454,10 +454,16 @@
     }
 
     async function loadFullDetails(charName, charId, ownerName, charData) {
-    // [1] 함수 시작하자마자 화면에 떠 있는 "진짜 과거 레벨"부터 가로채기
+    // [1] 비교를 위한 기존 값(화면에 표시된 값) 미리 가로채기
     const lvEl = document.getElementById(`lv-${charId}`);
-    const oldLvText = lvEl?.innerText || "0";
-    const oldLv = parseFloat(oldLvText.replace(/,/g, ""));
+    const cpEl = document.getElementById(`cp-${charId}`);
+    const dbCpEl = document.getElementById(`db-cp-${charId}`);
+    const apEl = document.getElementById(`ap-${charId}`);
+
+    // 기존 텍스트에서 숫자만 추출
+    const oldLv = parseFloat(lvEl?.innerText.replace(/,/g, "") || "0");
+    const oldCp = Math.floor(parseFloat(dbCpEl?.innerText.replace(/,/g, "") || "0"));
+    const oldApString = apEl?.innerText || ""; // 현재 화면에 그려진 아크패시브 텍스트
 
     const headers = { "accept": "application/json", "Authorization": API_KEY };
 
@@ -474,56 +480,52 @@
         const agData = await agRes.json();
         const gData = await gRes.json();
 
-        // [2] 요소 찾기 (전투력, 아크패시브 등)
-        const cpEl = document.getElementById(`cp-${charId}`);
-        const dbCpEl = document.getElementById(`db-cp-${charId}`);
-        const apEl = document.getElementById(`ap-${charId}`);
-
-        // [3] 최신 데이터 파싱
+        // 최신 데이터 파싱
         const currentLv = parseFloat(pData.ItemAvgLevel.replace(/,/g, ""));
         const currentCp = Math.floor(parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, "")));
-        
-        // 전투력 비교용 기존 값 (DB전투력 칸에서 가져옴)
-        const oldCp = Math.floor(parseFloat(dbCpEl?.innerText.replace(/,/g, "") || 0));
-        const oldApString = charData.arkPassive || charData["아크패시브"] || "";
 
-        // [4] 초기화: 모든 반짝임 일단 끄기
-        if (cpEl) cpEl.classList.remove('glow-text');
-        if (dbCpEl) dbCpEl.classList.remove('glow-text');
-        if (lvEl) lvEl.classList.remove('glow-text');
+        // --- [반짝임 로직 시작] ---
 
-        // [5] 아이템 레벨 비교 및 갱신 (가장 먼저!)
+        // 1. 아이템 레벨 반짝임
         if (lvEl) {
-            console.log(`[${charName}] 기존:${oldLv} / 최신:${currentLv}`);
+            lvEl.classList.remove('glow-text'); // 초기화
             if (oldLv > 0 && currentLv > oldLv) {
-                console.log("🔥 레벨업 감지! 반짝여라!");
-                lvEl.classList.add('glow-text');
+                lvEl.classList.add('glow-text'); 
             }
-            lvEl.innerText = currentLv.toLocaleString();
+            lvEl.innerText = currentLv.toLocaleString(undefined, {minimumFractionDigits: 2});
         }
 
-        // [6] 전투력 & DB전투력 비교 및 갱신
-        if (cpEl) cpEl.innerText = currentCp.toLocaleString();
-        if (oldCp > 0 && currentCp > oldCp) {
-            cpEl.classList.add('glow-text');
-            dbCpEl.classList.add('glow-text');
-            dbCpEl.innerText = currentCp.toLocaleString();
-        } else {
-            dbCpEl.innerText = Math.max(currentCp, oldCp).toLocaleString();
+        // 2. 전투력 & DB전투력 반짝임
+        if (cpEl) {
+            cpEl.classList.remove('glow-text');
+            cpEl.innerText = currentCp.toLocaleString();
+            if (oldCp > 0 && currentCp > oldCp) {
+                cpEl.classList.add('glow-text');
+                if (dbCpEl) {
+                    dbCpEl.classList.add('glow-text');
+                    dbCpEl.innerText = currentCp.toLocaleString();
+                }
+            } else if (dbCpEl) {
+                dbCpEl.classList.remove('glow-text');
+                dbCpEl.innerText = Math.max(currentCp, oldCp).toLocaleString();
+            }
         }
 
-        // [7] 아크패시브: 랭크 상승 시만 반짝임
+        // 3. 아크패시브 반짝임 (랭크 상승 감지)
         if (apData?.Points?.length > 0) {
             apEl.innerHTML = apData.Points.map(p => {
                 const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
                 if (!m) return "";
                 const newRank = parseInt(m[1]);
                 const newLevel = m[2];
+                
+                // 기존 문자열에서 해당 패시브의 이전 랭크를 찾아 비교
                 let isRankUp = false;
-
                 const regex = new RegExp(`${p.Name}: (\\d+)랭크`);
                 const match = oldApString.match(regex);
-                if (match && newRank > parseInt(match[1])) isRankUp = true;
+                if (match && newRank > parseInt(match[1])) {
+                    isRankUp = true;
+                }
 
                 return `<span>${p.Name}: </span><span class="${newRank < 6 ? 'low-rank' : ''} ${isRankUp ? 'glow-text' : ''}">${newRank}랭크 ${newLevel}레벨</span>`;
             }).join("<br>");
