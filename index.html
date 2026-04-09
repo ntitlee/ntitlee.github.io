@@ -254,6 +254,18 @@
     font-size: 0.75rem;
 }
 
+/* 노란색으로 반짝이는 애니메이션 효과 */
+@keyframes flash-yellow {
+    0% { background-color: transparent; }
+    50% { background-color: rgba(255, 204, 0, 0.5); } /* 노란색 하이라이트 */
+    100% { background-color: transparent; }
+}
+
+.flash {
+    animation: flash-yellow 1s ease-in-out;
+}
+
+
     </style>
 
 </head>
@@ -519,13 +531,32 @@
                 gemTotal: charTotalGold
             };
 
-            fetch(SHEET_API_URL, { // 여기서 기존 변수를 사용합니다.
+            // ... (기존 payload 및 fetch 로직) ...
+
+            fetch(SHEET_API_URL, {
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(gasPayload)
             })
-            .then(() => console.log(`${charName} 시트 저장 신호 전송 완료`))
+            .then(() => {
+                console.log(`${charName} 시트 저장 완료`);
+                
+                // [추가] 반짝임 효과를 줄 요소 선택 (예: 해당 캐릭터의 전투력 칸)
+                const targetId = `cp-${charId}`; // 혹은 행 전체를 선택하려면 해당 ID 사용
+                const element = document.getElementById(targetId);
+                
+                if (element) {
+                    element.classList.remove('flash'); // 기존 애니메이션 초기화
+                    void element.offsetWidth;          // 리플로우 강제 발생 (애니메이션 재시작용)
+                    element.classList.add('flash');    // 효과 적용
+                    
+                    // 애니메이션 종료 후 클래스 제거 (선택 사항)
+                    setTimeout(() => {
+                        element.classList.remove('flash');
+                    }, 1000);
+                }
+            })
             .catch(err => console.error("시트 전송 에러:", err));
 
             document.querySelectorAll(`#cp-${charId}, #ap-${charId}, #ag-${charId}`).forEach(el => el.classList.remove('loading-dot'));
