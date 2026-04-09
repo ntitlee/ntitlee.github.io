@@ -468,70 +468,82 @@
         const agData = await agRes.json();
         const gData = await gRes.json();
 
-        // [1] 전투력 비교: 소수점 오차 및 타입 체크 강화
-let currentCp = Math.floor(parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, "")));
+        // [1] 데이터 파싱 및 요소 참조
+        const cpEl = document.getElementById(`cp-${charId}`);
+        const dbCpEl = document.getElementById(`db-cp-${charId}`);
+        const lvEl = document.getElementById(`lv-${charId}`); // 아이템 레벨 요소 ID 확인 필요
 
-// 화면상의 기존 DB값 가져오기
-const dbCpEl = document.getElementById(`db-cp-${charId}`);
-let oldCp = Math.floor(parseFloat(dbCpEl.innerText.replace(/,/g, "")) || 0);
+        // 현재 API 값
+        let currentCp = Math.floor(parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, "")));
+        let currentLv = parseFloat(pData.ItemAvgLevel.replace(/,/g, ""));
 
-const cpEl = document.getElementById(`cp-${charId}`);
+        // 기존 화면/DB 값 (비교용)
+        let oldCp = Math.floor(parseFloat(dbCpEl.innerText.replace(/,/g, "")) || 0);
+        let oldLv = lvEl ? parseFloat(lvEl.innerText.replace(/,/g, "")) : 0;
 
-// 효과 초기화 (값이 같아지면 꺼져야 하므로)
-cpEl.classList.remove('glow-text');
-dbCpEl.classList.remove('glow-text');
+        // 효과 초기화
+        cpEl.classList.remove('glow-text');
+        dbCpEl.classList.remove('glow-text');
+        if (lvEl) lvEl.classList.remove('glow-text');
 
-cpEl.innerText = currentCp.toLocaleString();
+        // [2] 전투력/DB전투력 비교 및 업데이트
+        cpEl.innerText = currentCp.toLocaleString();
+        
+        // 상승했을 때만 (처음 0일 때 제외)
+        if (oldCp > 0 && currentCp > oldCp) {
+            cpEl.classList.add('glow-text');
+            dbCpEl.classList.add('glow-text');
+            dbCpEl.innerText = currentCp.toLocaleString();
+        } else {
+            dbCpEl.innerText = Math.max(currentCp, oldCp).toLocaleString();
+        }
 
-// 오직 상승했을 때만 반짝임 (oldCp가 0인 신규 로드 제외)
-if (currentCp > oldCp && oldCp !== 0) {
-    cpEl.classList.add('glow-text');
-    dbCpEl.classList.add('glow-text');
-    dbCpEl.innerText = currentCp.toLocaleString();
-} else {
-    // 같거나 낮으면 기존 DB값 유지 (혹은 현재값으로 갱신하되 반짝임 없음)
-    dbCpEl.innerText = Math.max(currentCp, oldCp).toLocaleString();
-}
-
-// ---------------------------------------------------------
-
-// [2] 아크패시브: 랭크 상승 시에만 반짝임
-const apEl = document.getElementById(`ap-${charId}`);
-if (apData?.Points?.length > 0) {
-    // 기존 DB에 저장된 아크패시브 텍스트 (예: "진화: 5랭크...")
-    const oldApString = charData.arkPassive || charData["아크패시브"] || "";
-    
-    apEl.innerHTML = apData.Points.map(p => {
-        const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
-        if (!m) return "";
-
-        const newRank = parseInt(m[1]);
-        const newLevel = m[2];
-
-        let isRankUp = false;
-        if (oldApString) {
-            // 정규식으로 기존 문자열에서 해당 노드의 숫자만 추출
-            const regex = new RegExp(`${p.Name}: (\\d+)랭크`);
-            const match = oldApString.match(regex);
-            if (match) {
-                const oldRank = parseInt(match[1]);
-                if (newRank > oldRank) isRankUp = true; // 랭크가 올랐을 때만!
+        // [3] 아이템 레벨 비교 및 업데이트
+        if (lvEl) {
+            lvEl.innerText = currentLv.toLocaleString();
+            if (oldLv > 0 && currentLv > oldLv) {
+                lvEl.classList.add('glow-text');
             }
         }
 
-        const glowClass = isRankUp ? 'glow-text' : '';
-        const lowRankClass = newRank < 6 ? 'low-rank' : '';
+        // [4] 아크패시브: 랭크 상승 시에만 반짝임
+        const apEl = document.getElementById(`ap-${charId}`);
+        if (apData?.Points?.length > 0) {
+            // 시트 저장 형식: "진화: 6랭크 28레벨 / 깨달음: 6랭크..."
+            const oldApString = charData.arkPassive || charData["아크패시브"] || "";
+            
+            apEl.innerHTML = apData.Points.map(p => {
+                const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
+                if (!m) return "";
 
-        return `<span>${p.Name}: </span><span class="${lowRankClass} ${glowClass}">${newRank}랭크 ${newLevel}레벨</span>`;
-    }).join("<br>");
-}
+                const newRank = parseInt(m[1]);
+                const newLevel = m[2];
 
-        // [3] 아크그리드: 고대 등급 아이콘 효과만 유지
+                let isRankUp = false;
+                if (oldApString) {
+                    // "노드이름: 숫자랭크" 패턴으로 DB의 기존 랭크 추출
+                    const regex = new RegExp(`${p.Name}: (\\d+)랭크`);
+                    const match = oldApString.match(regex);
+                    if (match) {
+                        const oldRank = parseInt(match[1]);
+                        if (newRank > oldRank) isRankUp = true;
+                    }
+                }
+
+                const glowClass = isRankUp ? 'glow-text' : '';
+                const lowRankClass = newRank < 6 ? 'low-rank' : '';
+
+                return `<span>${p.Name}: </span><span class="${lowRankClass} ${glowClass}">${newRank}랭크 ${newLevel}레벨</span>`;
+            }).join("<br>");
+        } else {
+            apEl.innerText = "Inactive";
+        }
+
+        // [5] 아크그리드: 고대 등급 아이콘 효과만 유지
         const agEl = document.getElementById(`ag-${charId}`);
         if (agData?.Slots?.length > 0) {
             const renderRow = (slots) => slots.map(s => {
                 const isHighGrade = s.Grade === "고대";
-                // 고대 등급일 때만 아이콘에 금빛 광채(drop-shadow) 효과 적용
                 const iconStyle = isHighGrade 
                     ? "filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.9)) brightness(1.1);" 
                     : "";
@@ -552,7 +564,7 @@ if (apData?.Points?.length > 0) {
                 </div>`;
         }
 
-        // [4] 보석 계산 (기존 로직 유지)
+        // [6] 보석 계산
         let charTotalGold = 0;
         if (gData?.Gems) {
             let counts = {};
@@ -567,11 +579,11 @@ if (apData?.Points?.length > 0) {
             document.getElementById(`gem-gold-${charId}`).innerText = charTotalGold.toLocaleString() + " G";
         }
 
-        // [5] 시트 업데이트 페이로드 생성 및 전송 (기존과 동일)
+        // [7] 시트 업데이트 페이로드 전송
         const gasPayload = {
             type: "update_all",
             name: charName,
-            lv: parseFloat(pData.ItemAvgLevel.replace(/,/g, "")),
+            lv: currentLv,
             cp: currentCp,
             arkPassive: apData.Points ? apData.Points.map(p => {
                 const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
