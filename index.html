@@ -454,16 +454,17 @@
     }
 
     async function loadFullDetails(charName, charId, ownerName, charData) {
-    // [1] 요소 미리 확보
     const lvEl = document.getElementById(`lv-${charId}`);
     const cpEl = document.getElementById(`cp-${charId}`);
     const dbCpEl = document.getElementById(`db-cp-${charId}`);
     const apEl = document.getElementById(`ap-${charId}`);
+    const agEl = document.getElementById(`ag-${charId}`);
 
-    // [2] 기존 값 "숫자"로 확실하게 변환 (비교용)
-    const oldLv = parseFloat(lvEl?.innerText.replace(/,/g, "") || "0");
-    const oldCp = parseInt(dbCpEl?.innerText.replace(/,/g, "") || "0");
-    const oldApHTML = apEl?.innerHTML || ""; // 아크패시브는 태그가 섞여있어 innerHTML로 비교
+    // [1] 기준값 설정 (시트 DB 데이터 기준)
+    const toNum = (v) => parseFloat(String(v || 0).replace(/[^0-9.]/g, "")) || 0;
+    const savedLv = toNum(charData.lv || charData["아이템레벨"]);
+    const savedCp = toNum(charData.cp || charData["전투력"]);
+    const savedApText = charData.arkPassive || charData["아크패시브"] || "";
 
     const headers = { "accept": "application/json", "Authorization": API_KEY };
 
@@ -480,65 +481,57 @@
         const agData = await agRes.json();
         const gData = await gRes.json();
 
-        // 1. [레벨 로직] - 여기서 currentLv와 savedLv를 비교합니다.
-        const currentLv = parseFloat(String(pData.ItemAvgLevel).replace(/,/g, "")); 
-        const savedLv = parseFloat(String(charData.lv || charData["아이템레벨"] || "0").replace(/,/g, "")); 
+        // 최신 데이터 파싱
+        const currentLv = toNum(pData.ItemAvgLevel);
+        const currentCp = Math.floor(toNum(pData?.CombatPower?.Value || pData?.CombatPower || 0));
 
+        // --- [반짝임 제어 시작] ---
+
+        // 1. 아이템 레벨: DB보다 높으면 반짝!
         if (lvEl) {
-            lvEl.classList.remove('glow-text'); 
-            const cur = Math.round(currentLv * 100);
-            const sav = Math.round(savedLv * 100);
-
-            if (sav > 0 && cur > sav) {
-                lvEl.classList.add('glow-text'); // 레벨 상승 시 반짝!
+            lvEl.classList.remove('glow-text');
+            if (savedLv > 0 && Math.round(currentLv * 100) > Math.round(savedLv * 100)) {
+                lvEl.classList.add('glow-text');
             }
             lvEl.innerText = currentLv.toFixed(2);
         }
 
-        // 2. [전투력 로직] - 실시간은 값만 바꾸고, DB전투력만 반짝이게!
-        const currentCp = Math.floor(parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, "")));
-        const savedCp = parseFloat(String(charData.cp || charData["전투력"] || "0").replace(/,/g, ""));
-
+        // 2. 전투력: 실시간은 불안켜고, DB전투력만 높을때 반짝!
         if (cpEl && dbCpEl) {
             cpEl.classList.remove('glow-text');
             dbCpEl.classList.remove('glow-text');
+            cpEl.innerText = currentCp.toLocaleString();
             
-            cpEl.innerText = currentCp.toLocaleString(); // 실시간 칸은 얌전하게
-
             if (savedCp > 0 && currentCp > savedCp) {
-                dbCpEl.classList.add('glow-text'); // DB 칸만 번쩍!
+                dbCpEl.classList.add('glow-text');
                 dbCpEl.innerText = currentCp.toLocaleString();
             } else {
                 dbCpEl.innerText = Math.max(currentCp, savedCp).toLocaleString();
             }
         }
 
-        // 3. 아크패시브 (랭크가 올랐는지 문자열 비교)
+        // 3. 아크패시브: 랭크가 DB보다 높을 때만 해당 줄 반짝!
         if (apData?.Points?.length > 0) {
-            const newApHTML = apData.Points.map(p => {
+            apEl.innerHTML = apData.Points.map(p => {
                 const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
                 if (!m) return "";
                 const newRank = parseInt(m[1]);
                 const newLevel = m[2];
 
-                // 이전 데이터에서 해당 패시브 이름과 랭크를 찾아 비교
                 let isRankUp = false;
-                const searchStr = `${p.Name}: </span><span class="${newRank < 6 ? 'low-rank' : ''}">${newRank}랭크`;
-                // 기존 HTML에 현재 "이름+랭크" 문자열이 없으면(즉, 숫자가 달라졌으면) 상승으로 간주
-                if (oldApHTML !== "" && !oldApHTML.includes(`${p.Name}: </span><span class="${newRank < 6 ? 'low-rank' : ''} ">${newRank}랭크`) && !oldApHTML.includes(`${p.Name}: </span><span class="low-rank ">${newRank}랭크`)) {
-                    // 단, 랭크 숫자가 실제로 커졌는지는 간단하게 체크 (옵션)
-                    isRankUp = true; 
-                }
+                const regex = new RegExp(`${p.Name}:\\s*(\\d+)랭크`);
+                const match = savedApText.match(regex);
+                
+                // DB에 저장된 랭크보다 현재 랭크가 높을 때만 반짝임
+                if (match && newRank > parseInt(match[1])) isRankUp = true;
 
                 return `<span>${p.Name}: </span><span class="${newRank < 6 ? 'low-rank' : ''} ${isRankUp ? 'glow-text' : ''}">${newRank}랭크 ${newLevel}레벨</span>`;
             }).join("<br>");
-            
-            apEl.innerHTML = newApHTML;
         }
 
+        // --- [반짝임 제어 끝] ---
 
-        // [8] 아크그리드: 고대 등급 효과 유지 (생략되었던 부분)
-        const agEl = document.getElementById(`ag-${charId}`);
+        // [아크그리드 렌더링]
         if (agData?.Slots?.length > 0) {
             const renderRow = (slots) => slots.map(s => {
                 const isHighGrade = s.Grade === "고대";
@@ -556,7 +549,7 @@
                 </div>`;
         }
 
-        // [9] 보석 계산 및 출력 (생략되었던 부분)
+        // [보석 계산 및 시트 전송]
         let charTotalGold = 0;
         if (gData?.Gems) {
             let counts = {};
@@ -571,7 +564,7 @@
             document.getElementById(`gem-gold-${charId}`).innerText = charTotalGold.toLocaleString() + " G";
         }
 
-        // [10] 시트 업데이트 페이로드 전송 (생략되었던 부분)
+        // 구글 시트 업데이트
         const gasPayload = {
             type: "update_all",
             name: charName,
@@ -587,10 +580,10 @@
         };
         fetch(SHEET_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(gasPayload) });
 
-        // 로딩 제거
-        document.querySelectorAll(`#cp-${charId}, #ap-${charId}, #ag-${charId}`).forEach(el => el.classList.remove('loading-dot'));
+        // 로딩 클래스 제거
+        [cpEl, apEl, agEl].forEach(el => el?.classList.remove('loading-dot'));
 
-    } catch (e) { console.error("에러 발생:", e); }
+    } catch (e) { console.error("데이터 로드 중 오류:", e); }
 }
 
     async function handleMemberTab(name, forceRefresh = false) {
