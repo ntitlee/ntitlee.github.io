@@ -253,6 +253,7 @@
     font-weight: 800;
     font-size: 0.75rem;
 }
+
 /* 텍스트용: 부드러운 노란색 깜빡임 (Bold 제거) */
 @keyframes glow-yellow {
     0% { color: inherit; text-shadow: none; }
@@ -467,54 +468,63 @@
         const agData = await agRes.json();
         const gData = await gRes.json();
 
-        // [1] 전투력 비교 및 빛나는 효과 (수정됨)
-        let currentCp = parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, ""));
-        
-        // 중요: DB에서 가져온 값도 숫자형으로 확실히 변환
-        let oldCp = parseFloat(String(charData.cp || charData["전투력"] || 0).replace(/,/g, ""));
-        
-        const cpEl = document.getElementById(`cp-${charId}`);
-        const dbCpEl = document.getElementById(`db-cp-${charId}`);
-        
-        // 먼저 깜빡임 효과를 제거하고 시작 (초기화)
-        cpEl.classList.remove('glow-text');
-        dbCpEl.classList.remove('glow-text');
+        // [1] 전투력 비교: 소수점 오차 및 타입 체크 강화
+let currentCp = Math.floor(parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, "")));
 
-        cpEl.innerText = currentCp.toLocaleString();
+// 화면상의 기존 DB값 가져오기
+const dbCpEl = document.getElementById(`db-cp-${charId}`);
+let oldCp = Math.floor(parseFloat(dbCpEl.innerText.replace(/,/g, "")) || 0);
 
-        // 실시간 값이 DB 값보다 "클 때만" 효과 적용
-        if (currentCp > oldCp) {
-            cpEl.classList.add('glow-text');
-            dbCpEl.classList.add('glow-text');
-            dbCpEl.innerText = currentCp.toLocaleString(); // 신규 최고점 표시
-        } else {
-            // 값이 같거나 낮으면 원래 DB 최고치를 유지하고 효과 없음
-            dbCpEl.innerText = oldCp.toLocaleString();
+const cpEl = document.getElementById(`cp-${charId}`);
+
+// 효과 초기화 (값이 같아지면 꺼져야 하므로)
+cpEl.classList.remove('glow-text');
+dbCpEl.classList.remove('glow-text');
+
+cpEl.innerText = currentCp.toLocaleString();
+
+// 오직 상승했을 때만 반짝임 (oldCp가 0인 신규 로드 제외)
+if (currentCp > oldCp && oldCp !== 0) {
+    cpEl.classList.add('glow-text');
+    dbCpEl.classList.add('glow-text');
+    dbCpEl.innerText = currentCp.toLocaleString();
+} else {
+    // 같거나 낮으면 기존 DB값 유지 (혹은 현재값으로 갱신하되 반짝임 없음)
+    dbCpEl.innerText = Math.max(currentCp, oldCp).toLocaleString();
+}
+
+// ---------------------------------------------------------
+
+// [2] 아크패시브: 랭크 상승 시에만 반짝임
+const apEl = document.getElementById(`ap-${charId}`);
+if (apData?.Points?.length > 0) {
+    // 기존 DB에 저장된 아크패시브 텍스트 (예: "진화: 5랭크...")
+    const oldApString = charData.arkPassive || charData["아크패시브"] || "";
+    
+    apEl.innerHTML = apData.Points.map(p => {
+        const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
+        if (!m) return "";
+
+        const newRank = parseInt(m[1]);
+        const newLevel = m[2];
+
+        let isRankUp = false;
+        if (oldApString) {
+            // 정규식으로 기존 문자열에서 해당 노드의 숫자만 추출
+            const regex = new RegExp(`${p.Name}: (\\d+)랭크`);
+            const match = oldApString.match(regex);
+            if (match) {
+                const oldRank = parseInt(match[1]);
+                if (newRank > oldRank) isRankUp = true; // 랭크가 올랐을 때만!
+            }
         }
 
-        // [2] 아크패시브 랭크 변화 감지 (수정됨)
-        const apEl = document.getElementById(`ap-${charId}`);
-        apEl.classList.remove('glow-text'); // 초기화
+        const glowClass = isRankUp ? 'glow-text' : '';
+        const lowRankClass = newRank < 6 ? 'low-rank' : '';
 
-        if (apData?.Points?.length > 0) {
-            const oldApString = charData.arkPassive || "";
-            
-            apEl.innerHTML = apData.Points.map(p => {
-                const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
-                if (!m) return "";
-
-                const rank = m[1];
-                const level = m[2];
-                
-                // 기존 문자열에 해당 '명칭: X랭크'가 정확히 있는지 비교
-                // 만약 기존에 없던 랭크라면(상승했다면) 해당 줄만 빛나게
-                const rankText = `${p.Name}: ${rank}랭크`;
-                const isRankChanged = oldApString !== "" && !oldApString.includes(rankText);
-                const glowClass = isRankChanged ? 'glow-text' : '';
-
-                return `<span>${p.Name}: </span><span class="${parseInt(rank) < 6 ? 'low-rank' : ''} ${glowClass}">${rank}랭크 ${level}레벨</span>`;
-            }).join("<br>");
-        }
+        return `<span>${p.Name}: </span><span class="${lowRankClass} ${glowClass}">${newRank}랭크 ${newLevel}레벨</span>`;
+    }).join("<br>");
+}
 
         // [3] 아크그리드: 고대 등급 아이콘 효과만 유지
         const agEl = document.getElementById(`ag-${charId}`);
