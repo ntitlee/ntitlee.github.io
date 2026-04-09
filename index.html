@@ -454,10 +454,17 @@
     }
 
     async function loadFullDetails(charName, charId, ownerName, charData) {
-    // [1] 함수 시작하자마자 화면에 떠 있는 "진짜 과거 레벨"부터 가로채기
     const lvEl = document.getElementById(`lv-${charId}`);
-    const oldLvText = lvEl?.innerText || "0";
-    const oldLv = parseFloat(oldLvText.replace(/,/g, ""));
+    const cpEl = document.getElementById(`cp-${charId}`);
+    const dbCpEl = document.getElementById(`db-cp-${charId}`);
+    const apEl = document.getElementById(`ap-${charId}`);
+    const agEl = document.getElementById(`ag-${charId}`);
+    const gemTxtEl = document.getElementById(`gem-txt-${charId}`);
+    const gemGoldEl = document.getElementById(`gem-gold-${charId}`);
+
+    const oldLv = parseFloat(lvEl?.innerText.replace(/,/g, "") || 0);
+    const oldCp = parseFloat(dbCpEl?.innerText.replace(/,/g, "") || 0);
+    const oldApString = charData.arkPassive || charData["아크패시브"] || "";
 
     const headers = { "accept": "application/json", "Authorization": API_KEY };
 
@@ -468,51 +475,38 @@
             fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/arkgrid`, { headers }),
             fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/gems`, { headers })
         ]);
-        
+
         const pData = await pRes.json();
         const apData = await apRes.json();
         const agData = await agRes.json();
         const gData = await gRes.json();
 
-        // [2] 요소 찾기 (전투력, 아크패시브 등)
-        const cpEl = document.getElementById(`cp-${charId}`);
-        const dbCpEl = document.getElementById(`db-cp-${charId}`);
-        const apEl = document.getElementById(`ap-${charId}`);
-
-        // [3] 최신 데이터 파싱
         const currentLv = parseFloat(pData.ItemAvgLevel.replace(/,/g, ""));
         const currentCp = Math.floor(parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, "")));
-        
-        // 전투력 비교용 기존 값 (DB전투력 칸에서 가져옴)
-        const oldCp = Math.floor(parseFloat(dbCpEl?.innerText.replace(/,/g, "") || 0));
-        const oldApString = charData.arkPassive || charData["아크패시브"] || "";
 
-        // [4] 초기화: 모든 반짝임 일단 끄기
-        if (cpEl) cpEl.classList.remove('glow-text');
-        if (dbCpEl) dbCpEl.classList.remove('glow-text');
-        if (lvEl) lvEl.classList.remove('glow-text');
+        // --- 전투력/아이템 레벨 반짝임 적용 ---
+        const addGlow = (el) => {
+            el.classList.add('glow-text');
+            setTimeout(() => el.classList.remove('glow-text'), 2000);
+        };
 
-        // [5] 아이템 레벨 비교 및 갱신 (가장 먼저!)
         if (lvEl) {
-            console.log(`[${charName}] 기존:${oldLv} / 최신:${currentLv}`);
-            if (oldLv > 0 && currentLv > oldLv) {
-                console.log("🔥 레벨업 감지! 반짝여라!");
-                lvEl.classList.add('glow-text');
-            }
             lvEl.innerText = currentLv.toLocaleString();
+            if (currentLv > oldLv) addGlow(lvEl);
         }
 
-        // [6] 전투력 & DB전투력 비교 및 갱신
         if (cpEl) cpEl.innerText = currentCp.toLocaleString();
-        if (oldCp > 0 && currentCp > oldCp) {
-            cpEl.classList.add('glow-text');
-            dbCpEl.classList.add('glow-text');
-            dbCpEl.innerText = currentCp.toLocaleString();
-        } else {
+        if (currentCp > oldCp) {
+            addGlow(cpEl);
+            if (dbCpEl) {
+                dbCpEl.innerText = currentCp.toLocaleString();
+                addGlow(dbCpEl);
+            }
+        } else if (dbCpEl) {
             dbCpEl.innerText = Math.max(currentCp, oldCp).toLocaleString();
         }
 
-        // [7] 아크패시브: 랭크 상승 시만 반짝임
+        // --- 아크패시브 랭크 반짝임 ---
         if (apData?.Points?.length > 0) {
             apEl.innerHTML = apData.Points.map(p => {
                 const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
@@ -525,12 +519,22 @@
                 const match = oldApString.match(regex);
                 if (match && newRank > parseInt(match[1])) isRankUp = true;
 
-                return `<span>${p.Name}: </span><span class="${newRank < 6 ? 'low-rank' : ''} ${isRankUp ? 'glow-text' : ''}">${newRank}랭크 ${newLevel}레벨</span>`;
+                const classes = [
+                    newRank < 6 ? 'low-rank' : '',
+                    isRankUp ? 'glow-text' : ''
+                ].join(' ');
+
+                // 새로 반짝임 감지 시 바로 적용 후 제거
+                const span = `<span>${p.Name}: </span><span class="${classes}">${newRank}랭크 ${newLevel}레벨</span>`;
+                if (isRankUp) setTimeout(() => {
+                    const spanEl = apEl.querySelector(`span:contains('${p.Name}')`);
+                    if (spanEl) spanEl.classList.remove('glow-text');
+                }, 2000);
+                return span;
             }).join("<br>");
         }
 
-        // [8] 아크그리드: 고대 등급 효과 유지 (생략되었던 부분)
-        const agEl = document.getElementById(`ag-${charId}`);
+        // --- 아크그리드 출력 ---
         if (agData?.Slots?.length > 0) {
             const renderRow = (slots) => slots.map(s => {
                 const isHighGrade = s.Grade === "고대";
@@ -548,22 +552,22 @@
                 </div>`;
         }
 
-        // [9] 보석 계산 및 출력 (생략되었던 부분)
+        // --- 보석 계산 ---
         let charTotalGold = 0;
         if (gData?.Gems) {
             let counts = {};
             gData.Gems.forEach(g => {
-                const name = g.Name.replace(/<[^>]*>?/gm, '').replace(/의 보석/g, "").trim();
+                let name = g.Name.replace(/<[^>]*>?/gm, '').replace(/의 보석/g, "").trim();
                 const isBind = name.includes("귀속") || name.includes("이벤트");
                 const cleanName = name.replace(/\(귀속\)|\(이벤트\)/g, "").trim();
                 if (!isBind) charTotalGold += globalPrices[cleanName.includes("광휘") ? cleanName.replace("광휘", "작열") : cleanName] || 0;
                 counts[isBind ? cleanName + "(귀속)" : cleanName] = (counts[isBind ? cleanName + "(귀속)" : cleanName] || 0) + 1;
             });
-            document.getElementById(`gem-txt-${charId}`).innerText = Object.entries(counts).map(([k,v]) => `${k} ${v}`).join(", ");
-            document.getElementById(`gem-gold-${charId}`).innerText = charTotalGold.toLocaleString() + " G";
+            if (gemTxtEl) gemTxtEl.innerText = Object.entries(counts).map(([k,v]) => `${k} ${v}`).join(", ");
+            if (gemGoldEl) gemGoldEl.innerText = charTotalGold.toLocaleString() + " G";
         }
 
-        // [10] 시트 업데이트 페이로드 전송 (생략되었던 부분)
+        // --- 시트 업데이트 ---
         const gasPayload = {
             type: "update_all",
             name: charName,
@@ -574,15 +578,14 @@
                 return m ? `${p.Name}: ${m[1]}랭크 ${m[2]}레벨` : "";
             }).filter(s => s !== "").join(" / ") : "Inactive",
             arkGrid: agData.Slots ? agData.Slots.map(s => s.Point).join("/") : "Inactive",
-            gemSummary: document.getElementById(`gem-txt-${charId}`).innerText,
+            gemSummary: gemTxtEl?.innerText || "",
             gemTotal: charTotalGold
         };
         fetch(SHEET_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(gasPayload) });
 
-        // 로딩 제거
-        document.querySelectorAll(`#cp-${charId}, #ap-${charId}, #ag-${charId}`).forEach(el => el.classList.remove('loading-dot'));
-
-    } catch (e) { console.error("에러 발생:", e); }
+    } catch (e) {
+        console.error("에러 발생:", e);
+    }
 }
 
     async function handleMemberTab(name, forceRefresh = false) {
