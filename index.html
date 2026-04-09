@@ -504,21 +504,7 @@
             
             // --- 기존 보석 계산 로직 끝난 지점 ---
 
-            // [수정] 아크패시브 데이터 포맷팅 (진화: X랭크 Y레벨 / ...)
-            let formattedArkPassive = "Inactive";
-            if (apData?.Points && apData.Points.length > 0) {
-                formattedArkPassive = apData.Points.map(p => {
-                    const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
-                    return m ? `${p.Name}: ${m[1]}랭크 ${m[2]}레벨` : "";
-                }).filter(s => s !== "").join(" / ");
-            }
-
-            // [수정] 아크그리드 데이터 포맷팅 (숫자/숫자/숫자...)
-            let formattedArkGrid = "Inactive";
-            if (agData?.Slots && agData.Slots.length > 0) {
-                formattedArkGrid = agData.Slots.map(s => s.Point).join("/");
-            }
-
+            // [추가] 구글 시트 DB로 데이터 전송 (이미 정의된 SHEET_API_URL 변수 사용)
             const gasPayload = {
                 type: "update_all",
                 name: charName,
@@ -527,21 +513,23 @@
                 cp: currentCp,
                 server: pData.ServerName,
                 owner: ownerName,
-                arkPassive: formattedArkPassive, // 깔끔하게 변환된 양식
-                arkGrid: formattedArkGrid,       // 숫자만 슬래시로 구분된 양식
+                arkPassive: document.getElementById(`ap-${charId}`).innerText,
+                arkGrid: agData?.Slots ? JSON.stringify(agData.Slots) : "Inactive",
                 gemSummary: document.getElementById(`gem-txt-${charId}`).innerText,
                 gemTotal: charTotalGold
             };
 
-            // 기존 SHEET_API_URL 변수를 사용하여 전송
-            fetch(SHEET_API_URL, {
+            fetch(SHEET_API_URL, { // 여기서 기존 변수를 사용합니다.
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(gasPayload)
             })
-            .then(() => console.log(`${charName} 시트 저장 완료 (포맷팅 적용)`))
+            .then(() => console.log(`${charName} 시트 저장 신호 전송 완료`))
             .catch(err => console.error("시트 전송 에러:", err));
+
+            document.querySelectorAll(`#cp-${charId}, #ap-${charId}, #ag-${charId}`).forEach(el => el.classList.remove('loading-dot'));
+        } catch (e) { console.error(e); }
     
     }
 
