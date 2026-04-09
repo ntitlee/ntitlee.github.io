@@ -500,24 +500,22 @@
 
         // [6] 아이템 레벨 비교 및 갱신
         if (lvEl) {
+            // 비교를 위해 기존 숫자와 새 숫자를 뽑아냅니다.
+            const oldLv = parseFloat(lvEl.innerText.replace(/,/g, "")) || 0;
+            const currentLv = parseFloat(pData.ItemAvgLevel.replace(/,/g, ""));
+
+            // 브라우저 개발자도구(F12) 콘솔창에 값을 찍어줍니다 (확인용)
+            console.log(`[${charName}] 기존레벨: ${oldLv} / 새레벨: ${currentLv}`);
+
+            // 1. 일단 텍스트를 최신 레벨로 바꿉니다.
             lvEl.innerText = currentLv.toLocaleString();
+
+            // 2. 만약 기존보다 올랐다면? (0이 아닐 때만)
             if (oldLv > 0 && currentLv > oldLv) {
+                console.log("👉 레벨업 감지! 반짝임 발동!");
                 lvEl.classList.add('glow-text');
             }
         }
-
-        // ... 레벨 비교 부분 ...
-const oldLv = parseFloat(lvEl?.innerText.replace(/,/g, "") || 0);
-const currentLv = parseFloat(pData.ItemAvgLevel.replace(/,/g, ""));
-
-// ↓ 요거 두 줄 추가!
-console.log("DB 레벨:", oldLv);
-console.log("API 레벨:", currentLv);
-
-if (currentLv > oldLv) {
-    console.log("오름 감지! 반짝여라!");
-    lvEl.classList.add('glow-text');
-}
 
         // [7] 아크패시브: 노드별 랭크 비교 및 렌더링
         if (apData?.Points?.length > 0) {
