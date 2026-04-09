@@ -501,16 +501,14 @@
                 totalEl.dataset.sum = (parseInt(totalEl.dataset.sum || 0) + charTotalGold);
                 totalEl.innerText = `총 합계: ${parseInt(totalEl.dataset.sum).toLocaleString()} G`;
             }
+            
+            // --- 기존 보석 계산 로직 끝난 지점 ---
 
-            // 보석 로직 끝나는 지점 (제공해주신 코드 마지막 줄 바로 아래)
-            
-            // [추가] 구글 시트 DB로 데이터 전송
-            const GAS_WEB_APP_URL = "본인의_새_배포_URL_넣으세요"; 
-            
+            // [추가] 구글 시트 DB로 데이터 전송 (이미 정의된 SHEET_API_URL 변수 사용)
             const gasPayload = {
                 type: "update_all",
                 name: charName,
-                job: pData.CharacterClassName || charData.CharacterClassName,
+                job: pData.CharacterClassName || (charData ? charData.CharacterClassName : ""),
                 lv: parseFloat(pData.ItemAvgLevel.replace(/,/g, "")),
                 cp: currentCp,
                 server: pData.ServerName,
@@ -521,17 +519,18 @@
                 gemTotal: charTotalGold
             };
 
-            fetch(GAS_WEB_APP_URL, {
+            fetch(SHEET_API_URL, { // 여기서 기존 변수를 사용합니다.
                 method: "POST",
-                mode: "no-cors", // CORS 에러 방지
+                mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(gasPayload)
             })
-            .then(() => console.log(`${charName} 데이터 시트 전송 성공`))
+            .then(() => console.log(`${charName} 시트 저장 신호 전송 완료`))
             .catch(err => console.error("시트 전송 에러:", err));
 
             document.querySelectorAll(`#cp-${charId}, #ap-${charId}, #ag-${charId}`).forEach(el => el.classList.remove('loading-dot'));
         } catch (e) { console.error(e); }
+    
     }
 
     async function handleMemberTab(name, forceRefresh = false) {
