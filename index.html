@@ -502,6 +502,34 @@
                 totalEl.innerText = `총 합계: ${parseInt(totalEl.dataset.sum).toLocaleString()} G`;
             }
 
+            // 보석 로직 끝나는 지점 (제공해주신 코드 마지막 줄 바로 아래)
+            
+            // [추가] 구글 시트 DB로 데이터 전송
+            const GAS_WEB_APP_URL = "본인의_새_배포_URL_넣으세요"; 
+            
+            const gasPayload = {
+                type: "update_all",
+                name: charName,
+                job: pData.CharacterClassName || charData.CharacterClassName,
+                lv: parseFloat(pData.ItemAvgLevel.replace(/,/g, "")),
+                cp: currentCp,
+                server: pData.ServerName,
+                owner: ownerName,
+                arkPassive: document.getElementById(`ap-${charId}`).innerText,
+                arkGrid: agData?.Slots ? JSON.stringify(agData.Slots) : "Inactive",
+                gemSummary: document.getElementById(`gem-txt-${charId}`).innerText,
+                gemTotal: charTotalGold
+            };
+
+            fetch(GAS_WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors", // CORS 에러 방지
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(gasPayload)
+            })
+            .then(() => console.log(`${charName} 데이터 시트 전송 성공`))
+            .catch(err => console.error("시트 전송 에러:", err));
+
             document.querySelectorAll(`#cp-${charId}, #ap-${charId}, #ag-${charId}`).forEach(el => el.classList.remove('loading-dot'));
         } catch (e) { console.error(e); }
     }
