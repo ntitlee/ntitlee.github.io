@@ -480,37 +480,36 @@
         const agData = await agRes.json();
         const gData = await gRes.json();
 
-        // 최신 데이터 파싱
-        const currentLv = parseFloat(pData.ItemAvgLevel.replace(/,/g, ""));
-        const currentCp = Math.floor(parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, "")));
+        // 1. [레벨 로직] - 여기서 currentLv와 savedLv를 비교합니다.
+        const currentLv = parseFloat(String(pData.ItemAvgLevel).replace(/,/g, "")); 
+        const savedLv = parseFloat(String(charData.lv || charData["아이템레벨"] || "0").replace(/,/g, "")); 
 
-        // --- [반짝임 제어 로직] ---
-
-        // 1. 아이템 레벨 (올랐을 때만 반짝)
         if (lvEl) {
             lvEl.classList.remove('glow-text'); 
-            if (oldLv > 0 && currentLv > oldLv) {
-                console.log(`[${charName}] 레벨업! ${oldLv} -> ${currentLv}`);
-                lvEl.classList.add('glow-text');
+            const cur = Math.round(currentLv * 100);
+            const sav = Math.round(savedLv * 100);
+
+            if (sav > 0 && cur > sav) {
+                lvEl.classList.add('glow-text'); // 레벨 상승 시 반짝!
             }
-            lvEl.innerText = currentLv.toFixed(2); // 소수점 2자리 유지
+            lvEl.innerText = currentLv.toFixed(2);
         }
 
-        // 2. 전투력 (DB전투력보다 높을 때만 반짝)
+        // 2. [전투력 로직] - 실시간은 값만 바꾸고, DB전투력만 반짝이게!
+        const currentCp = Math.floor(parseFloat(String(pData?.CombatPower?.Value || pData?.CombatPower || 0).replace(/,/g, "")));
+        const savedCp = parseFloat(String(charData.cp || charData["전투력"] || "0").replace(/,/g, ""));
+
         if (cpEl && dbCpEl) {
             cpEl.classList.remove('glow-text');
             dbCpEl.classList.remove('glow-text');
             
-            cpEl.innerText = currentCp.toLocaleString();
+            cpEl.innerText = currentCp.toLocaleString(); // 실시간 칸은 얌전하게
 
-            if (oldCp > 0 && currentCp > oldCp) {
-                console.log(`[${charName}] 전투력 상승! ${oldCp} -> ${currentCp}`);
-                cpEl.classList.add('glow-text');
-                dbCpEl.classList.add('glow-text');
+            if (savedCp > 0 && currentCp > savedCp) {
+                dbCpEl.classList.add('glow-text'); // DB 칸만 번쩍!
                 dbCpEl.innerText = currentCp.toLocaleString();
             } else {
-                // 값이 그대로거나 낮으면 반짝임 없이 값만 유지
-                dbCpEl.innerText = Math.max(currentCp, oldCp).toLocaleString();
+                dbCpEl.innerText = Math.max(currentCp, savedCp).toLocaleString();
             }
         }
 
