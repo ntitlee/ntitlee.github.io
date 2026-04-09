@@ -646,7 +646,7 @@
             <div id="ag-${charId}">${isApiMode ? '...' : 'Inactive'}</div>
             
             <div class="gem-box">
-                <div id="gem-txt-${charId}" class="gem-text">${isApiMode ? '로딩 중...' : dbGemTxt}</div>
+                <div id="gem-txt-${charId}" class="gem-text">${isApiMode ? '보석없음' : dbGemTxt}</div>
                 <div id="gem-gold-${charId}" class="gold-text">${parseFloat(String(dbGemGold).replace(/,/g, "")).toLocaleString()} G</div>
             </div>`;
             
