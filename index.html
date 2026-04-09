@@ -254,22 +254,16 @@
     font-size: 0.75rem;
 }
 
-/* 텍스트용: 부드러운 노란색 깜빡임 (Bold 제거) */
-@keyframes glow-yellow {
-    0% { color: inherit; text-shadow: none; }
-    50% { color: #ffcc00; text-shadow: 0 0 12px rgba(255, 204, 0, 0.8); }
-    100% { color: inherit; text-shadow: none; }
+.glow-text {
+  animation: glow 1s ease-in-out 0s 3; /* 3번 깜빡임 */
+  color: #ffd700; /* 황금색 */
 }
 
-/* 아이콘용: 회전하며 빛나는 테두리 효과 */
-@keyframes icon-glow {
-    0% { filter: drop-shadow(0 0 2px #ffcc00); transform: scale(1); }
-    50% { filter: drop-shadow(0 0 8px #ffcc00); transform: scale(1.1); }
-    100% { filter: drop-shadow(0 0 2px #ffcc00); transform: scale(1); }
+@keyframes glow {
+  0%, 100% { text-shadow: 0 0 2px #ffd700; }
+  50% { text-shadow: 0 0 12px #ffff66, 0 0 20px #ffd700; }
 }
 
-.glow-text { animation: glow-yellow 1.5s ease-in-out infinite; font-weight: inherit !important; }
-.glow-icon { animation: icon-glow 1.5s ease-in-out infinite; z-index: 10; }
 
     </style>
 
@@ -770,6 +764,53 @@
     function toNumber(v) {
     return parseFloat(String(v || 0).replace(/,/g, ""));
 }
+
+/* ==== JS: 통합 대시보드 업데이트 ==== */
+
+/**
+ * 값 비교 후 상승한 경우에만 깜빡임 적용
+ * @param {HTMLElement} el - DOM 요소
+ * @param {number} oldValue - 이전 값
+ * @param {number} newValue - 새 값
+ */
+function applyGlowIfUp(el, oldValue, newValue) {
+    if (!el) return;
+    el.innerText = newValue.toLocaleString();
+
+    // 값이 올라갔을 때만 깜빡임
+    if (newValue > oldValue) {
+        el.classList.add('glow-text');
+        setTimeout(() => el.classList.remove('glow-text'), 2000);
+    }
+}
+
+/**
+ * 통합 업데이트
+ * oldStats, newStats 예시:
+ * { cp: 4200, itemLevel: 105, arcRank: 2 }
+ */
+function updateDashboard(oldStats, newStats) {
+    // 전투력
+    applyGlowIfUp(document.getElementById('cpEl'), oldStats.cp, newStats.cp);
+
+    // 아이템 레벨
+    applyGlowIfUp(document.getElementById('lvEl'), oldStats.itemLevel, newStats.itemLevel);
+
+    // 아크패시브 랭크
+    applyGlowIfUp(document.getElementById('arcRankEl'), oldStats.arcRank, newStats.arcRank);
+
+    // 기존 통합 기능들 그대로 유지
+    // 아크그리드, 보석 계산, 기타 UI 업데이트
+    if (typeof updateArcGrid === 'function') updateArcGrid(newStats.arcGrid);
+    if (typeof updateGems === 'function') updateGems(newStats.gems);
+}
+
+/* ==== 예시 호출 ==== */
+const oldStats = { cp: 4200, itemLevel: 105, arcRank: 2, arcGrid: {...}, gems: {...} };
+const newStats = { cp: 4250, itemLevel: 106, arcRank: 3, arcGrid: {...}, gems: {...} };
+
+// 통합 업데이트 실행
+updateDashboard(oldStats, newStats);
 
 </script>
 
