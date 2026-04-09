@@ -506,6 +506,19 @@
             }
         }
 
+        // ... 레벨 비교 부분 ...
+const oldLv = parseFloat(lvEl?.innerText.replace(/,/g, "") || 0);
+const currentLv = parseFloat(pData.ItemAvgLevel.replace(/,/g, ""));
+
+// ↓ 요거 두 줄 추가!
+console.log("DB 레벨:", oldLv);
+console.log("API 레벨:", currentLv);
+
+if (currentLv > oldLv) {
+    console.log("오름 감지! 반짝여라!");
+    lvEl.classList.add('glow-text');
+}
+
         // [7] 아크패시브: 노드별 랭크 비교 및 렌더링
         if (apData?.Points?.length > 0) {
             apEl.innerHTML = apData.Points.map(p => {
