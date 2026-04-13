@@ -623,46 +623,55 @@
  * 멤버별 탭 클릭 및 데이터 로드 (새로고침 포함)
  */
 async function handleMemberTab(name, forceRefresh = false) {
-    // [추가] 통합/전체 탭 새로고침 로직
+    // [통합/전체 탭 로직 수정]
     if (name === '통합' || name === '전체') {
         if (memberLoading['통합']) return;
-        memberLoading['통합'] = true;
-
-        const btn = document.querySelector(`#${name} .refresh-btn`);
+        
+        const listContainer = document.getElementById(`list-${name}`);
+        const btn = document.querySelector(`.tabs .tab-btn[onclick*="${name}"]`) || document.querySelector(`#${name} .refresh-btn`);
         const timeEl = document.getElementById(`time-${name}`);
-        if (btn) btn.innerText = "전체 로딩 중...";
 
-        try {
-            // MEMBERS 객체에 등록된 모든 멤버 이름을 배열로 가져와서 각각 실행
-            const allMemberNames = Object.keys(MEMBERS);
-            
-            // 모든 멤버의 데이터를 동시에 API 호출 (병렬 처리)
-            await Promise.all(allMemberNames.map(mName => handleMemberTab(mName, forceRefresh)));
-            
-            if (timeEl) timeEl.innerText = `전체 갱신 완료 (${getCurrentTime()})`;
-        } catch (e) {
-            console.error("전체 갱신 중 오류:", e);
-        } finally {
-            memberLoading['통합'] = false;
-            if (btn) btn.innerText = "새로고침";
+        if (forceRefresh) {
+            memberLoading['통합'] = true;
+            if (btn) btn.innerText = "전체 로딩 중...";
+            try {
+                const allMemberNames = Object.keys(MEMBERS);
+                // 모든 멤버 API 호출 완료를 기다림
+                await Promise.all(allMemberNames.map(mName => handleMemberTab(mName, true)));
+                if (timeEl) timeEl.innerText = `전체 갱신 완료 (${getCurrentTime()})`;
+            } catch (e) {
+                console.error(e);
+            } finally {
+                memberLoading['통합'] = false;
+                if (btn) btn.innerText = "새로고침";
+            }
         }
-        return; // 통합 탭 로직 종료
+
+        // [핵심] 모든 멤버의 데이터를 DB에서 긁어모아 통합 탭에 출력
+        listContainer.innerHTML = "";
+        // 모든 멤버의 1680+ 캐릭터 필터링
+        const allChars = dbData.filter(d => parseFloat(String(d.lv || d["아이템레벨"]).replace(/,/g, "")) >= 1680);
+        
+        if (allChars.length > 0) {
+            // 레벨 순으로 정렬
+            allChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
+            
+            allChars.forEach((char, index) => {
+                const formattedChar = {
+                    CharacterName: char.name || char["캐릭터명"],
+                    ServerName: char.server || char["서버"],
+                    CharacterClassName: char.class || char["직업"],
+                    ItemAvgLevel: char.lv || char["아이템레벨"]
+                };
+                // 소유자 이름을 함께 전달 (ownerName 자리에 char.owner)
+                renderRow(listContainer, formattedChar, char.owner || char["소유자"], index, false);
+            });
+            if (timeEl && !forceRefresh) timeEl.innerText = "전체 데이터 로드됨 (1680+)";
+        } else {
+            listContainer.innerHTML = "<div style='padding:20px; color:#888;'>표시할 데이터가 없습니다. 새로고침을 눌러보세요.</div>";
+        }
+        return; 
     }
-
-    // --- 단일 멤버 처리 로직 ---
-    if (memberLoading[name]) return;
-
-    const totalEl = document.getElementById(`total-gold-${name}`);
-    if (totalEl) {
-        totalEl.dataset.sum = 0;
-        totalEl.innerText = "총 합계: 0 G";
-    }
-
-    const listContainer = document.getElementById(`list-${name}`);
-    const timeEl = document.getElementById(`time-${name}`);
-    const btn = document.querySelector(`#${name} .refresh-btn`);
-
-    if (!forceRefresh && listContainer.dataset.loaded === "true") return;
 
     // 1. API 강제 새로고침 모드
     if (forceRefresh) {
