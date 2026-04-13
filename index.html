@@ -757,17 +757,52 @@
     }
 
     async function updateProfileImages(data) {
-        for (const char of data) {
+        if (!data || data.length === 0) return;
+    
+        // 1. 전투력 순으로 정렬하여 상위 3명만 추출 (전체 호출 방지)
+        const topThree = [...data]
+            .sort((a, b) => {
+                const cpA = parseFloat(String(a.cp || a["전투력"] || 0).replace(/,/g, ""));
+                const cpB = parseFloat(String(b.cp || b["전투력"] || 0).replace(/,/g, ""));
+                return cpB - cpA;
+            })
+            .slice(0, 3);
+          
+        console.log("상위 3명 프로필 업데이트 시작:", topThree.map(c => c.name || c["캐릭터명"]));
+          
+        for (const char of topThree) {
             const charName = char.name || char["캐릭터명"];
+            if (!charName) continue;
+        
             try {
-                const res = await fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/profiles`, { headers: { "Authorization": API_KEY } });
-                const pData = await res.json();
-                if (pData?.CharacterImage) {
-                    const imgCont = document.querySelector(`.pfp[data-name="${charName}"]`);
-                    if (imgCont) imgCont.innerHTML = `<img src="${pData.CharacterImage}">`;
+                const res = await fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/profiles`, { 
+                    headers: { "Authorization": API_KEY } 
+                });
+              
+                // 429 에러 발생 시 즉시 중단
+                if (res.status === 429) {
+                    console.warn("API 호출 한도 초과(429). 잠시 후 다시 시도하세요.");
+                    break;
                 }
-            } catch (e) {}
-            await new Promise(r => setTimeout(r, 100));
+              
+                const pData = await res.json();
+                
+                // 로아 API 응답 구조는 ArmoryProfile 객체 안에 CharacterImage가 있음
+                const imageUrl = pData?.ArmoryProfile?.CharacterImage || pData?.CharacterImage;
+              
+                if (imageUrl) {
+                    // nti-total 탭의 랭킹 카드 이미지 업데이트
+                    const imgCont = document.querySelector(`.pfp[data-name="${charName}"]`);
+                    if (imgCont) {
+                        imgCont.innerHTML = `<img src="${imageUrl}" style="width:100%; height:100%; object-fit:cover; object-position:top;">`;
+                    }
+                }
+            } catch (e) {
+                console.error(`${charName} 이미지 로드 실패:`, e);
+            }
+          
+            // 2. 호출 간 대기 시간 추가 (500ms) - 429 방어용
+            await new Promise(r => setTimeout(r, 500));
         }
     }
 
