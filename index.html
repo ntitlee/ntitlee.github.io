@@ -460,6 +460,9 @@
     const safeData = charData || {};
     const savedLv = toNum(safeData.lv || safeData["아이템레벨"] || 0);
     const savedCp = toNum(safeData.cp || safeData["전투력"] || 0);
+    const savedServer = String(safeData.server || safeData["서버"] || "").trim();
+    const savedJob = String(safeData.job || safeData["직업"] || "").trim();
+    const savedOwner = String(safeData.owner || safeData["소유자"] || "").trim();
     const savedApText = String(safeData.arkPassive || safeData["아크패시브"] || "");
 
     console.log(`[${charName}] DB 비교 기준값 -> 레벨: ${savedLv}, 전투력: ${savedCp}`);
