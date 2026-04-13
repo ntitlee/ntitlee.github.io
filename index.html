@@ -456,17 +456,18 @@
     const savedLv = toNum(safeData.lv || safeData["아이템레벨"] || 0);
     const savedCp = toNum(safeData.cp || safeData["전투력"] || 0);
     const savedApText = String(safeData.arkPassive || safeData["아크패시브"] || "");
-    const savedAgText = String(safeData.arkGrid || safeData["아크그리드"] || "");
-    const savedGemText = String(safeData.gemSummary || safeData["보석요약"] || "");
-    const savedGemTotal = toNum(safeData.gemTotal || safeData["보석합계"] || 0);
 
-    console.log(`[${charName}] DB 데이터 확인:`, safeData);
+    const savedAgText = String(safeData["아크그리드"] || safeData.arkGrid || "");
+    const savedGemText = String(safeData["보석요약"] || safeData.gemSummary || "");
+    const savedGemTotal = toNum(safeData["보석합계"] || safeData.gemTotal || 0);
 
-    if (agEl && savedAgText && savedAgText !== "Inactive") {
+    console.log(`[${charName}] 매칭 성공 -> 그리드: ${savedAgText}, 보석: ${savedGemText}`);
+
+    if (agEl && savedAgText && savedAgText !== "Inactive" && savedAgText !== "") {
         agEl.innerText = savedAgText;
         agEl.classList.remove('loading-dot');
     }
-    if (gemTxtEl && savedGemText && savedGemText !== "Inactive") {
+    if (gemTxtEl && savedGemText && savedGemText !== "Inactive" && savedGemText !== "") {
         gemTxtEl.innerText = savedGemText;
         gemTxtEl.classList.remove('loading-dot');
     }
