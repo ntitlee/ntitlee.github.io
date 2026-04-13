@@ -341,17 +341,14 @@
 
     async function syncToSheet(data) {
         try {
-            const res = await fetch(SHEET_API_URL, {
+            fetch(SHEET_API_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                mode: 'no-cors',   // 🔥 유지
                 body: JSON.stringify(data)
             });
-
-            const text = await res.text();
-            console.log("서버 응답:", text);
-
+        
+            console.log("📡 전송 완료 (응답 확인 불가)");
+        
         } catch (e) {
             console.error("시트 저장 에러:", e);
         }
@@ -605,7 +602,7 @@
         const savedAgText = String(safeData.arkGrid || safeData["아크그리드"] || "");
         const isAgChanged = savedAgText !== "" && currentAgText !== "Inactive" && savedAgText !== currentAgText;
         const isNew = !charData || Object.keys(charData).length === 0;
-        
+
         // 하나라도 변경되었다면 업데이트 실행
         if (isNew || isLevelUp || isCpUp || isApChanged || isAgChanged) {
             const gasPayload = {
