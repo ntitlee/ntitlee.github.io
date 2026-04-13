@@ -623,54 +623,52 @@
  * 멤버별 탭 클릭 및 데이터 로드 (새로고침 포함)
  */
 async function handleMemberTab(name, forceRefresh = false) {
-    // 1. 공통 변수 선언 (함수 시작하자마자 선언하여 모든 블록에서 사용 가능하게 함)
+    // 1. 공통 변수 선언
     const listContainer = document.getElementById(`list-${name}`);
     const timeEl = document.getElementById(`time-${name}`);
-    // 버튼은 탭 메뉴 버튼 혹은 내용 영역의 새로고침 버튼 중 하나를 선택
     const btn = document.querySelector(`#${name} .refresh-btn`) || 
                 document.querySelector(`.tabs .tab-btn[onclick*="'${name}'"]`);
 
-    // [통합/전체 탭 로직]
+    if (!listContainer) return;
+
+    // [통합 탭 전용 로직]
     if (name === '통합' || name === '전체') {
-        if (memberLoading['통합']) return;
+        if (btn) btn.innerText = "데이터 갱신 중...";
         
-        if (forceRefresh) {
-            memberLoading['통합'] = true;
-            if (btn) btn.innerText = "전체 로딩 중...";
-            try {
-                const allMemberNames = Object.keys(MEMBERS);
-                // 모든 멤버 API 호출 완료를 기다림 (병렬 처리)
-                await Promise.all(allMemberNames.map(mName => handleMemberTab(mName, true)));
-                if (timeEl) timeEl.innerText = `전체 갱신 완료 (${getCurrentTime()})`;
-            } catch (e) {
-                console.error("통합 갱신 에러:", e);
-            } finally {
-                memberLoading['통합'] = false;
-                if (btn) btn.innerText = "새로고침";
-            }
+        // 통합 탭은 API를 쏘지 않고 dbData에서 최신 정보를 다시 추출함
+        listContainer.innerHTML = "";
+        
+        // 1680 이상 캐릭터 필터링 (속성명 유연하게 체크)
+        const allChars = dbData.filter(d => {
+            const levelStr = String(d.lv || d["아이템레벨"] || "0").replace(/,/g, "");
+            return parseFloat(levelStr) >= 1680;
+        });
+
+        if (allChars.length > 0) {
+            // 레벨 순 정렬
+            allChars.sort((a, b) => {
+                const lvA = parseFloat(String(a.lv || a["아이템레벨"]).replace(/,/g, ""));
+                const lvB = parseFloat(String(b.lv || b["아이템레벨"]).replace(/,/g, ""));
+                return lvB - lvA;
+            });
+
+            allChars.forEach((char, index) => {
+                const formattedChar = {
+                    CharacterName: char.name || char["캐릭터명"],
+                    ServerName: char.server || char["서버"],
+                    CharacterClassName: char.class || char["직업"],
+                    ItemAvgLevel: char.lv || char["아이템레벨"]
+                };
+                // 소유자 정보가 있으면 사용
+                renderRow(listContainer, formattedChar, char.owner || char["소유자"] || "알수없음", index, false);
+            });
+            
+            if (timeEl) timeEl.innerText = `DB 데이터 동기화 완료 (${getCurrentTime()})`;
+        } else {
+            listContainer.innerHTML = "<div style='padding:20px; color:#888;'>표시할 DB 데이터가 없습니다. 개인 탭에서 새로고침을 먼저 해주세요.</div>";
         }
 
-        // DB에서 모든 캐릭터 데이터 필터링 및 출력
-        if (listContainer) {
-            listContainer.innerHTML = "";
-            const allChars = dbData.filter(d => parseFloat(String(d.lv || d["아이템레벨"]).replace(/,/g, "")) >= 1680);
-            
-            if (allChars.length > 0) {
-                allChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
-                allChars.forEach((char, index) => {
-                    const formattedChar = {
-                        CharacterName: char.name || char["캐릭터명"],
-                        ServerName: char.server || char["서버"],
-                        CharacterClassName: char.class || char["직업"],
-                        ItemAvgLevel: char.lv || char["아이템레벨"]
-                    };
-                    renderRow(listContainer, formattedChar, char.owner || char["소유자"], index, false);
-                });
-                if (timeEl && !forceRefresh) timeEl.innerText = "전체 데이터 로드됨 (1680+)";
-            } else {
-                listContainer.innerHTML = "<div style='padding:20px; color:#888;'>표시할 데이터가 없습니다. 새로고침을 눌러보세요.</div>";
-            }
-        }
+        if (btn) btn.innerText = "새로고침";
         return; // 통합 탭 로직 종료
     }
 
