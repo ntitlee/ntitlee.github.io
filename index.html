@@ -566,6 +566,13 @@
             const summary = Object.entries(counts).map(([k,v]) => `${k} ${v}`).join(", ");
             if (gemTxtEl) gemTxtEl.innerText = summary;
             if (gemGoldEl) gemGoldEl.innerText = charTotalGold.toLocaleString() + " G";
+            
+            const totalEl = document.getElementById(`total-gold-${ownerName}`);
+            if (totalEl) {
+            const current = parseInt(totalEl.dataset.sum || "0");
+            totalEl.dataset.sum = current + charTotalGold;
+            totalEl.innerText = `총 합계: ${parseInt(totalEl.dataset.sum).toLocaleString()} G`;
+    }
         }
 
         // GAS 업데이트
@@ -593,6 +600,10 @@
 
     async function handleMemberTab(name, forceRefresh = false) {
         if (memberLoading[name]) return;
+        const totalEl = document.getElementById(`total-gold-${name}`);
+        if (totalEl) {
+            totalEl.dataset.sum = 0;
+            totalEl.innerText = "총 합계: 0 G";
         
         const listContainer = document.getElementById(`list-${name}`);
         const timeEl = document.getElementById(`time-${name}`);
