@@ -26,127 +26,75 @@
 <meta charset=UTF-8><meta http-equiv=X-UA-Compatible content="ie=edge">
 <title>Marble Roulette - Checkbox Fix</title>
 <link rel=stylesheet href="./roulette.193c4cf4.css">
+
 <style>
   :root { color-scheme: dark; }
-  body { background-color: #000 !important; margin: 0; overflow: hidden; font-size: 13px; }
+  /* 1. 기본 폰트 크기 축소 */
+  body { background-color: #000 !important; margin: 0; overflow: hidden; font-size: 11px; }
 
-  /* UI 전체 컨테이너 */
+  /* 2. 메인 컨테이너 크기 및 위치 조정 */
   .settings {
     display: flex !important;
     flex-direction: row !important;
-    gap: 20px !important;
-    padding: 15px 20px !important;
+    gap: 15px !important;            /* 간격 축소 (20->15) */
+    padding: 10px 15px !important;   /* 패딩 축소 (15/20->10/15) */
     background: rgba(30, 30, 30, 0.98) !important;
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     position: fixed !important;
-    bottom: 25px !important;
-    left: 25px !important;
-    min-width: 550px !important;
+    bottom: 15px !important;         /* 바닥 여백 축소 */
+    left: 15px !important;           /* 왼쪽 여백 축소 */
+    min-width: 460px !important;     /* 전체 너비 축소 (550->460) */
     border: 1px solid #444 !important;
     z-index: 9999;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.8) !important;
   }
 
-  /* 왼쪽: 인원 선택 섹션 */
+  /* 3. 왼쪽 섹션 너비 축소 */
   .left-side {
-    flex: 0 0 260px !important;
+    flex: 0 0 210px !important;      /* 너비 축소 (260->210) */
     display: flex !important;
     flex-direction: column !important;
-    gap: 10px !important;
+    gap: 8px !important;
     border-right: 1px solid #555 !important;
-    padding-right: 20px !important;
+    padding-right: 15px !important;
   }
-  .header-row { display: flex !important; justify-content: space-between !important; align-items: center !important; }
-  .header-row h3 { margin: 0 !important; font-size: 14px !important; color: #fff !important; }
-  
-  #member-checks { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
+  .header-row h3 { margin: 0 !important; font-size: 12px !important; color: #fff !important; }
 
-  /* 체크박스 라벨 컨테이너 */
+  /* 4. 체크박스 아이템 크기 축소 */
   .m-label { 
-    cursor: pointer !important; 
-    display: flex !important; 
-    align-items: center !important; 
-    background: #222 !important; 
-    padding: 8px 10px !important; 
-    border-radius: 6px !important; 
-    color: #fff !important; 
-    font-size: 13px !important; 
-    border: 1px solid #444 !important;
-    position: relative !important;
-    transition: background 0.2s;
-  }
-  .m-label:hover { background: #333 !important; }
-
-  /* 핵심: 기존 체크박스는 투명하게 숨기고 커스텀 디자인만 노출 */
-  .m-label input { 
-    opacity: 0 !important; /* 완전히 숨김 */
-    position: absolute !important;
-    cursor: pointer !important;
-  }
-
-  /* 가짜 체크박스 (디자인용) */
-  .custom-check {
-    width: 16px !important;
-    height: 16px !important;
-    border: 2px solid #666 !important;
-    border-radius: 3px !important;
-    margin-right: 10px !important;
-    display: inline-block !important;
-    position: relative !important;
-    background: #111 !important;
-    flex-shrink: 0 !important;
-  }
-
-  /* 실제 input이 체크되었을 때 가짜 체크박스 스타일 변경 */
-  .m-label input:checked + .custom-check {
-    background-color: #d32f2f !important;
-    border-color: #d32f2f !important;
-  }
-  .m-label input:checked + .custom-check::after {
-    content: '✔' !important;
-    position: absolute !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    color: white !important;
+    padding: 5px 8px !important;     /* 위아래 간격 축소 (8->5) */
+    border-radius: 4px !important;
     font-size: 11px !important;
   }
+  .custom-check {
+    width: 14px !important;          /* 체크박스 크기 축소 (16->14) */
+    height: 14px !important;
+    margin-right: 8px !important;
+  }
 
-  /* 오른쪽 설정 영역 */
+  /* 5. 오른쪽 설정 섹션 높이 축소 */
   .right-side {
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 12px !important;
-    justify-content: center !important;
+    gap: 8px !important;             /* 요소 간격 축소 */
   }
-  .config-row { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 10px !important; }
-  .config-row label { color: #aaa !important; font-size: 12px !important; }
-  
   select, #in_winningRank { 
-    background: #1a1a1a !important; color: #fff !important; border: 1px solid #555 !important; 
-    height: 28px !important; border-radius: 4px !important; padding: 0 5px !important;
+    height: 24px !important;         /* 높이 축소 (28->24) */
+    font-size: 11px !important;
   }
-
-  .rank-btns { display: flex !important; gap: 2px !important; }
-  .rank-btns button { 
-    font-size: 11px !important; padding: 4px 8px !important; background: #333 !important; 
-    border: 1px solid #444 !important; border-radius: 4px !important; color: #888 !important; cursor: pointer !important; 
-  }
-  .rank-btns button.active { background: #555 !important; color: #fff !important; }
-
-  .btn-actions { display: flex !important; gap: 8px !important; margin-top: 5px !important; }
+  
+  /* 6. 하단 버튼 크기 축소 */
   .btn-actions button { 
-    flex: 1 !important; height: 38px !important; cursor: pointer !important; 
-    border-radius: 8px !important; border: none !important; font-weight: bold !important; font-size: 14px !important; 
+    height: 32px !important;         /* 높이 축소 (38->32) */
+    border-radius: 6px !important;
+    font-size: 12px !important;      /* 글자 크기 축소 */
   }
-  #btnStart { background: #d32f2f !important; color: #fff !important; }
-  #btnShuffle { background: #444 !important; color: #ddd !important; }
 
-  .m-btn { background: #333 !important; color: #bbb !important; border: 1px solid #444 !important; padding: 3px 8px !important; font-size: 11px !important; cursor: pointer !important; border-radius: 4px !important; }
+  /* 기타 버튼들 */
+  .m-btn { padding: 2px 6px !important; font-size: 10px !important; }
+  .rank-btns button { font-size: 10px !important; padding: 3px 6px !important; }
 
   #notice, #btnNotice, #btnShop, .row-toggles, .row-theme, .copyright, .sep, #in_names_visible { display: none !important; }
 </style>
+
 
 <body>
 <div id=settings class=settings>
