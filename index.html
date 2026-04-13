@@ -340,7 +340,21 @@
     }
 
     async function syncToSheet(data) {
-        try { fetch(SHEET_API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) }); } catch (e) {}
+        try {
+            const res = await fetch(SHEET_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+        
+            const text = await res.text();
+            console.log("서버 응답:", text);
+        
+        } catch (e) {
+            console.error("시트 저장 에러:", e);
+        }
     }
 
     async function fetchDB() {
@@ -592,7 +606,7 @@
         const isAgChanged = savedAgText !== "" && currentAgText !== "Inactive" && savedAgText !== currentAgText;
 
         // 하나라도 변경되었다면 업데이트 실행
-        if (isLevelUp || isCpUp || isApChanged || isAgChanged) {
+        if (isNew || isLevelUp || isCpUp || isApChanged || isAgChanged) {
             const gasPayload = {
                 type: "update_all",
                 name: charName,
@@ -606,11 +620,7 @@
             };
 
             if (typeof SHEET_API_URL !== 'undefined') {
-                fetch(SHEET_API_URL, { 
-                    method: "POST", 
-                    mode: "no-cors", 
-                    body: JSON.stringify(gasPayload) 
-                });
+            await syncToSheet(gasPayload);
                 
                 // 로그 출력으로 어떤 값이 변했는지 상세히 표시
                 let changeLog = [];
@@ -618,7 +628,11 @@
                 if (isCpUp) changeLog.push("전투력 신기록");
                 if (isApChanged) changeLog.push("아크패시브 변경");
                 if (isAgChanged) changeLog.push("아크그리드 변경");
-                
+                if (isNew) {
+                     console.log(`🆕 [${charName}] 신규 → 저장`);
+                 } else {
+                     console.log(`🔄 [${charName}] 기존 → 업데이트`);
+                 }
                 console.log(`%c[${charName}] ${changeLog.join(" / ")} 감지: DB 업데이트 전송`, "color: #4285f4; font-weight: bold;");
             }
         } else {
@@ -712,7 +726,7 @@
     function renderRow(container, char, ownerName, index, isApiMode) {
         const charId = (ownerName + char.CharacterName).replace(/\s/g, '');
         // DB에서 해당 캐릭터의 기존 데이터를 찾음
-        const savedData = dbData.find(d => (d.name || d["캐릭터명"]) === char.CharacterName);
+        const savedData = dbData.find(d => String(d["캐릭터명"] || d.name || "").trim() === char.CharacterName.trim());
         
         const row = document.createElement('div');
         row.className = `list-row member-grid ${index === 0 ? 'main-character' : ''}`;
@@ -743,7 +757,7 @@
 
         // API 모드(새로고침 클릭 시)일 때만 실시간 데이터 로드
         if (isApiMode) {
-            loadFullDetails(char.CharacterName, charId, ownerName, savedData || {});
+            loadFullDetails(char.CharacterName, charId, ownerName, savedData);
         } else if (savedData) {
             // DB 모드일 때 전체 합계 골드 계산을 위해 데이터 셋업
             const totalEl = document.getElementById(`total-gold-${ownerName}`);
