@@ -456,8 +456,6 @@
     async function loadFullDetails(charName, charId, ownerName, charData) {
     
     const savedCp = toNum(charData.cp || charData.Cp || charData["전투력"]);
-    const finalCp = Math.max(savedCp, currentCp);
-    const finalLv = Math.max(savedLv, currentLv);
     const lvEl = document.getElementById(`lv-${charId}`);
     const cpEl = document.getElementById(`cp-${charId}`);
     const dbCpEl = document.getElementById(`db-cp-${charId}`);
@@ -492,6 +490,8 @@
 
         const currentLv = toNum(pData.ItemAvgLevel);
         const currentCp = Math.floor(toNum(pData?.CombatPower?.Value || pData?.CombatPower || 0));
+        const finalCp = Math.max(savedCp, currentCp);
+        const finalLv = Math.max(savedLv, currentLv);
 
         // --- 반짝임 로직 ---
 
