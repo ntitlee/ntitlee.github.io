@@ -485,7 +485,7 @@
 
         // 4. 현재 데이터 가공
         const currentLv = toNum(pData.ItemAvgLevel);
-        const currentCp = Math.floor(toNum(pData?.CombatPower?.Value || pData?.CombatPower || 0));
+        const currentCp = Number((pData?.CombatPower?.Value || pData?.CombatPower || 0));
         const currentServer = String(pData.ServerName || "").trim();
         const currentJob = String(pData.CharacterClassName || "").trim();
         const currentOwner = String(ownerName || "").trim();
