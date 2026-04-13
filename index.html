@@ -805,7 +805,28 @@
             btn.onclick = (e) => openTab(e, name);
             menu.appendChild(btn);
             const content = document.createElement('div'); content.id = name; content.className = 'content'; content.style.display = "none";
-            content.innerHTML = `<div style="display:flex; align-items:center; margin-bottom:10px;"><div class="controls"><span id="time-${name}" class="last-update"></span><button class="refresh-btn" onclick="handleMemberTab('${name}', true)">새로고침</button></div></div><div class="list-header member-grid"><div>캐릭터</div><div>서버</div><div>레벨</div><div>전투력</div><div>DB전투력</div><div>아크패시브</div><div>아크그리드</div><div style="display:flex; justify-content:space-between;"><span>보석</span><span id="total-gold-${name}" style="color:var(--highlight); font-size:0.75rem;">총 합계: 0 G</span></div></div><div id="list-${name}"></div>`;
+            content.innerHTML = `
+    <div style="display:flex; align-items:center; margin-bottom:10px;">
+        <div class="controls">
+            <span id="time-${name}" class="last-update"></span>
+            <button class="refresh-btn" onclick="handleMemberTab('${name}', true)">새로고침</button>
+        </div>
+    </div>
+    <div class="list-header member-grid">
+        <div>캐릭터</div>
+        <div>서버</div>
+        <div>직업</div> <div>레벨</div>
+        <div>전투력</div>
+        <div>DB전투력</div>
+        <div>아크패시브</div>
+        <div>아크그리드</div>
+        <div style="display:flex; justify-content:space-between;">
+            <span>보석</span>
+            <span id="total-gold-${name}" style="color:var(--highlight); font-size:0.75rem;">총 합계: 0 G</span>
+        </div>
+    </div>
+    <div id="list-${name}"></div>
+`;
             container.appendChild(content);
         });
     }
