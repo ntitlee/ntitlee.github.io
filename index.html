@@ -432,8 +432,6 @@
     }
 
     async function loadFullDetails(charName, charId, ownerName, charData) {
-        console.log("전달된 캐릭터 데이터 원본:", charData);
-        
     // 1. DOM 요소 선언
     const lvEl = document.getElementById(`lv-${charId}`);
     const classEl = document.getElementById(`class-${charId}`);
@@ -452,11 +450,8 @@
     const savedLv = toNum(safeData.lv || safeData["아이템레벨"] || 0);
     const savedCp = toNum(safeData.cp || safeData["전투력"] || 0);
     const savedApText = String(safeData.arkPassive || safeData["아크패시브"] || "");
-    const savedAgText = String(safeData.arkGrid || safeData["아크그리드"] || "");
-    const savedGemText = String(safeData.gemSummary || safeData["보석요약"] || "");
-    const savedGemTotal = toNum(safeData.gemTotal || safeData["보석합계"] || 0);
 
-    console.log(`[${charName}] DB 비교 기준값 -> 레벨: ${savedLv}, 전투력: ${savedCp}, 그리드: ${savedAgText}, 보석: ${savedGemText}, 합계: ${savedGemTotal}G`);
+    console.log(`[${charName}] DB 비교 기준값 -> 레벨: ${savedLv}, 전투력: ${savedCp}`);
 
     const headers = { "accept": "application/json", "Authorization": API_KEY };
 
@@ -551,19 +546,12 @@
                         <div class="ark-grid-row">${renderGridRow(agData.Slots.slice(0, 3))}</div>
                         <div class="ark-grid-row">${renderGridRow(agData.Slots.slice(3, 6))}</div>
                     </div>`;
-            }
-            else if (savedAgText && savedAgText !== "Inactive") {
-                // 텍스트만이라도 출력 (예: 1/2/3/4/5/6)
-                agEl.innerHTML = `<div style="font-size: 13px; color: #aaa; text-align: center; padding: 5px;">${savedAgText} (DB)</div>`;
-            } 
-            // 둘 다 없을 경우
-            else {
+            } else {
                 agEl.innerText = "Inactive";
             }
         }
 
         // 9. 보석 처리
-        const savedGemText = safeData.gemSummary || safeData["보석"] || "";
         let charTotalGold = 0;
         if (gData?.Gems) {
             let counts = {};
@@ -583,17 +571,6 @@
                 const current = parseInt(totalEl.dataset.sum || "0");
                 totalEl.dataset.sum = current + charTotalGold;
                 totalEl.innerText = `총 합계: ${parseInt(totalEl.dataset.sum).toLocaleString()} G`;
-            }
-            
-        }
-        else if (savedGemText && savedGemText !== "Inactive") {
-            if (gemTxtEl) {
-                gemTxtEl.innerText = savedGemText + " (DB)";
-                gemTxtEl.classList.remove('loading-dot');
-            }
-            if (gemGoldEl) {
-                gemGoldEl.innerText = savedGemTotal > 0 ? savedGemTotal.toLocaleString() + " G (DB)" : "- G"; 
-                gemGoldEl.classList.remove('loading-dot');
             }
         }
 
