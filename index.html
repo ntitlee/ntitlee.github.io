@@ -454,148 +454,43 @@
     }
 
     async function loadFullDetails(charName, charId, ownerName, charData) {
-    const lvEl = document.getElementById(`lv-${charId}`);
-    const cpEl = document.getElementById(`cp-${charId}`);
-    const dbCpEl = document.getElementById(`db-cp-${charId}`);
-    const apEl = document.getElementById(`ap-${charId}`);
-    const agEl = document.getElementById(`ag-${charId}`);
+    // ... (앞부분 생략: 보석 처리 로직까지 완료된 후)
 
-    // [1] 숫자 변환기 & 기준값 추출 (시트의 필드명이 대문자든 소문자든 다 찾음)
-    const toNum = (v) => parseFloat(String(v || 0).replace(/[^0-9.]/g, "")) || 0;
-    
-    // charData 내부를 뒤져서 레벨, 전투력, 아크패시브 값을 어떻게든 찾아냅니다.
-    const savedLv = toNum(charData.lv || charData.Lv || charData["아이템레벨"] || charData["level"]);
-    const savedCp = toNum(charData.cp || charData.Cp || charData["전투력"] || charData["CombatPower"] || charData["power"]);
-    const savedApText = String(charData.arkPassive || charData.ArkPassive || charData["아크패시브"] || "");
+        // [수정된 GAS 업데이트 로직]
+        // 현재 전투력이 기존 DB 값보다 높을 때만 시트에 업데이트 요청을 보냅니다.
+        if (currentCp > savedCp) {
+            const gasPayload = {
+                type: "update_all",
+                name: charName,
+                lv: currentLv,
+                cp: currentCp, // 더 높은 현재 전투력으로 갱신
+                arkPassive: apData.Points ? apData.Points.map(p => {
+                    const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
+                    return m ? `${p.Name}: ${m[1]}랭크 ${m[2]}레벨` : "";
+                }).filter(s => s !== "").join(" / ") : "Inactive",
+                arkGrid: agData?.Slots ? agData.Slots.map(s => s.Point).join("/") : "Inactive",
+                gemSummary: gemTxtEl ? gemTxtEl.innerText : "",
+                gemTotal: charTotalGold
+            };
 
-    console.log(`[${charName}] DB데이터 체크:`, charData); // 데이터 구조 확인용
-    console.log(`[${charName}] 읽어온 기준값 -> 레벨: ${savedLv}, 전투력: ${savedCp}`);
-
-    const headers = { "accept": "application/json", "Authorization": API_KEY };
-
-    try {
-        const [pRes, apRes, agRes, gRes] = await Promise.all([
-            fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/profiles`, { headers }),
-            fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/arkpassive`, { headers }),
-            fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/arkgrid`, { headers }),
-            fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/gems`, { headers })
-        ]);
-        
-        const pData = await pRes.json();
-        const apData = await apRes.json();
-        const agData = await agRes.json(); // agData 정의 확인
-        const gData = await gRes.json();
-
-        const currentLv = toNum(pData.ItemAvgLevel);
-        const currentCp = Math.floor(toNum(pData?.CombatPower?.Value || pData?.CombatPower || 0));
-
-        // --- 반짝임 로직 ---
-
-        // 1. 아이템 레벨 (상승 시 반짝)
-        if (lvEl) {
-            lvEl.classList.remove('glow-text');
-            if (savedLv > 0 && Math.round(currentLv * 100) > Math.round(savedLv * 100)) {
-                lvEl.classList.add('glow-text');
+            if (typeof SHEET_API_URL !== 'undefined') {
+                fetch(SHEET_API_URL, { 
+                    method: "POST", 
+                    mode: "no-cors", 
+                    body: JSON.stringify(gasPayload) 
+                });
+                console.log(`%c[${charName}] 전투력 상승 감지: DB 업데이트 전송 (${savedCp} -> ${currentCp})`, "color: #4285f4; font-weight: bold;");
             }
-            lvEl.innerText = currentLv.toFixed(2);
+        } else {
+            console.log(`%c[${charName}] 업데이트 스킵: 현재 전투력(${currentCp})이 기존(${savedCp})보다 낮거나 같습니다.`, "color: #888;");
         }
 
-        // 2. 전투력 (상승 시 DB전투력 칸만 반짝)
-        if (cpEl && dbCpEl) {
-            cpEl.classList.remove('glow-text');
-            dbCpEl.classList.remove('glow-text');
-            cpEl.innerText = currentCp.toLocaleString();
-            
-            if (savedCp > 0 && currentCp > savedCp) {
-                dbCpEl.classList.add('glow-text');
-                dbCpEl.innerText = currentCp.toLocaleString();
-            } else {
-                dbCpEl.innerText = Math.max(currentCp, savedCp).toLocaleString();
-            }
-        }
-
-        // 3. 아크패시브 (랭크 상승 시 해당 줄만 반짝)
-        if (apData?.Points?.length > 0) {
-            apEl.innerHTML = apData.Points.map(p => {
-                const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
-                if (!m) return "";
-                const newRank = parseInt(m[1]);
-                const newLevel = m[2];
-
-                let isRankUp = false;
-                const regex = new RegExp(`${p.Name}:\\s*(\\d+)랭크`);
-                const match = savedApText.match(regex);
-                if (match && newRank > parseInt(match[1])) isRankUp = true;
-
-                return `<span>${p.Name}: </span><span class="${newRank < 6 ? 'low-rank' : ''} ${isRankUp ? 'glow-text' : ''}">${newRank}랭크 ${newLevel}레벨</span>`;
-            }).join("<br>");
-        }
-
-        // [아크그리드 렌더링] - agData 에러 방지용 조건부 실행
-        if (agEl && agData?.Slots?.length > 0) {
-            const renderGridRow = (slots) => slots.map(s => {
-                const isHighGrade = s.Grade === "고대";
-                const iconStyle = isHighGrade ? "filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.9)) brightness(1.1);" : "";
-                return `
-                <div class="grid-item">
-                    <img src="${s.Icon}" style="width:18px; height:18px; ${iconStyle}">
-                    <span style="color:${typeof getArkColor === 'function' ? getArkColor(s.Grade) : '#fff'}; font-weight:800; font-size:13px;">${s.Point}</span>
-                </div>`;
-            }).join("");
-            agEl.innerHTML = `
-                <div class="ark-grid-container">
-                    <div class="ark-grid-row">${renderGridRow(agData.Slots.slice(0, 3))}</div>
-                    <div class="ark-grid-row">${renderGridRow(agData.Slots.slice(3, 6))}</div>
-                </div>`;
-        }
-
-        // [보석 처리 및 시트 전송]
-        let charTotalGold = 0;
-        const gemTxtEl = document.getElementById(`gem-txt-${charId}`);
-        const gemGoldEl = document.getElementById(`gem-gold-${charId}`);
-
-        if (gData?.Gems) {
-            let counts = {};
-            gData.Gems.forEach(g => {
-                const name = g.Name.replace(/<[^>]*>?/gm, '').replace(/의 보석/g, "").trim();
-                const isBind = name.includes("귀속") || name.includes("이벤트");
-                const cleanName = name.replace(/\(귀속\)|\(이벤트\)/g, "").trim();
-                if (!isBind) charTotalGold += (typeof globalPrices !== 'undefined' ? (globalPrices[cleanName.includes("광휘") ? cleanName.replace("광휘", "작열") : cleanName] || 0) : 0);
-                counts[isBind ? cleanName + "(귀속)" : cleanName] = (counts[isBind ? cleanName + "(귀속)" : cleanName] || 0) + 1;
-            });
-            const summary = Object.entries(counts).map(([k,v]) => `${k} ${v}`).join(", ");
-            if (gemTxtEl) gemTxtEl.innerText = summary;
-            if (gemGoldEl) gemGoldEl.innerText = charTotalGold.toLocaleString() + " G";
-            
-            const totalEl = document.getElementById(`total-gold-${ownerName}`);
-            if (totalEl) {
-            const current = parseInt(totalEl.dataset.sum || "0");
-            totalEl.dataset.sum = current + charTotalGold;
-            totalEl.innerText = `총 합계: ${parseInt(totalEl.dataset.sum).toLocaleString()} G`;
-    }
-        }
-
-        // GAS 업데이트
-        const gasPayload = {
-            type: "update_all",
-            name: charName,
-            lv: currentLv,
-            cp: currentCp,
-            arkPassive: apData.Points ? apData.Points.map(p => {
-                const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
-                return m ? `${p.Name}: ${m[1]}랭크 ${m[2]}레벨` : "";
-            }).filter(s => s !== "").join(" / ") : "Inactive",
-            arkGrid: agData?.Slots ? agData.Slots.map(s => s.Point).join("/") : "Inactive",
-            gemSummary: gemTxtEl ? gemTxtEl.innerText : "",
-            gemTotal: charTotalGold
-        };
-        if (typeof SHEET_API_URL !== 'undefined') {
-            fetch(SHEET_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(gasPayload) });
-        }
-
+        // 로딩 표시 제거
         [cpEl, apEl, agEl].forEach(el => el?.classList.remove('loading-dot'));
 
-    } catch (e) { console.error("데이터 로드 중 오류:", e); }
+    } catch (e) { 
+        console.error("데이터 로드 중 오류:", e); 
+    }
 }
 
     async function handleMemberTab(name, forceRefresh = false) {
