@@ -608,7 +608,9 @@
             const gasPayload = {
                 type: "update_all",
                 name: charName,
-                className: pData.CharacterClassName,
+                job: pData.CharacterClassName,
+                server: pData.ServerName,
+                owner: ownerName,
                 lv: currentLv,
                 cp: Math.max(currentCp, savedCp), // 전투력은 최대값 유지
                 arkPassive: currentApText,
