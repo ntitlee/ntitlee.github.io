@@ -454,6 +454,10 @@
     }
 
     async function loadFullDetails(charName, charId, ownerName, charData) {
+    
+    const savedCp = toNum(charData.cp || charData.Cp || charData["전투력"]);
+    const finalCp = Math.max(savedCp, currentCp);
+    const finalLv = Math.max(savedLv, currentLv);
     const lvEl = document.getElementById(`lv-${charId}`);
     const cpEl = document.getElementById(`cp-${charId}`);
     const dbCpEl = document.getElementById(`db-cp-${charId}`);
@@ -506,12 +510,12 @@
             dbCpEl.classList.remove('glow-text');
             cpEl.innerText = currentCp.toLocaleString();
             
-            if (savedCp > 0 && currentCp > savedCp) {
-                dbCpEl.classList.add('glow-text');
-                dbCpEl.innerText = currentCp.toLocaleString();
-            } else {
-                dbCpEl.innerText = Math.max(currentCp, savedCp).toLocaleString();
-            }
+            const finalCp = Math.max(savedCp, currentCp);
+            dbCpEl.innerText = finalCp.toLocaleString();
+            // 상승 시만 반짝
+            if (currentCp > savedCp) {
+            dbCpEl.classList.add('glow-text');
+        }
         }
 
         // 3. 아크패시브 (랭크 상승 시 해당 줄만 반짝)
@@ -579,8 +583,8 @@
         const gasPayload = {
             type: "update_all",
             name: charName,
-            lv: currentLv,
-            cp: currentCp,
+            lv: finalLv,
+            cp: finalCp,
             arkPassive: apData.Points ? apData.Points.map(p => {
                 const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
                 return m ? `${p.Name}: ${m[1]}랭크 ${m[2]}레벨` : "";
@@ -712,7 +716,13 @@
 
         // API 모드(새로고침 클릭 시)일 때만 실시간 데이터 로드
         if (isApiMode) {
-            loadFullDetails(char.CharacterName, charId, ownerName, char);
+            loadFullDetails(
+            char.CharacterName,
+            charId,
+            ownerName,
+            savedData
+            );
+        }
         } else if (savedData) {
             // DB 모드일 때 전체 합계 골드 계산을 위해 데이터 셋업
             const totalEl = document.getElementById(`total-gold-${ownerName}`);
