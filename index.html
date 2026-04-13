@@ -278,66 +278,57 @@
 <body>
 
 
-
 <div class="container">
-
     <div id="tabMenu" class="tabs">
-
         <button class="tab-btn active" onclick="openTab(event, 'welcome-page')">Home</button>
-
         <button class="tab-btn" onclick="openTab(event, 'nti-total')">통합</button>
-
         <button class="tab-btn" onclick="openTab(event, 'roulette-tab')">룰렛</button>
-        
-    </div>
-
-    <div id="tabContents">
-
-        <div id="welcome-page" class="content">
-
-            <div class="image-container"><img src="welcome.png"></div>
-
-            <h2>LOA NTI Dashboard</h2>
-
-            <p style="color:#888;">상단 메뉴에서 데이터를 확인하세요.</p>
-
-
         </div>
 
+    <div id="tabContents">
         
+        <div id="welcome-page" class="content">
+            <div class="image-container"><img src="welcome.png"></div>
+            <h2>LOA NTI Dashboard</h2>
+            <p style="color:#888;">상단 메뉴에서 데이터를 확인하세요.</p>
+        </div>
 
-        <div id="통합" class="content" style="display:none;">
-            <div style="display:flex; align-items:center; margin-bottom:10px;">
-              <div class="controls">
-                  <span id="time-통합" class="last-update"></span>
-                  <button class="refresh-btn" onclick="handleMemberTab('통합', true)">새로고침</button>
-              </div>
+        <div id="nti-total" class="content" style="display:none;">
+            <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom:10px;">
+                <div class="controls">
+                    <span id="time-통합" class="last-update"></span>
+                    <button class="refresh-btn" onclick="handleMemberTab('통합', true)">새로고침</button>
+                </div>
             </div>
+          
+            <div class="list-header member-grid">
+                <div>캐릭터</div>
+                <div>서버</div>
+                <div>직업</div> 
+                <div>레벨</div>
+                <div>전투력</div>
+                <div>DB전투력</div>
+                <div>아크패시브</div>
+                <div>아크그리드</div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span>보석</span>
+                    <span id="total-gold-통합" style="color:var(--highlight); font-size:0.75rem;">총 합계: 0 G</span>
+                </div>
+            </div>
+          
             <div id="list-통합"></div>
         </div>
 
-            
-            <div id="total-list-container"></div>
-
+        <div id="roulette-tab" class="content" style="display:none; padding:0;">
+            <iframe 
+                src="./roulette/index.html" 
+                style="width:100%; height:850px; border:none; border-radius:12px; background: #000;"
+                title="Marble Roulette">
+            </iframe>
         </div>
 
-        <div id="tabContents">
-    <div id="welcome-page" class="content">...</div>
-    <div id="nti-total" class="content" style="display:none;">...</div>
-
-    <div id="roulette-tab" class="content" style="display:none; padding:0;">
-        <iframe 
-            src="./roulette/index.html" 
-            style="width:100%; height:850px; border:none; border-radius:12px; background: #000;"
-            title="Marble Roulette">
-        </iframe>
-    </div>
-</div>
-        
-
-    </div>
-
-</div>
+    </div> 
+  </div>
 
 
 
