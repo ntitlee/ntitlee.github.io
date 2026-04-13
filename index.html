@@ -438,7 +438,7 @@
         member = allMemberData.find(m => m.name === charName || m.characterName === charName);
     }
     const safeData = member || {};
-    
+
     // 1. DOM 요소 선언
     const lvEl = document.getElementById(`lv-${charId}`);
     const classEl = document.getElementById(`class-${charId}`);
@@ -453,7 +453,6 @@
     const toNum = (v) => parseFloat(String(v || 0).replace(/[^0-9.]/g, "")) || 0;
     
     // charData가 null이거나 undefined일 경우를 대비해 기본 객체({}) 처리
-    const safeData = charData || {};
     const savedLv = toNum(safeData.lv || safeData["아이템레벨"] || 0);
     const savedCp = toNum(safeData.cp || safeData["전투력"] || 0);
     const savedApText = String(safeData.arkPassive || safeData["아크패시브"] || "");
