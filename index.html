@@ -450,9 +450,25 @@
     const savedLv = toNum(safeData.lv || safeData["아이템레벨"] || 0);
     const savedCp = toNum(safeData.cp || safeData["전투력"] || 0);
     const savedApText = String(safeData.arkPassive || safeData["아크패시브"] || "");
+    const savedAgText = String(safeData.arkGrid || safeData["아크그리드"] || "");
+    const savedGemText = String(safeData.gemSummary || safeData["보석요약"] || "");
+    const savedGemTotal = toNum(safeData.gemTotal || safeData["보석합계"] || 0);
 
     console.log(`[${charName}] DB 비교 기준값 -> 레벨: ${savedLv}, 전투력: ${savedCp}`);
 
+    if (agEl && savedAgText && savedAgText !== "Inactive") {
+        agEl.innerText = savedAgText;
+        agEl.classList.remove('loading-dot');
+    }
+    if (gemTxtEl && savedGemText && savedGemText !== "Inactive") {
+        gemTxtEl.innerText = savedGemText;
+        gemTxtEl.classList.remove('loading-dot');
+    }
+    if (gemGoldEl && savedGemTotal > 0) {
+        gemGoldEl.innerText = savedGemTotal.toLocaleString() + " G";
+        gemGoldEl.classList.remove('loading-dot');
+    }
+    
     const headers = { "accept": "application/json", "Authorization": API_KEY };
 
     try {
