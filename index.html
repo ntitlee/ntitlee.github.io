@@ -38,7 +38,7 @@
 
         .refresh-btn { padding: 6px 15px; font-size: 0.8rem; background: #444; color: #eee; border: none; border-radius: 4px; cursor: pointer; }
 
-        .member-grid { grid-template-columns: 150px 90px 90px 110px 110px 130px 280px 1fr; }
+        .member-grid { grid-template-columns: 150px 90px 90px 90px 110px 110px 130px 280px 1fr; }
 
         .list-header, .list-row { display: grid; gap: 8px; align-items: center; text-align: center; font-size: 0.82rem; }
 
@@ -456,13 +456,14 @@
     async function loadFullDetails(charName, charId, ownerName, charData) {
     // 1. DOM 요소 선언
     const lvEl = document.getElementById(`lv-${charId}`);
+    const classEl = document.getElementById(`class-${charId}`);
     const cpEl = document.getElementById(`cp-${charId}`);
     const dbCpEl = document.getElementById(`db-cp-${charId}`);
     const apEl = document.getElementById(`ap-${charId}`);
     const agEl = document.getElementById(`ag-${charId}`);
     const gemTxtEl = document.getElementById(`gem-txt-${charId}`);
     const gemGoldEl = document.getElementById(`gem-gold-${charId}`);
-
+  
     // 2. 숫자 변환 및 기준값 설정 (매우 중요)
     const toNum = (v) => parseFloat(String(v || 0).replace(/[^0-9.]/g, "")) || 0;
     
@@ -493,8 +494,13 @@
         // 4. 현재 데이터 가공
         const currentLv = toNum(pData.ItemAvgLevel);
         const currentCp = Math.floor(toNum(pData?.CombatPower?.Value || pData?.CombatPower || 0));
-
-        // --- 시각적 업데이트 (반짝임 및 텍스트) ---
+        
+        // [추가] 직업 정보 넣기
+        if (classEl && pData.CharacterClassName) {
+            classEl.innerText = pData.CharacterClassName;
+            // 로딩 점 제거
+            classEl.classList.remove('loading-dot');
+        }
 
         // 5. 아이템 레벨 업데이트
         if (lvEl) {
@@ -595,6 +601,7 @@
             const gasPayload = {
                 type: "update_all",
                 name: charName,
+                className: pData.CharacterClassName,
                 lv: currentLv,
                 cp: currentCp,
                 arkPassive: apData.Points ? apData.Points.map(p => {
@@ -711,6 +718,7 @@
         row.className = `list-row member-grid ${index === 0 ? 'main-character' : ''}`;
         
         // DB에 저장된 값들 (없으면 기본값 설정)
+        const dbClass = savedData ? (savedData.class || savedData["직업"] || "-") : "-";
         const dbCp = savedData ? (savedData.cp || savedData["전투력"] || "0") : "0";
         const dbArc = savedData ? (savedData.arc || savedData["아크패시브"] || "Inactive") : "Inactive";
         const dbGemTxt = savedData ? (savedData.gem_text || savedData["보석"] || "정보 없음") : "정보 없음";
@@ -720,16 +728,12 @@
             <div>${index === 0 ? '👑 ' : ''}<span class="char-name">${char.CharacterName}</span></div>
             <div>${char.ServerName}</div>
 
+            <div id="class-${charId}">${isApiMode ? (char.CharacterClassName || dbClass) : dbClass}</div>
             <div id="lv-${charId}" style="font-weight:800;">${char.ItemAvgLevel}</div>
-            
             <div id="cp-${charId}" class="${isApiMode ? 'loading-dot' : ''}">${isApiMode ? '...' : parseFloat(String(dbCp).replace(/,/g, "")).toLocaleString()}</div>
-            
             <div id="db-cp-${charId}">${parseFloat(String(dbCp).replace(/,/g, "")).toLocaleString()}</div>
-            
             <div id="ap-${charId}" style="font-size:0.75rem;">${isApiMode ? '...' : dbArc}</div>
-            
             <div id="ag-${charId}">${isApiMode ? '...' : 'Inactive'}</div>
-            
             <div class="gem-box">
                 <div id="gem-txt-${charId}" class="gem-text">${isApiMode ? '보석없음' : dbGemTxt}</div>
                 <div id="gem-gold-${charId}" class="gold-text">${parseFloat(String(dbGemGold).replace(/,/g, "")).toLocaleString()} G</div>
