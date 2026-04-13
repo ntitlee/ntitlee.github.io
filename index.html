@@ -472,8 +472,8 @@
     const savedApText = String(safeData.arkPassive || safeData["아크패시브"] || "");
     const dbArc = savedData ? (savedData.arkPassive || savedData["아크패시브"] || "Inactive") : "Inactive";
     const dbAg = savedData ? (savedData.arkGrid || savedData["아크그리드"] || "Inactive") : "Inactive";
-    const dbGemTxt = savedData ? (savedData.gemSummary || savedData["보석요약"] || "정보 없음") : "정보 없음";
-    const dbGemGold = savedData ? (savedData.gemTotal || savedData["보석합계"] || "0") : "0";
+    const dbGemTxt = savedData ? (savedData["보석요약"] || savedData["보석"] || savedData.gem_text || "정보 없음") : "정보 없음";
+    const dbGemGold = savedData ? (savedData["보석합계"] || savedData["보석골드"] || savedData.gold || "0") : "0";
 
 
     console.log(`[${charName}] 매칭 성공 -> 그리드: ${savedAgText}, 보석: ${savedGemText}`);
@@ -804,8 +804,12 @@
             <div id="ap-${charId}" style="font-size:0.75rem;">${isApiMode ? '...' : dbArc}</div>
             <div id="ag-${charId}">${isApiMode ? '...' : dbAg}</div>
             <div class="gem-box">
-                <div id="gem-txt-${charId}" class="gem-text">${isApiMode ? '보석없음' : dbGemTxt}</div>
-                <div id="gem-gold-${charId}" class="gold-text">${parseFloat(String(dbGemGold).replace(/,/g, "")).toLocaleString()} G</div>
+                <div id="gem-txt-${charId}" class="gem-text ${isApiMode ? 'loading-dot' : ''}">${dbGemTxt}</div>
+                
+                <div id="gem-gold-${charId}" class="gold-text">
+                    ${parseFloat(String(dbGemGold || 0).replace(/[^0-9.]/g, "")).toLocaleString()} G
+                </div>
+            </div>
             </div>`;
             
         container.appendChild(row);
