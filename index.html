@@ -575,27 +575,45 @@
     }
         }
 
-        // GAS 업데이트
-        const gasPayload = {
-            type: "update_all",
-            name: charName,
-            lv: currentLv,
-            cp: currentCp,
-            arkPassive: apData.Points ? apData.Points.map(p => {
-                const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
-                return m ? `${p.Name}: ${m[1]}랭크 ${m[2]}레벨` : "";
-            }).filter(s => s !== "").join(" / ") : "Inactive",
-            arkGrid: agData?.Slots ? agData.Slots.map(s => s.Point).join("/") : "Inactive",
-            gemSummary: gemTxtEl ? gemTxtEl.innerText : "",
-            gemTotal: charTotalGold
-        };
-        if (typeof SHEET_API_URL !== 'undefined') {
-            fetch(SHEET_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(gasPayload) });
+        // [수정된 GAS 업데이트 로직]
+        // 현재 전투력이 기존 DB 값보다 높을 때만 시트에 업데이트 요청을 보냅니다.
+        if (currentCp > savedCp) {
+            const gasPayload = {
+                type: "update_all",
+                name: charName,
+                lv: currentLv,
+                cp: currentCp, // 더 높은 현재 전투력으로 갱신
+                arkPassive: apData.Points ? apData.Points.map(p => {
+                    const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
+                    return m ? `${p.Name}: ${m[1]}랭크 ${m[2]}레벨` : "";
+                }).filter(s => s !== "").join(" / ") : "Inactive",
+                arkGrid: agData?.Slots ? agData.Slots.map(s => s.Point).join("/") : "Inactive",
+                gemSummary: gemTxtEl ? gemTxtEl.innerText : "",
+                gemTotal: charTotalGold
+            };
+
+            if (typeof SHEET_API_URL !== 'undefined') {
+                fetch(SHEET_API_URL, { 
+                    method: "POST", 
+                    mode: "no-cors", 
+                    body: JSON.stringify(gasPayload) 
+                });
+                console.log(`%c[${charName}] 전투력 상승 감지: DB 업데이트 전송 (${savedCp} -> ${currentCp})`, "color: #4285f4; font-weight: bold;");
+            }
+        } else {
+            console.log(`%c[${charName}] 업데이트 스킵: 현재 전투력(${currentCp})이 기존(${savedCp})보다 낮거나 같습니다.`, "color: #888;");
         }
 
+        // 로딩 표시 제거 (성공 시)
         [cpEl, apEl, agEl].forEach(el => el?.classList.remove('loading-dot'));
 
-    } catch (e) { console.error("데이터 로드 중 오류:", e); }
+    } catch (e) { 
+        console.error("데이터 로드 중 오류:", e); 
+        // 에러 발생 시에도 로딩 표시는 제거해주는 것이 좋습니다.
+        [document.getElementById(`cp-${charId}`), 
+         document.getElementById(`ap-${charId}`), 
+         document.getElementById(`ag-${charId}`)].forEach(el => el?.classList.remove('loading-dot'));
+    }
 }
 
     async function handleMemberTab(name, forceRefresh = false) {
