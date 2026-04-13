@@ -432,6 +432,13 @@
     }
 
     async function loadFullDetails(charName, charId, ownerName, charData) {
+
+    let member = charData;
+    if (!member && typeof allMemberData !== 'undefined') {
+        member = allMemberData.find(m => m.name === charName || m.characterName === charName);
+    }
+    const safeData = member || {};
+    
     // 1. DOM 요소 선언
     const lvEl = document.getElementById(`lv-${charId}`);
     const classEl = document.getElementById(`class-${charId}`);
@@ -454,7 +461,7 @@
     const savedGemText = String(safeData.gemSummary || safeData["보석요약"] || "");
     const savedGemTotal = toNum(safeData.gemTotal || safeData["보석합계"] || 0);
 
-    console.log(`[${charName}] DB 비교 기준값 -> 레벨: ${savedLv}, 전투력: ${savedCp}`);
+    console.log(`[${charName}] DB 데이터 확인:`, safeData);
 
     if (agEl && savedAgText && savedAgText !== "Inactive") {
         agEl.innerText = savedAgText;
@@ -468,7 +475,7 @@
         gemGoldEl.innerText = savedGemTotal.toLocaleString() + " G";
         gemGoldEl.classList.remove('loading-dot');
     }
-    
+
     const headers = { "accept": "application/json", "Authorization": API_KEY };
 
     try {
