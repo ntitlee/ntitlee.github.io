@@ -574,19 +574,33 @@
             }
         }
 
-        // 10. GAS 업데이트 로직 (전투력 상승 시에만 전송)
-        if (currentCp > savedCp) {
+        // 10. 모든 변화 감지 (레벨, 전투력, 아크패시브, 아크그리드)
+        const isLevelUp = savedLv > 0 && Math.round(currentLv * 100) > Math.round(savedLv * 100);
+        const isCpUp = savedCp > 0 && currentCp > savedCp;
+        
+        // [추가] 아크패시브 텍스트 추출 및 비교
+        const currentApText = apData.Points ? apData.Points.map(p => {
+            const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
+            return m ? `${p.Name}: ${m[1]}랭크 ${m[2]}레벨` : "";
+        }).filter(s => s !== "").join(" / ") : "Inactive";
+        const isApChanged = savedApText !== "" && currentApText !== "Inactive" && savedApText !== currentApText;
+
+        // [추가] 아크그리드 텍스트 추출 및 비교 (바뀌기만 하면 갱신)
+        const currentAgText = agData?.Slots ? agData.Slots.map(s => s.Point).join("/") : "Inactive";
+        // 기존 DB의 arkGrid 값과 비교 (allMemberData 등에서 가져온 기준값 필요)
+        const savedAgText = String(safeData.arkGrid || safeData["아크그리드"] || "");
+        const isAgChanged = savedAgText !== "" && currentAgText !== "Inactive" && savedAgText !== currentAgText;
+
+        // 하나라도 변경되었다면 업데이트 실행
+        if (isLevelUp || isCpUp || isApChanged || isAgChanged) {
             const gasPayload = {
                 type: "update_all",
                 name: charName,
                 className: pData.CharacterClassName,
                 lv: currentLv,
-                cp: currentCp,
-                arkPassive: apData.Points ? apData.Points.map(p => {
-                    const m = (p.Description || "").match(/(\d+)랭크\s+(\d+)레벨/);
-                    return m ? `${p.Name}: ${m[1]}랭크 ${m[2]}레벨` : "";
-                }).filter(s => s !== "").join(" / ") : "Inactive",
-                arkGrid: agData?.Slots ? agData.Slots.map(s => s.Point).join("/") : "Inactive",
+                cp: Math.max(currentCp, savedCp), // 전투력은 최대값 유지
+                arkPassive: currentApText,
+                arkGrid: currentAgText, // 변경된 아크그리드 전송
                 gemSummary: gemTxtEl ? gemTxtEl.innerText : "",
                 gemTotal: charTotalGold
             };
@@ -597,10 +611,18 @@
                     mode: "no-cors", 
                     body: JSON.stringify(gasPayload) 
                 });
-                console.log(`%c[${charName}] 전투력 상승 감지: DB 업데이트 전송 (${savedCp} -> ${currentCp})`, "color: #4285f4; font-weight: bold;");
+                
+                // 로그 출력으로 어떤 값이 변했는지 상세히 표시
+                let changeLog = [];
+                if (isLevelUp) changeLog.push("레벨 상승");
+                if (isCpUp) changeLog.push("전투력 신기록");
+                if (isApChanged) changeLog.push("아크패시브 변경");
+                if (isAgChanged) changeLog.push("아크그리드 변경");
+                
+                console.log(`%c[${charName}] ${changeLog.join(" / ")} 감지: DB 업데이트 전송`, "color: #4285f4; font-weight: bold;");
             }
         } else {
-            console.log(`%c[${charName}] 업데이트 스킵: 현재 전투력(${currentCp})이 기존(${savedCp})보다 낮거나 같습니다.`, "color: #888;");
+            console.log(`%c[${charName}] 업데이트 스킵: 모든 데이터가 기존과 동일함`, "color: #888;");
         }
 
     } catch (e) { 
