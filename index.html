@@ -278,57 +278,70 @@
 <body>
 
 
+
 <div class="container">
+
     <div id="tabMenu" class="tabs">
+
         <button class="tab-btn active" onclick="openTab(event, 'welcome-page')">Home</button>
-        <button class="tab-btn" onclick="openTab(event, '통합')">통합</button>
+
+        <button class="tab-btn" onclick="openTab(event, 'nti-total')">통합</button>
+
         <button class="tab-btn" onclick="openTab(event, 'roulette-tab')">룰렛</button>
-        </div>
+        
+    </div>
 
     <div id="tabContents">
-        
+
         <div id="welcome-page" class="content">
+
             <div class="image-container"><img src="welcome.png"></div>
+
             <h2>LOA NTI Dashboard</h2>
+
             <p style="color:#888;">상단 메뉴에서 데이터를 확인하세요.</p>
+
+
         </div>
 
-        <div id="통합" class="content" style="display:none;">
-            <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom:10px;">
+        
+
+        <div id="nti-total" class="content" style="display:none;">
+
+            <div style="display:flex; align-items:center; margin-bottom:10px;">
+
                 <div class="controls">
-                    <span id="time-통합" class="last-update"></span>
-                    <button class="refresh-btn" onclick="handleMemberTab('통합', true)">새로고침</button>
+
+                    <span id="time-total" class="last-update"></span>
+
+                    <button class="refresh-btn" onclick="loadNTITotal(true)">새로고침</button>
+
                 </div>
+
             </div>
-          
-            <div class="list-header member-grid">
-                <div>캐릭터</div>
-                <div>서버</div>
-                <div>직업</div> 
-                <div>레벨</div>
-                <div>전투력</div>
-                <div>DB전투력</div>
-                <div>아크패시브</div>
-                <div>아크그리드</div>
-                <div style="display:flex; justify-content:space-between;">
-                    <span>보석</span>
-                    <span id="total-gold-통합" style="color:var(--highlight); font-size:0.75rem;">총 합계: 0 G</span>
-                </div>
-            </div>
-          
-            <div id="list-통합"></div>
+
+            
+            <div id="total-list-container"></div>
+
         </div>
 
-        <div id="roulette-tab" class="content" style="display:none; padding:0;">
-            <iframe 
-                src="./roulette/index.html" 
-                style="width:100%; height:850px; border:none; border-radius:12px; background: #000;"
-                title="Marble Roulette">
-            </iframe>
-        </div>
+        <div id="tabContents">
+    <div id="welcome-page" class="content">...</div>
+    <div id="nti-total" class="content" style="display:none;">...</div>
 
-    </div> 
-  </div>
+    <div id="roulette-tab" class="content" style="display:none; padding:0;">
+        <iframe 
+            src="./roulette/index.html" 
+            style="width:100%; height:850px; border:none; border-radius:12px; background: #000;"
+            title="Marble Roulette">
+        </iframe>
+    </div>
+</div>
+        
+
+    </div>
+
+</div>
 
 
 
@@ -619,123 +632,81 @@
     }
 }
 
-    /**
- * 멤버별 탭 클릭 및 데이터 로드 (새로고침 포함)
- */
-async function handleMemberTab(name, forceRefresh = false) {
-    // [통합/전체 탭 로직 수정]
-    if (name === '통합' || name === '전체') {
-        if (memberLoading['통합']) return;
-        
+    async function handleMemberTab(name, forceRefresh = false) {
+        if (memberLoading[name]) return;
+        const totalEl = document.getElementById(`total-gold-${name}`);
+        if (totalEl) {
+            totalEl.dataset.sum = 0;
+            totalEl.innerText = "총 합계: 0 G";
+        }
         const listContainer = document.getElementById(`list-${name}`);
-        const btn = document.querySelector(`.tabs .tab-btn[onclick*="${name}"]`) || document.querySelector(`#${name} .refresh-btn`);
         const timeEl = document.getElementById(`time-${name}`);
+        const btn = document.querySelector(`#${name} .refresh-btn`);
 
+        if (!forceRefresh && listContainer.dataset.loaded === "true") return;
+
+        // 1. 강제 새로고침 (API 호출) 모드
         if (forceRefresh) {
-            memberLoading['통합'] = true;
-            if (btn) btn.innerText = "전체 로딩 중...";
+            memberLoading[name] = true;
+            if (btn) btn.innerText = "로딩 중...";
             try {
-                const allMemberNames = Object.keys(MEMBERS);
-                // 모든 멤버 API 호출 완료를 기다림
-                await Promise.all(allMemberNames.map(mName => handleMemberTab(mName, true)));
-                if (timeEl) timeEl.innerText = `전체 갱신 완료 (${getCurrentTime()})`;
+                listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">1680+ 캐릭터 확인 중...</div>';
+                const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { 
+                    headers: { "Authorization": API_KEY } 
+                });
+                const sibs = await res.json();
+                
+                // [수정 포인트] 필터 기준을 1680으로 상향
+                const targets = sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1680)
+                                    .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
+
+                listContainer.innerHTML = "";
+                if (targets.length === 0) {
+                    listContainer.innerHTML = "<div style='padding:20px; color:#888;'>1680 레벨 이상의 캐릭터가 없습니다.</div>";
+                } else {
+                    for (const [index, char] of targets.entries()) {
+                        renderRow(listContainer, char, name, index, true);
+                    }
+                }
+                listContainer.dataset.loaded = "true";
+                timeEl.innerText = `최신 갱신 완료 (${getCurrentTime()})`;
             } catch (e) {
                 console.error(e);
+                listContainer.innerHTML = "<div style='padding:20px; color:red;'>API 호출에 실패했습니다.</div>";
             } finally {
-                memberLoading['통합'] = false;
+                memberLoading[name] = false;
                 if (btn) btn.innerText = "새로고침";
             }
-        }
-
-        // [핵심] 모든 멤버의 데이터를 DB에서 긁어모아 통합 탭에 출력
-        listContainer.innerHTML = "";
-        // 모든 멤버의 1680+ 캐릭터 필터링
-        const allChars = dbData.filter(d => parseFloat(String(d.lv || d["아이템레벨"]).replace(/,/g, "")) >= 1680);
-        
-        if (allChars.length > 0) {
-            // 레벨 순으로 정렬
-            allChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
-            
-            allChars.forEach((char, index) => {
-                const formattedChar = {
-                    CharacterName: char.name || char["캐릭터명"],
-                    ServerName: char.server || char["서버"],
-                    CharacterClassName: char.class || char["직업"],
-                    ItemAvgLevel: char.lv || char["아이템레벨"]
-                };
-                // 소유자 이름을 함께 전달 (ownerName 자리에 char.owner)
-                renderRow(listContainer, formattedChar, char.owner || char["소유자"], index, false);
-            });
-            if (timeEl && !forceRefresh) timeEl.innerText = "전체 데이터 로드됨 (1680+)";
-        } else {
-            listContainer.innerHTML = "<div style='padding:20px; color:#888;'>표시할 데이터가 없습니다. 새로고침을 눌러보세요.</div>";
-        }
-        return; 
-    }
-
-    // 1. API 강제 새로고침 모드
-    if (forceRefresh) {
-        memberLoading[name] = true;
-        if (btn) btn.innerText = "로딩 중...";
-        try {
-            listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">1680+ 캐릭터 확인 중...</div>';
-            const res = await fetch(`${BASE_URL}/characters/${encodeURIComponent(MEMBERS[name])}/siblings`, { 
-                headers: { "Authorization": API_KEY } 
-            });
-            const sibs = await res.json();
-            
-            // 1680 이상 캐릭터 필터 및 정렬
-            const targets = sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1680)
-                                .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
+        } 
+        // 2. 일반 모드: DB 데이터 로드
+        else {
+            if (dbData.length === 0) {
+                listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">DB 데이터 확인 중...</div>';
+                setTimeout(() => handleMemberTab(name, false), 500);
+                return;
+            }
 
             listContainer.innerHTML = "";
-            if (targets.length === 0) {
-                listContainer.innerHTML = "<div style='padding:20px; color:#888;'>1680 레벨 이상의 캐릭터가 없습니다.</div>";
+            // [수정 포인트] DB에서 가져올 때도 1680 이상만 필터링
+            const myChars = dbData.filter(d => (d.owner === name || d["소유자"] === name) && parseFloat(String(d.lv || d["아이템레벨"]).replace(/,/g, "")) >= 1680);
+            
+            if (myChars.length > 0) {
+                myChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
+                myChars.forEach((char, index) => {
+                    const formattedChar = {
+                        CharacterName: char.name || char["캐릭터명"],
+                        ServerName: char.server || char["서버"],
+                        ItemAvgLevel: char.lv || char["아이템레벨"]
+                    };
+                    renderRow(listContainer, formattedChar, name, index, false);
+                });
+                listContainer.dataset.loaded = "true";
+                timeEl.innerText = "DB 데이터 로드됨 (1680+)";
             } else {
-                for (const [index, char] of targets.entries()) {
-                    // renderRow 내부에서 loadFullDetails를 호출하여 상세 정보 및 DB 비교 수행
-                    renderRow(listContainer, char, name, index, true);
-                }
+                listContainer.innerHTML = "<div style='padding:20px; color:#888;'>DB 내 1680 이상 캐릭터가 없습니다. 새로고침을 눌러보세요.</div>";
             }
-            listContainer.dataset.loaded = "true";
-            timeEl.innerText = `최신 갱신 완료 (${getCurrentTime()})`;
-        } catch (e) {
-            console.error(e);
-            listContainer.innerHTML = "<div style='padding:20px; color:red;'>API 호출에 실패했습니다.</div>";
-        } finally {
-            memberLoading[name] = false;
-            if (btn) btn.innerText = "새로고침";
-        }
-    } 
-    // 2. 일반 모드: DB 데이터 로드
-    else {
-        if (dbData.length === 0) {
-            listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">DB 데이터 확인 중...</div>';
-            setTimeout(() => handleMemberTab(name, false), 500);
-            return;
-        }
-
-        listContainer.innerHTML = "";
-        const myChars = dbData.filter(d => (d.owner === name || d["소유자"] === name) && parseFloat(String(d.lv || d["아이템레벨"]).replace(/,/g, "")) >= 1680);
-        
-        if (myChars.length > 0) {
-            myChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
-            myChars.forEach((char, index) => {
-                const formattedChar = {
-                    CharacterName: char.name || char["캐릭터명"],
-                    ServerName: char.server || char["서버"],
-                    CharacterClassName: char.class || char["직업"], // 직업 데이터 매핑
-                    ItemAvgLevel: char.lv || char["아이템레벨"]
-                };
-                renderRow(listContainer, formattedChar, name, index, false);
-            });
-            listContainer.dataset.loaded = "true";
-            timeEl.innerText = "DB 데이터 로드됨 (1680+)";
-        } else {
-            listContainer.innerHTML = "<div style='padding:20px; color:#888;'>DB 내 1680 이상 캐릭터가 없습니다. 새로고침을 눌러보세요.</div>";
         }
     }
-}
 
     // 반복되는 로우 생성을 위한 공통 함수
     function renderRow(container, char, ownerName, index, isApiMode) {
@@ -783,31 +754,28 @@ async function handleMemberTab(name, forceRefresh = false) {
     }
 
     function openTab(evt, tabName) {
-        // 1. 모든 컨텐츠 숨기기 및 버튼 비활성화
+        // 모든 컨텐츠 숨기기 및 버튼 비활성화
         document.querySelectorAll(".content").forEach(c => c.style.display = "none");
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-
-        // 2. 선택한 탭 보여주기
+        
+        // 선택한 탭 보여주기
         const targetContent = document.getElementById(tabName);
-        if (targetContent) {
-            targetContent.style.display = "block";
-            evt.currentTarget.classList.add("active");
-        }
+        targetContent.style.display = "block";
+        evt.currentTarget.classList.add("active");
 
-        // 3. 리스트 컨테이너 찾기
-        const listContainer = document.getElementById(`list-${tabName}`);
-
-        // 4. [수정된 로직] 탭 종류에 따른 분기 처리
-        if (tabName === 'nti-total' || tabName === '통합') {
-            // 통합 탭 호출 (ID가 다를 수 있으니 '통합'으로 고정 호출)
-            handleMemberTab('통합', false); 
-        } 
-        else if (tabName === 'roulette-tab') {
-            // 룰렛 탭은 로직 없음
-            console.log("룰렛 실행 중");
-        }
-        else if (MEMBERS[tabName]) {
-            // 개인 탭: 데이터가 이미 로드된 상태가 아닐 때만 호출
+        // [수정 포인트] 이미 로드된 적이 있다면(dataset.loaded === "true") 다시 API를 호출하지 않음
+        const listContainer = document.getElementById(`list-${tabName}`) || document.getElementById('total-list-container');
+        
+        if (tabName === 'nti-total') {
+            // 통합 탭: 데이터가 없을 때만 로드
+            if (!listContainer || listContainer.dataset.loaded !== "true") {
+                loadNTITotal();
+            }
+        } else if (tabName === 'roulette-tab') {
+        // 룰렛 탭은 별도 로딩 로직 필요 없음 (iframe이 자동 로드됨)
+        console.log("룰렛 실행 중");
+        } else if (MEMBERS[tabName]) {
+            // 개인 탭: 데이터가 없을 때만 로드
             if (!listContainer || listContainer.dataset.loaded !== "true") {
                 handleMemberTab(tabName, false);
             }
