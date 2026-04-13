@@ -433,10 +433,24 @@
 
     async function loadFullDetails(charName, charId, ownerName, charData) {
 
-    let member = charData;
-    if (!member && typeof allMemberData !== 'undefined') {
-        member = allMemberData.find(m => m.name === charName || m.characterName === charName);
+    // 🔥 DB 로딩 대기
+    if (!charData && (!dbData || dbData.length === 0)) {
+        console.log(`[${charName}] ⏳ DB 대기중...`);
+        setTimeout(() => {
+            loadFullDetails(charName, charId, ownerName, charData);
+        }, 100);
+        return;
     }
+
+    // 🔥 여기 중요 (member 선언)
+    let member = charData;
+
+    if (!member && dbData && dbData.length > 0) {
+        member = dbData.find(m => 
+            (m.name || m["캐릭터명"]) === charName
+        );
+    }
+
     const safeData = member || {};
 
     // 1. DOM 요소 선언
@@ -456,10 +470,11 @@
     const savedLv = toNum(safeData.lv || safeData["아이템레벨"] || 0);
     const savedCp = toNum(safeData.cp || safeData["전투력"] || 0);
     const savedApText = String(safeData.arkPassive || safeData["아크패시브"] || "");
+    const dbArc = savedData ? (savedData.arkPassive || savedData["아크패시브"] || "Inactive") : "Inactive";
+    const dbAg = savedData ? (savedData.arkGrid || savedData["아크그리드"] || "Inactive") : "Inactive";
+    const dbGemTxt = savedData ? (savedData.gemSummary || savedData["보석요약"] || "정보 없음") : "정보 없음";
+    const dbGemGold = savedData ? (savedData.gemTotal || savedData["보석합계"] || "0") : "0";
 
-    const savedAgText = String(safeData["아크그리드"] || safeData.arkGrid || "");
-    const savedGemText = String(safeData["보석요약"] || safeData.gemSummary || "");
-    const savedGemTotal = toNum(safeData["보석합계"] || safeData.gemTotal || 0);
 
     console.log(`[${charName}] 매칭 성공 -> 그리드: ${savedAgText}, 보석: ${savedGemText}`);
 
@@ -468,17 +483,17 @@
             agEl.innerText = savedAgText;
             agEl.classList.remove('loading-dot');
         }
-    
+
         if (gemTxtEl && savedGemText && savedGemText !== "Inactive") {
             gemTxtEl.innerText = savedGemText;
             gemTxtEl.classList.remove('loading-dot');
         }
-    
+
         if (gemGoldEl && savedGemTotal > 0) {
             gemGoldEl.innerText = savedGemTotal.toLocaleString() + " G";
             gemGoldEl.classList.remove('loading-dot');
         }
-    
+
         console.log(`[${charName}] ✅ DB 초기 렌더 완료`);
     }, 50);
 
@@ -786,7 +801,7 @@
             <div id="cp-${charId}" class="${isApiMode ? 'loading-dot' : ''}">${isApiMode ? '...' : parseFloat(String(dbCp).replace(/,/g, "")).toLocaleString()}</div>
             <div id="db-cp-${charId}">${parseFloat(String(dbCp).replace(/,/g, "")).toLocaleString()}</div>
             <div id="ap-${charId}" style="font-size:0.75rem;">${isApiMode ? '...' : dbArc}</div>
-            <div id="ag-${charId}">${isApiMode ? '...' : 'Inactive'}</div>
+            <div id="ag-${charId}">${isApiMode ? '...' : dbAg}</div>
             <div class="gem-box">
                 <div id="gem-txt-${charId}" class="gem-text">${isApiMode ? '보석없음' : dbGemTxt}</div>
                 <div id="gem-gold-${charId}" class="gold-text">${parseFloat(String(dbGemGold).replace(/,/g, "")).toLocaleString()} G</div>
