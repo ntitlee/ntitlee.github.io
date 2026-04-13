@@ -570,14 +570,20 @@
                         <div class="ark-grid-row">${renderGridRow(agData.Slots.slice(3, 6))}</div>
                     </div>`;
             } else {
-                agEl.innerText = "Inactive";
+                // [중요] API 데이터가 없으면 DB 값을 유지하고, DB 값조차 없으면 Inactive 표시
+                if (!savedAgText || savedAgText === "Inactive" || savedAgText === "") {
+                    agEl.innerText = "Inactive";
+                }
             }
         }
 
-        // 9. 보석 처리
-        let charTotalGold = 0;
-        if (gData?.Gems) {
+        // 9. 보석 처리 (수정본)
+        if (gemTxtEl) gemTxtEl.classList.remove('loading-dot');
+        if (gemGoldEl) gemGoldEl.classList.remove('loading-dot');
+
+        if (gData?.Gems && gData.Gems.length > 0) {
             let counts = {};
+            let charTotalGold = 0;
             gData.Gems.forEach(g => {
                 const name = g.Name.replace(/<[^>]*>?/gm, '').replace(/의 보석/g, "").trim();
                 const isBind = name.includes("귀속") || name.includes("이벤트");
@@ -588,12 +594,11 @@
             const summary = Object.entries(counts).map(([k,v]) => `${k} ${v}`).join(", ");
             if (gemTxtEl) gemTxtEl.innerText = summary;
             if (gemGoldEl) gemGoldEl.innerText = charTotalGold.toLocaleString() + " G";
-            
-            const totalEl = document.getElementById(`total-gold-${ownerName}`);
-            if (totalEl) {
-                const current = parseInt(totalEl.dataset.sum || "0");
-                totalEl.dataset.sum = current + charTotalGold;
-                totalEl.innerText = `총 합계: ${parseInt(totalEl.dataset.sum).toLocaleString()} G`;
+        } else {
+            // API에 보석 정보가 없으면 DB에 저장된 텍스트와 골드를 그대로 보여줌
+            if (savedGemText && savedGemText !== "Inactive") {
+                if (gemTxtEl) gemTxtEl.innerText = savedGemText;
+                if (gemGoldEl) gemGoldEl.innerText = savedGemTotal > 0 ? savedGemTotal.toLocaleString() + " G" : "0 G";
             }
         }
 
