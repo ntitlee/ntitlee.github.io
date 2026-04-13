@@ -623,57 +623,71 @@
  * 멤버별 탭 클릭 및 데이터 로드 (새로고침 포함)
  */
 async function handleMemberTab(name, forceRefresh = false) {
-    // [통합/전체 탭 로직 수정]
+    // 1. 공통 변수 선언 (함수 시작하자마자 선언하여 모든 블록에서 사용 가능하게 함)
+    const listContainer = document.getElementById(`list-${name}`);
+    const timeEl = document.getElementById(`time-${name}`);
+    // 버튼은 탭 메뉴 버튼 혹은 내용 영역의 새로고침 버튼 중 하나를 선택
+    const btn = document.querySelector(`#${name} .refresh-btn`) || 
+                document.querySelector(`.tabs .tab-btn[onclick*="'${name}'"]`);
+
+    // [통합/전체 탭 로직]
     if (name === '통합' || name === '전체') {
         if (memberLoading['통합']) return;
         
-        const listContainer = document.getElementById(`list-${name}`);
-        const btn = document.querySelector(`.tabs .tab-btn[onclick*="${name}"]`) || document.querySelector(`#${name} .refresh-btn`);
-        const timeEl = document.getElementById(`time-${name}`);
-
         if (forceRefresh) {
             memberLoading['통합'] = true;
             if (btn) btn.innerText = "전체 로딩 중...";
             try {
                 const allMemberNames = Object.keys(MEMBERS);
-                // 모든 멤버 API 호출 완료를 기다림
+                // 모든 멤버 API 호출 완료를 기다림 (병렬 처리)
                 await Promise.all(allMemberNames.map(mName => handleMemberTab(mName, true)));
                 if (timeEl) timeEl.innerText = `전체 갱신 완료 (${getCurrentTime()})`;
             } catch (e) {
-                console.error(e);
+                console.error("통합 갱신 에러:", e);
             } finally {
                 memberLoading['통합'] = false;
                 if (btn) btn.innerText = "새로고침";
             }
         }
 
-        // [핵심] 모든 멤버의 데이터를 DB에서 긁어모아 통합 탭에 출력
-        listContainer.innerHTML = "";
-        // 모든 멤버의 1680+ 캐릭터 필터링
-        const allChars = dbData.filter(d => parseFloat(String(d.lv || d["아이템레벨"]).replace(/,/g, "")) >= 1680);
-        
-        if (allChars.length > 0) {
-            // 레벨 순으로 정렬
-            allChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
+        // DB에서 모든 캐릭터 데이터 필터링 및 출력
+        if (listContainer) {
+            listContainer.innerHTML = "";
+            const allChars = dbData.filter(d => parseFloat(String(d.lv || d["아이템레벨"]).replace(/,/g, "")) >= 1680);
             
-            allChars.forEach((char, index) => {
-                const formattedChar = {
-                    CharacterName: char.name || char["캐릭터명"],
-                    ServerName: char.server || char["서버"],
-                    CharacterClassName: char.class || char["직업"],
-                    ItemAvgLevel: char.lv || char["아이템레벨"]
-                };
-                // 소유자 이름을 함께 전달 (ownerName 자리에 char.owner)
-                renderRow(listContainer, formattedChar, char.owner || char["소유자"], index, false);
-            });
-            if (timeEl && !forceRefresh) timeEl.innerText = "전체 데이터 로드됨 (1680+)";
-        } else {
-            listContainer.innerHTML = "<div style='padding:20px; color:#888;'>표시할 데이터가 없습니다. 새로고침을 눌러보세요.</div>";
+            if (allChars.length > 0) {
+                allChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
+                allChars.forEach((char, index) => {
+                    const formattedChar = {
+                        CharacterName: char.name || char["캐릭터명"],
+                        ServerName: char.server || char["서버"],
+                        CharacterClassName: char.class || char["직업"],
+                        ItemAvgLevel: char.lv || char["아이템레벨"]
+                    };
+                    renderRow(listContainer, formattedChar, char.owner || char["소유자"], index, false);
+                });
+                if (timeEl && !forceRefresh) timeEl.innerText = "전체 데이터 로드됨 (1680+)";
+            } else {
+                listContainer.innerHTML = "<div style='padding:20px; color:#888;'>표시할 데이터가 없습니다. 새로고침을 눌러보세요.</div>";
+            }
         }
-        return; 
+        return; // 통합 탭 로직 종료
     }
 
-    // 1. API 강제 새로고침 모드
+    // --- 2. 단일 멤버 처리 로직 ---
+    if (memberLoading[name]) return;
+    if (!listContainer) return; // 엘리먼트가 없으면 중단
+
+    // 골드 합계 초기화
+    const totalEl = document.getElementById(`total-gold-${name}`);
+    if (totalEl) {
+        totalEl.dataset.sum = 0;
+        totalEl.innerText = "총 합계: 0 G";
+    }
+
+    if (!forceRefresh && listContainer.dataset.loaded === "true") return;
+
+    // API 강제 새로고침 모드
     if (forceRefresh) {
         memberLoading[name] = true;
         if (btn) btn.innerText = "로딩 중...";
@@ -684,7 +698,6 @@ async function handleMemberTab(name, forceRefresh = false) {
             });
             const sibs = await res.json();
             
-            // 1680 이상 캐릭터 필터 및 정렬
             const targets = sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1680)
                                 .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
 
@@ -693,24 +706,23 @@ async function handleMemberTab(name, forceRefresh = false) {
                 listContainer.innerHTML = "<div style='padding:20px; color:#888;'>1680 레벨 이상의 캐릭터가 없습니다.</div>";
             } else {
                 for (const [index, char] of targets.entries()) {
-                    // renderRow 내부에서 loadFullDetails를 호출하여 상세 정보 및 DB 비교 수행
                     renderRow(listContainer, char, name, index, true);
                 }
             }
             listContainer.dataset.loaded = "true";
-            timeEl.innerText = `최신 갱신 완료 (${getCurrentTime()})`;
+            if (timeEl) timeEl.innerText = `최신 갱신 완료 (${getCurrentTime()})`;
         } catch (e) {
             console.error(e);
-            listContainer.innerHTML = "<div style='padding:20px; color:red;'>API 호출에 실패했습니다.</div>";
+            listContainer.innerHTML = "<div style='padding:20px; color:red;'>API 호출 실패</div>";
         } finally {
             memberLoading[name] = false;
             if (btn) btn.innerText = "새로고침";
         }
     } 
-    // 2. 일반 모드: DB 데이터 로드
+    // 일반 모드: DB 데이터 로드
     else {
         if (dbData.length === 0) {
-            listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">DB 데이터 확인 중...</div>';
+            listContainer.innerHTML = '<div class="loading-dot" style="padding:20px;">DB 확인 중...</div>';
             setTimeout(() => handleMemberTab(name, false), 500);
             return;
         }
@@ -724,15 +736,15 @@ async function handleMemberTab(name, forceRefresh = false) {
                 const formattedChar = {
                     CharacterName: char.name || char["캐릭터명"],
                     ServerName: char.server || char["서버"],
-                    CharacterClassName: char.class || char["직업"], // 직업 데이터 매핑
+                    CharacterClassName: char.class || char["직업"],
                     ItemAvgLevel: char.lv || char["아이템레벨"]
                 };
                 renderRow(listContainer, formattedChar, name, index, false);
             });
             listContainer.dataset.loaded = "true";
-            timeEl.innerText = "DB 데이터 로드됨 (1680+)";
+            if (timeEl) timeEl.innerText = "DB 로드됨 (1680+)";
         } else {
-            listContainer.innerHTML = "<div style='padding:20px; color:#888;'>DB 내 1680 이상 캐릭터가 없습니다. 새로고침을 눌러보세요.</div>";
+            listContainer.innerHTML = "<div style='padding:20px; color:#888;'>데이터 없음.</div>";
         }
     }
 }
