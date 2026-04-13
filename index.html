@@ -602,9 +602,15 @@
         const savedAgText = String(safeData.arkGrid || safeData["아크그리드"] || "");
         const isAgChanged = savedAgText !== "" && currentAgText !== "Inactive" && savedAgText !== currentAgText;
         const isNew = !charData || Object.keys(charData).length === 0;
-
+        const isMissingData =
+            savedLv === 0 ||
+            savedCp === 0 ||
+            savedServer === "" ||
+            savedJob === "" ||
+            savedOwner === "";
+6
         // 하나라도 변경되었다면 업데이트 실행
-        if (isNew || isLevelUp || isCpUp || isApChanged || isAgChanged) {
+        if (isNew || isMissingData || isLevelUp || isCpUp || isApChanged || isAgChanged || isInfoChanged) {
             const gasPayload = {
                 type: "update_all",
                 name: charName,
