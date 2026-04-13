@@ -546,12 +546,19 @@
                         <div class="ark-grid-row">${renderGridRow(agData.Slots.slice(0, 3))}</div>
                         <div class="ark-grid-row">${renderGridRow(agData.Slots.slice(3, 6))}</div>
                     </div>`;
-            } else {
+            }
+            else if (savedAgText && savedAgText !== "Inactive") {
+                // 텍스트만이라도 출력 (예: 1/2/3/4/5/6)
+                agEl.innerHTML = `<div style="font-size: 13px; color: #aaa; text-align: center; padding: 5px;">${savedAgText} (DB)</div>`;
+            } 
+            // 둘 다 없을 경우
+            else {
                 agEl.innerText = "Inactive";
             }
         }
 
         // 9. 보석 처리
+        const savedGemText = safeData.gemSummary || safeData["보석"] || "";
         let charTotalGold = 0;
         if (gData?.Gems) {
             let counts = {};
@@ -571,6 +578,16 @@
                 const current = parseInt(totalEl.dataset.sum || "0");
                 totalEl.dataset.sum = current + charTotalGold;
                 totalEl.innerText = `총 합계: ${parseInt(totalEl.dataset.sum).toLocaleString()} G`;
+            }
+            
+        }
+        else if (savedGemText && savedGemText !== "Inactive") {
+            if (gemTxtEl) {
+                gemTxtEl.innerText = savedGemText + " (DB)";
+                gemTxtEl.classList.remove('loading-dot');
+            }
+            if (gemGoldEl) {
+                gemGoldEl.innerText = "- G"; 
             }
         }
 
