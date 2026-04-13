@@ -348,10 +348,10 @@
                 },
                 body: JSON.stringify(data)
             });
-        
+
             const text = await res.text();
             console.log("서버 응답:", text);
-        
+
         } catch (e) {
             console.error("시트 저장 에러:", e);
         }
@@ -604,7 +604,8 @@
         // 기존 DB의 arkGrid 값과 비교 (allMemberData 등에서 가져온 기준값 필요)
         const savedAgText = String(safeData.arkGrid || safeData["아크그리드"] || "");
         const isAgChanged = savedAgText !== "" && currentAgText !== "Inactive" && savedAgText !== currentAgText;
-
+        const isNew = !charData || Object.keys(charData).length === 0;
+        
         // 하나라도 변경되었다면 업데이트 실행
         if (isNew || isLevelUp || isCpUp || isApChanged || isAgChanged) {
             const gasPayload = {
