@@ -464,19 +464,22 @@
     console.log(`[${charName}] 매칭 성공 -> 그리드: ${savedAgText}, 보석: ${savedGemText}`);
 
     setTimeout(() => {
-        if (agEl && savedAgText && savedAgText !== "Inactive" && savedAgText !== "") {
+        if (agEl && savedAgText && savedAgText !== "Inactive") {
             agEl.innerText = savedAgText;
             agEl.classList.remove('loading-dot');
         }
-        if (gemTxtEl && savedGemText && savedGemText !== "Inactive" && savedGemText !== "") {
+    
+        if (gemTxtEl && savedGemText && savedGemText !== "Inactive") {
             gemTxtEl.innerText = savedGemText;
             gemTxtEl.classList.remove('loading-dot');
         }
+    
         if (gemGoldEl && savedGemTotal > 0) {
             gemGoldEl.innerText = savedGemTotal.toLocaleString() + " G";
             gemGoldEl.classList.remove('loading-dot');
         }
-        console.log(`[${charName}] DB 데이터 즉시 렌더링 완료`);
+    
+        console.log(`[${charName}] ✅ DB 초기 렌더 완료`);
     }, 50);
 
     const headers = { "accept": "application/json", "Authorization": API_KEY };
@@ -554,56 +557,73 @@
             }
         }
 
-        // 8. 아크그리드 렌더링
+        // 8. 아크그리드 렌더링 (수정 완료)
         if (agEl) {
             agEl.classList.remove('loading-dot');
+        
             if (agData?.Slots?.length > 0) {
                 const renderGridRow = (slots) => slots.map(s => {
                     const isHighGrade = s.Grade === "고대";
-                    const iconStyle = isHighGrade ? "filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.9)) brightness(1.1);" : "";
+                    const iconStyle = isHighGrade 
+                        ? "filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.9)) brightness(1.1);" 
+                        : "";
+                
                     return `
                     <div class="grid-item">
                         <img src="${s.Icon}" style="width:18px; height:18px; ${iconStyle}">
-                        <span style="color:${typeof getArkColor === 'function' ? getArkColor(s.Grade) : '#fff'}; font-weight:800; font-size:13px;">${s.Point}</span>
+                        <span style="color:${typeof getArkColor === 'function' ? getArkColor(s.Grade) : '#fff'}; font-weight:800; font-size:13px;">
+                            ${s.Point}
+                        </span>
                     </div>`;
                 }).join("");
+             
                 agEl.innerHTML = `
                     <div class="ark-grid-container">
                         <div class="ark-grid-row">${renderGridRow(agData.Slots.slice(0, 3))}</div>
                         <div class="ark-grid-row">${renderGridRow(agData.Slots.slice(3, 6))}</div>
                     </div>`;
-            } else {
-                // [중요] API 데이터가 없으면 DB 값을 유지하고, DB 값조차 없으면 Inactive 표시
-                if (!savedAgText || savedAgText === "Inactive" || savedAgText === "") {
-                    agEl.innerText = "Inactive";
-                }
-            }
+            } 
+            // 🔥 핵심: else 제거 → DB값 유지
         }
 
-        // 9. 보석 처리 (수정본)
+        // 9. 보석 처리 (완전 수정)
         if (gemTxtEl) gemTxtEl.classList.remove('loading-dot');
         if (gemGoldEl) gemGoldEl.classList.remove('loading-dot');
 
-        if (gData?.Gems && gData.Gems.length > 0) {
+        let charTotalGold = savedGemTotal; // 🔥 기본값 = DB값 유지
+
+        if (gData?.Gems?.length > 0) {
             let counts = {};
-            let charTotalGold = 0;
+            charTotalGold = 0;
+        
             gData.Gems.forEach(g => {
                 const name = g.Name.replace(/<[^>]*>?/gm, '').replace(/의 보석/g, "").trim();
                 const isBind = name.includes("귀속") || name.includes("이벤트");
                 const cleanName = name.replace(/\(귀속\)|\(이벤트\)/g, "").trim();
-                if (!isBind) charTotalGold += (typeof globalPrices !== 'undefined' ? (globalPrices[cleanName.includes("광휘") ? cleanName.replace("광휘", "작열") : cleanName] || 0) : 0);
-                counts[isBind ? cleanName + "(귀속)" : cleanName] = (counts[isBind ? cleanName + "(귀속)" : cleanName] || 0) + 1;
+            
+                if (!isBind) {
+                    charTotalGold += (
+                        typeof globalPrices !== 'undefined' 
+                        ? (globalPrices[cleanName.includes("광휘") 
+                            ? cleanName.replace("광휘", "작열") 
+                            : cleanName] || 0)
+                        : 0
+                    );
+                }
+            
+                const key = isBind ? cleanName + "(귀속)" : cleanName;
+                counts[key] = (counts[key] || 0) + 1;
             });
-            const summary = Object.entries(counts).map(([k,v]) => `${k} ${v}`).join(", ");
+        
+            const summary = Object.entries(counts)
+                .map(([k,v]) => `${k} ${v}`)
+                .join(", ");
+        
             if (gemTxtEl) gemTxtEl.innerText = summary;
             if (gemGoldEl) gemGoldEl.innerText = charTotalGold.toLocaleString() + " G";
-        } else {
-            // API에 보석 정보가 없으면 DB에 저장된 텍스트와 골드를 그대로 보여줌
-            if (savedGemText && savedGemText !== "Inactive") {
-                if (gemTxtEl) gemTxtEl.innerText = savedGemText;
-                if (gemGoldEl) gemGoldEl.innerText = savedGemTotal > 0 ? savedGemTotal.toLocaleString() + " G" : "0 G";
-            }
-        }
+        
+        } 
+
 
         // 10. 모든 변화 감지 (레벨, 전투력, 아크패시브, 아크그리드)
         const isLevelUp = savedLv > 0 && Math.round(currentLv * 100) > Math.round(savedLv * 100);
@@ -617,10 +637,12 @@
         const isApChanged = savedApText !== "" && currentApText !== "Inactive" && savedApText !== currentApText;
 
         // [추가] 아크그리드 텍스트 추출 및 비교 (바뀌기만 하면 갱신)
-        const currentAgText = agData?.Slots ? agData.Slots.map(s => s.Point).join("/") : "Inactive";
-        // 기존 DB의 arkGrid 값과 비교 (allMemberData 등에서 가져온 기준값 필요)
-        const savedAgText = String(safeData.arkGrid || safeData["아크그리드"] || "");
-        const isAgChanged = savedAgText !== "" && currentAgText !== "Inactive" && savedAgText !== currentAgText;
+        const currentAgText = agData?.Slots?.length > 0
+        ? agData.Slots.map(s => s.Point).join("/")
+        : "Inactive";
+        const isAgChanged = savedAgText !== "" &&
+                    currentAgText !== "Inactive" &&
+                    savedAgText !== currentAgText;
 
         // 하나라도 변경되었다면 업데이트 실행
         if (isLevelUp || isCpUp || isApChanged || isAgChanged) {
