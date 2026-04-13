@@ -500,17 +500,21 @@
             lvEl.innerText = currentLv.toFixed(2);
         }
 
-        // 2. 전투력 (상승 시 DB전투력 칸만 반짝)
+        // 2. 전투력 (표시 로직 수정)
         if (cpEl && dbCpEl) {
             cpEl.classList.remove('glow-text');
             dbCpEl.classList.remove('glow-text');
+            
+            // 화면에 현재 API에서 가져온 실제 전투력 표시
             cpEl.innerText = currentCp.toLocaleString();
             
+            // [핵심] 화면의 DB전투력 칸에는 '현재값'과 '기존값' 중 더 큰 것을 표시
+            const displayCp = Math.max(currentCp, savedCp);
+            dbCpEl.innerText = displayCp.toLocaleString();
+            
+            // 만약 현재 전투력이 갱신되었다면 반짝임 효과
             if (savedCp > 0 && currentCp > savedCp) {
                 dbCpEl.classList.add('glow-text');
-                dbCpEl.innerText = currentCp.toLocaleString();
-            } else {
-                dbCpEl.innerText = Math.max(currentCp, savedCp).toLocaleString();
             }
         }
 
