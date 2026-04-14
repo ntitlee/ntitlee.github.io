@@ -362,8 +362,6 @@
 
         dbData = await res.json();
 
-        console.log("불러온 DB:", dbData);
-
         console.log("DB 로드 완료", dbData);
     } catch (e) {
         console.error("DB 로드 실패", e);
@@ -390,13 +388,17 @@
 
     async function loadNTITotal(forceRefresh = false) {
         const container = document.getElementById('total-list-container');
-        if (!forceRefresh && dbData.length === 0) {
+            // 🔥 핵심 추가
+        if (forceRefresh) {
+            console.log("🔄 강제 새로고침 → DB 다시 불러옴");
+            await fetchDB();
+        }
+            if (!forceRefresh && dbData.length === 0) {
             container.innerHTML = `<div class="loading-dot">DB 로딩 중...</div>`;
             setTimeout(() => loadNTITotal(false), 500);
             return;
         }
         if (!forceRefresh && container.dataset.loaded === "true") return;
-
         renderTotalList(dbData);
         updateProfileImages(dbData);
         container.dataset.loaded = "true";
