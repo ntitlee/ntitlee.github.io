@@ -398,7 +398,7 @@
             setTimeout(() => loadNTITotal(false), 500);
             return;
         }
-        if (!forceRefresh && container.dataset.loaded === "true")  return;
+        if (!forceRefresh && container.dataset.loaded === "true") return;
         renderTotalList(dbData);
         updateProfileImages(dbData);
         container.dataset.loaded = "true";
@@ -489,25 +489,10 @@
         ]);
         
         const pData = await pRes.json();
-
-        const rawTitle = pData?.Title || "";
-        const cleanTitle = rawTitle.replace(/<[^>]*>/g, "").trim();
-
-        if (cleanTitle === "심연의 군주") {
-            const nameEl = document.querySelector(`#name-${charId}`);
-            if (nameEl) {
-                nameEl.innerHTML = `
-                    <img src="https://cdn-lostark.game.onstove.com/efui_iconatlas/playerinfodecobrooch/playerinfodecobrooch_98.png"
-                    style="width:18px; margin-right:6px;">
-                    <span class="char-name">${charName}</span>
-                `;
-            }
-        }       
         const apData = await apRes.json();
         const agData = await agRes.json();
         const gData = await gRes.json();
 
- 
         // 4. 현재 데이터 가공
         const currentLv = toNum(pData.ItemAvgLevel);
         const currentCp = toNum(pData?.CombatPower?.Value ?? pData?.CombatPower);
@@ -767,9 +752,9 @@
     // 반복되는 로우 생성을 위한 공통 함수
     function renderRow(container, char, ownerName, index, isApiMode) {
         const charId = (ownerName + char.CharacterName).replace(/\s/g, '');
-        
         // DB에서 해당 캐릭터의 기존 데이터를 찾음
         const savedData = dbData.find(d => String(d["캐릭터명"] || d.name || "").trim() === char.CharacterName.trim());
+        
         const row = document.createElement('div');
         row.className = `list-row member-grid ${index === 0 ? 'main-character' : ''}`;
         
@@ -780,12 +765,10 @@
         const dbGemTxt = savedData ? (savedData.gem_text || savedData["보석"] || "정보 없음") : "정보 없음";
         const dbGemGold = savedData ? (savedData.gold || savedData["보석골드"] || "0") : "0";
 
-
         row.innerHTML = `
-            <div id="name-${charId}">
-                <span class="char-name">${char.CharacterName}</span>
-            </div>
+            <div>${index === 0 ? '👑 ' : ''}<span class="char-name">${char.CharacterName}</span></div>
             <div>${char.ServerName}</div>
+
             <div id="class-${charId}">${isApiMode ? (char.CharacterClassName || dbClass) : dbClass}</div>
             <div id="lv-${charId}" style="font-weight:800;">${char.ItemAvgLevel}</div>
             <div id="cp-${charId}" class="${isApiMode ? 'loading-dot' : ''}">${isApiMode ? '...' : parseFloat(String(dbCp).replace(/,/g, "")).toLocaleString()}</div>
