@@ -361,6 +361,9 @@
         });
 
         dbData = await res.json();
+
+        console.log("불러온 DB:", dbData);
+
         console.log("DB 로드 완료", dbData);
     } catch (e) {
         console.error("DB 로드 실패", e);
