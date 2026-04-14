@@ -490,18 +490,10 @@
         
         const pData = await pRes.json();
 
-        console.log("🔥 캐릭터:", charName);
-        console.log("👉 pData 전체:", pData);
-        console.log("👉 Title 값:", pData?.Title);
-        if (pData?.Title) {
-            charData.Title = pData.Title;
-        }
-        const apData = await apRes.json();
-        const agData = await agRes.json();
-        const gData = await gRes.json();
+        const rawTitle = pData?.Title || "";
+        const cleanTitle = rawTitle.replace(/<[^>]*>/g, "").trim();
 
-        // 칭호
-        if (pData?.Title === "심연의 군주") {
+        if (cleanTitle === "심연의 군주") {
             const nameEl = document.querySelector(`#name-${charId}`);
             if (nameEl) {
                 nameEl.innerHTML = `
@@ -510,8 +502,12 @@
                     <span class="char-name">${charName}</span>
                 `;
             }
-        }
+        }       
+        const apData = await apRes.json();
+        const agData = await agRes.json();
+        const gData = await gRes.json();
 
+ 
         // 4. 현재 데이터 가공
         const currentLv = toNum(pData.ItemAvgLevel);
         const currentCp = toNum(pData?.CombatPower?.Value ?? pData?.CombatPower);
