@@ -355,11 +355,16 @@
     }
 
     async function fetchDB() {
-        try {
-            const res = await fetch(SHEET_API_URL);
-            dbData = await res.json();
-            console.log("DB 로드 완료");
-        } catch (e) { console.error("DB 로드 실패"); }
+    try {
+        const res = await fetch(`${SHEET_API_URL}?ts=${Date.now()}`, {
+            cache: "no-store"
+        });
+
+        dbData = await res.json();
+        console.log("DB 로드 완료", dbData);
+    } catch (e) {
+        console.error("DB 로드 실패", e);
+    }
     }
 
     async function backgroundPriceSync() {
