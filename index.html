@@ -398,7 +398,7 @@
             setTimeout(() => loadNTITotal(false), 500);
             return;
         }
-        if (!forceRefresh && container.dataset.loaded === "true") return;
+        if (!forceRefresh && container.dataset.loaded === "true")  return;
         renderTotalList(dbData);
         updateProfileImages(dbData);
         container.dataset.loaded = "true";
@@ -752,9 +752,9 @@
     // 반복되는 로우 생성을 위한 공통 함수
     function renderRow(container, char, ownerName, index, isApiMode) {
         const charId = (ownerName + char.CharacterName).replace(/\s/g, '');
+        
         // DB에서 해당 캐릭터의 기존 데이터를 찾음
         const savedData = dbData.find(d => String(d["캐릭터명"] || d.name || "").trim() === char.CharacterName.trim());
-        
         const row = document.createElement('div');
         row.className = `list-row member-grid ${index === 0 ? 'main-character' : ''}`;
         
@@ -765,10 +765,15 @@
         const dbGemTxt = savedData ? (savedData.gem_text || savedData["보석"] || "정보 없음") : "정보 없음";
         const dbGemGold = savedData ? (savedData.gold || savedData["보석골드"] || "0") : "0";
 
-        row.innerHTML = `
-            <div>${index === 0 ? '👑 ' : ''}<span class="char-name">${char.CharacterName}</span></div>
-            <div>${char.ServerName}</div>
+        // 칭호
+        const title = char.Title || "";
 
+        row.innerHTML = `
+            <div>
+                ${getTitleBadgeHTML(title, index)}
+                <span class="char-name">${char.CharacterName}</span>
+            </div>
+            <div>${char.ServerName}</div>
             <div id="class-${charId}">${isApiMode ? (char.CharacterClassName || dbClass) : dbClass}</div>
             <div id="lv-${charId}" style="font-weight:800;">${char.ItemAvgLevel}</div>
             <div id="cp-${charId}" class="${isApiMode ? 'loading-dot' : ''}">${isApiMode ? '...' : parseFloat(String(dbCp).replace(/,/g, "")).toLocaleString()}</div>
@@ -871,6 +876,23 @@
             // 2. 호출 간 대기 시간 추가 (500ms) - 429 방어용
             await new Promise(r => setTimeout(r, 500));
         }
+    }
+
+    // 1.칭호 이미지(전역상수)
+    const ABYSS_BADGE_ICON = "https://cdn-lostark.game.onstove.com/efui_iconatlas/playerinfodecobrooch/playerinfodecobrooch_98.png";
+
+    // 2. 칭호 조건 (공통 함수)
+    function getTitleBadgeHTML(title, index) {
+        // 1등이 아니면 표시 안함
+        if (index !== 0) return '';
+
+        // 칭호가 "심연의 군주"일 때만
+        if (title !== "심연의 군주") return '';
+
+        return `<img 
+            src="${ABYSS_BADGE_ICON}" 
+            style="width:18px; height:18px; vertical-align:middle; margin-right:6px;"
+        >`;
     }
 
     function init() {
