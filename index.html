@@ -489,9 +489,24 @@
         ]);
         
         const pData = await pRes.json();
+        if (pData?.Title) {
+            charData.Title = pData.Title;
+        }
         const apData = await apRes.json();
         const agData = await agRes.json();
         const gData = await gRes.json();
+
+        // 칭호
+        if (pData?.Title === "심연의 군주") {
+            const nameEl = document.querySelector(`#name-${charId}`);
+            if (nameEl) {
+                nameEl.innerHTML = `
+                    <img src="https://cdn-lostark.game.onstove.com/efui_iconatlas/playerinfodecobrooch/playerinfodecobrooch_98.png"
+                    style="width:18px; margin-right:6px;">
+                    <span class="char-name">${charName}</span>
+                `;
+            }
+        }
 
         // 4. 현재 데이터 가공
         const currentLv = toNum(pData.ItemAvgLevel);
@@ -765,13 +780,9 @@
         const dbGemTxt = savedData ? (savedData.gem_text || savedData["보석"] || "정보 없음") : "정보 없음";
         const dbGemGold = savedData ? (savedData.gold || savedData["보석골드"] || "0") : "0";
 
-        // 칭호
-        const title = char.Title || "";
-        console.log("badge html:", getTitleBadgeHTML(title, index));
 
         row.innerHTML = `
-            <div>
-                ${getTitleBadgeHTML(title, index)}
+            <div id="name-${charId}">
                 <span class="char-name">${char.CharacterName}</span>
             </div>
             <div>${char.ServerName}</div>
@@ -877,23 +888,6 @@
             // 2. 호출 간 대기 시간 추가 (500ms) - 429 방어용
             await new Promise(r => setTimeout(r, 500));
         }
-    }
-
-    // 1.칭호 이미지(전역상수)
-    const ABYSS_BADGE_ICON = "https://cdn-lostark.game.onstove.com/efui_iconatlas/playerinfodecobrooch/playerinfodecobrooch_98.png";
-
-    // 2. 칭호 조건 (공통 함수)
-    function getTitleBadgeHTML(title, index) {
-        // 1등이 아니면 표시 안함
-        if (index !== 0) return '';
-
-        // 칭호가 "심연의 군주"일 때만
-        if (title !== "심연의 군주") return '';
-
-        return `<img 
-            src="${ABYSS_BADGE_ICON}" 
-            style="width:18px; height:18px; vertical-align:middle; margin-right:6px;"
-        >`;
     }
 
     function init() {
