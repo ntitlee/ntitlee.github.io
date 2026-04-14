@@ -489,6 +489,10 @@
         ]);
         
         const pData = await pRes.json();
+
+        console.log("🔥 캐릭터:", charName);
+        console.log("👉 pData 전체:", pData);
+        console.log("👉 Title 값:", pData?.Title);
         if (pData?.Title) {
             charData.Title = pData.Title;
         }
