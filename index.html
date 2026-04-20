@@ -481,17 +481,20 @@
 
     try {
         // 3. API 호출
-        const [pRes, apRes, agRes, gRes] = await Promise.all([
+        const [pRes, apRes, agRes, gRes, eqRes] = await Promise.all([
             fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/profiles`, { headers }),
             fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/arkpassive`, { headers }),
             fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/arkgrid`, { headers }),
-            fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/gems`, { headers })
+            fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/gems`, { headers }),
+            fetch(`${BASE_URL}/armories/characters/${encodeURIComponent(charName)}/equipment`, { headers }) // 👈 추가
+
         ]);
         
         const pData = await pRes.json();
         const apData = await apRes.json();
         const agData = await agRes.json();
         const gData = await gRes.json();
+        const eqData = await eqRes.json();
 
         // 4. 현재 데이터 가공
         const currentLv = toNum(pData.ItemAvgLevel);
@@ -872,6 +875,22 @@
             await new Promise(r => setTimeout(r, 500));
         }
     }
+    
+    function cleanHTML(html) {
+        return html.replace(/<[^>]*>/g, "");
+    }
+
+    console.log(`🧪 [${charName}] 장비 데이터 확인`);
+
+    eqData.forEach(item => {
+        const text = cleanHTML(item.Tooltip);
+
+        console.log("부위:", item.Type);
+        console.log("이름:", item.Name);
+        console.log("등급:", item.Grade);
+        console.log("내용:", text);
+        console.log("----------------------");
+    });
 
     function init() {
         const menu = document.getElementById('tabMenu');
