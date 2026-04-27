@@ -354,6 +354,8 @@
         }
     }
 
+    let isDBLoaded = false;
+
     async function fetchDB() {
     try {
         const res = await fetch(`${SHEET_API_URL}?ts=${Date.now()}`, {
@@ -361,6 +363,7 @@
         });
 
         dbData = await res.json();
+        isDBLoaded = true; // 🔥 핵심
 
         console.log("DB 로드 완료", dbData);
     } catch (e) {
@@ -620,7 +623,6 @@
         const isNew = !charData || Object.keys(charData).length === 0;
         const isMissingData =
             savedLv === 0 ||
-            savedCp === 0 ||
             savedServer === "" ||
             savedJob === "" ||
             savedOwner === "";
