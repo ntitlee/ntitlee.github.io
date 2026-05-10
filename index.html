@@ -635,11 +635,13 @@
         // 하나라도 변경되었다면 업데이트 실행
         if (isNew || isMissingData || isLevelUp || isCpUp || isApChanged || isAgChanged || isInfoChanged) {
 
-    console.log(`[${charName}] CP CHECK`, {
-        currentCp,
-        savedCp,
-        finalCp: Math.max(currentCp, savedCp)
-    });
+            const finalCp = Math.max(currentCp, savedCp);
+
+            console.log(`[${charName}] CP CHECK`, {
+                currentCp,
+                savedCp,
+                finalCp
+            });
 
             const gasPayload = {
                 type: "update_all",
@@ -648,7 +650,7 @@
                 server: pData.ServerName,
                 owner: ownerName,
                 lv: currentLv,
-                cp: Math.max(currentCp, savedCp), // 전투력은 최대값 유지
+                cp: finalCp, // 전투력은 최대값 유지
                 arkPassive: currentApText,
                 arkGrid: currentAgText, // 변경된 아크그리드 전송
                 gemSummary: gemTxtEl ? gemTxtEl.innerText : "",
@@ -657,6 +659,10 @@
 
             if (typeof SHEET_API_URL !== 'undefined') {
             await syncToSheet(gasPayload);
+
+                // ✅ 메모리 DB 최신화
+                charData.cp = finalCp;
+
                 
                 // 로그 출력으로 어떤 값이 변했는지 상세히 표시
                 let changeLog = [];
