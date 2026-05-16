@@ -713,8 +713,22 @@
                 const sibs = await res.json();
                 
                 // [수정 포인트] 필터 기준을 1680으로 상향
-                const targets = sibs.filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1680)
-                                    .sort((a, b) => parseFloat(b.ItemAvgLevel.replace(/,/g, "")) - parseFloat(a.ItemAvgLevel.replace(/,/g, "")));
+                const targets = sibs
+                    .filter(c => parseFloat(c.ItemAvgLevel.replace(/,/g, "")) >= 1680)
+                    .sort((a, b) => {
+                        const dbA = dbData.find(d =>
+                            (d.name || d["캐릭터명"]) === a.CharacterName
+                        );
+                    
+                        const dbB = dbData.find(d =>
+                            (d.name || d["캐릭터명"]) === b.CharacterName
+                        );
+                    
+                        const cpA = parseFloat(String(dbA?.cp || dbA?.["전투력"] || 0).replace(/,/g, ""));
+                        const cpB = parseFloat(String(dbB?.cp || dbB?.["전투력"] || 0).replace(/,/g, ""));
+                    
+                        return cpB - cpA;
+                    });
 
                 listContainer.innerHTML = "";
                 if (targets.length === 0) {
@@ -747,7 +761,11 @@
             const myChars = dbData.filter(d => (d.owner === name || d["소유자"] === name) && parseFloat(String(d.lv || d["아이템레벨"]).replace(/,/g, "")) >= 1680);
             
             if (myChars.length > 0) {
-                myChars.sort((a, b) => parseFloat(b.lv || b["아이템레벨"]) - parseFloat(a.lv || a["아이템레벨"]));
+                myChars.sort((a, b) => {
+                                        const cpA = parseFloat(String(a.cp || a["전투력"] || 0).replace(/,/g, ""));
+                                        const cpB = parseFloat(String(b.cp || b["전투력"] || 0).replace(/,/g, ""));
+                                        return cpB - cpA;
+                                    });
                 myChars.forEach((char, index) => {
                     const formattedChar = {
                         CharacterName: char.name || char["캐릭터명"],
